@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////
 // Add a '//' at the beginning of the line to be in 
 // release mode.
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 ///////////////////////////////////////////////////////
 // Verbose mode lets you see all actions done by the 
@@ -157,7 +157,6 @@ const char * const DDC_config_table[] PROGMEM =
 #define STR_FUNCTIONREARLIGHTS	44
 #define STR_FUNCTIONCABINLIGHTS	45
 #define STR_SAVELOCO		46
-#define STR_SPECIAL_RST		255
 
 //////////////////////////////////////////
 //  Exclusion area
@@ -180,6 +179,10 @@ const char * const DDC_config_table[] PROGMEM =
 //NO_BUTTONSCOMMANDER
 //	ButtonsCommander.cpp
 //	ButtonsCommander.hpp
+//	ButtonsCommanderAnalogPushes.cpp
+//	ButtonsCommanderAnalogPushes.hpp
+//	ButtonsCommanderAnalogPushesItem.cpp
+//	ButtonsCommanderAnalogPushesItem.hpp
 //	ButtonsCommanderButtons.cpp
 //	ButtonsCommanderButtons.hpp
 //	ButtonsCommanderEncoder.cpp
@@ -199,7 +202,7 @@ const char * const DDC_config_table[] PROGMEM =
 //	ButtonsCommanderEncoder.cpp
 //	ButtonsCommanderEncoder.hpp
 //
-//NO_BUTTONSCOMMANDERANALOGPUSHES
+//NO_BUTTONSCOMMANDERANALOGPUSH
 //	ButtonsCommanderAnalogPushes.cpp
 //	ButtonsCommanderAnalogPushes.hpp
 //	ButtonsCommanderAnalogPushesItem.cpp
@@ -221,9 +224,9 @@ const char * const DDC_config_table[] PROGMEM =
 //#define NO_BUTTONSCOMMANDER
 //#define NO_BUTTONSCOMMANDERENCODER
 //#define NO_BUTTONSCOMMANDERPUSH
-//#define NO_BUTTONSCOMMANDERANALOGPUSH
+#define NO_BUTTONSCOMMANDERANALOGPUSH
 //#define NO_BUTTONSCOMMANDERSWITCH
-//#define NO_BUTTONSCOMMANDERPOTENTIOMETER
+#define NO_BUTTONSCOMMANDERPOTENTIOMETER
 
 #ifdef NO_COMMANDER
 #ifndef NO_BUTTONSCOMMANDER
@@ -234,8 +237,8 @@ const char * const DDC_config_table[] PROGMEM =
 #ifndef NO_BUTTONSCOMMANDERPUSH
 #define NO_BUTTONSCOMMANDERPUSH
 #endif
-#ifndef NO_BUTTONSCOMMANDERANALOGPUSHES
-#define NO_BUTTONSCOMMANDERANALOGPUSHES
+#ifndef NO_BUTTONSCOMMANDERANALOGPUSH
+#define NO_BUTTONSCOMMANDERANALOGPUSH
 #endif
 #ifndef NO_BUTTONSCOMMANDERSWITCH
 #define NO_BUTTONSCOMMANDERSWITCH
@@ -264,7 +267,7 @@ const char * const DDC_config_table[] PROGMEM =
 #ifndef NO_BUTTONSCOMMANDERPUSH
 #include "ButtonsCommanderPush.hpp"
 #endif
-#ifndef NO_BUTTONSCOMMANDERANALOGPUSHES
+#ifndef NO_BUTTONSCOMMANDERANALOGPUSH
 #include "ButtonsCommanderAnalogPushes.hpp"
 #endif
 #ifndef NO_BUTTONSCOMMANDERSWITCH
@@ -316,8 +319,6 @@ public:
 	Handle **pHandleList;
 	int handleAddcounter;
 	Controler *pControler;
-	byte EEPROMversion;
-	static char buffer[80];
 
 #ifdef VISUALSTUDIO
 	static char LastKeyPressed;
@@ -338,6 +339,7 @@ public:
 	void StartSetup(uint8_t inDcPWMpin = 0, uint8_t inDcDirPin = 0);
 	void EndSetup();
 	void AddHandle(Handle *pHandle);
+	byte IndexOf(Handle *inpHandle);
 	inline void SetDcDccButton(ButtonsCommanderButton *inpDcDccButton) { this->pDcDccButton = inpDcDccButton; }
 	inline void SetPanicButton(ButtonsCommanderButton *inpPanicButton) { this->pPanicButton = inpPanicButton; }
 
@@ -346,8 +348,6 @@ public:
 	void LoadConfig();
 	int SaveConfig();
 	void ResetConfig();
-
-	static char *GetString(int inString);
 
 #ifdef DEBUG_MODE
 	void CheckIndex(unsigned char inIndex, const __FlashStringHelper *inFunc);

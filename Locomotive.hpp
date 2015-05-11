@@ -37,7 +37,7 @@ public:
 	void AddFunction(Function *);
 	Function *GetFunction(int inDccIdFunction) const;
 	void SetFunctionsSize(byte size);
-	inline Function *GetFunctionFromIndex(byte inIndex)	const { return this->pFunctions[inIndex]; }
+	inline Function *GetFunctionFromIndex(byte inIndex)	const { return this->pFunctions == 0 ? 0 : this->pFunctions[inIndex]; }
 	byte GetFunctionIndex(Function *inpRef) const;
 	void Copy(const Locomotive &inLocomotive);
 	inline const char *GetName() const { return this->Name; }
@@ -60,10 +60,10 @@ public:
 	void Load(int inStartPos);
 	static void LoadName(int inStartPos, char *outpName);
 	void Save(int inStartPos);
+	void Clear();
 
 #ifdef DEBUG_MODE
 	void CheckIndex(byte inIndex, const __FlashStringHelper *inFunc);
-	void Clear();
 #endif
 };
 

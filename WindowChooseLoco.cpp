@@ -47,38 +47,44 @@ void WindowChooseLoco::RebuildChoices()
 #endif
 }
 
-byte WindowChooseLoco::GetNextLocoSlot(byte slot)
+byte WindowChooseLoco::GetSlotIndex(byte inSlot)
 {
-	for (int count = 0;  WindowChooseLoco::pLocoSlots[count] != 255; count++)
-		if (WindowChooseLoco::pLocoSlots[count] == slot)
-		{
-			count++;
-			if (WindowChooseLoco::pLocoSlots[count] != 255)
-				return WindowChooseLoco::pLocoSlots[count];
-			return WindowChooseLoco::pLocoSlots[0];
-		}
+	for (int count = 0; WindowChooseLoco::pLocoSlots[count] != 255; count++)
+		if (WindowChooseLoco::pLocoSlots[count] == inSlot)
+			return count;
 
 	return 255;
 }
 
-byte WindowChooseLoco::GetPrevLocoSlot(byte slot)
+byte WindowChooseLoco::GetNextLocoSlot(byte inSlot)
 {
-	for (int count = 0; WindowChooseLoco::pLocoSlots[count] != 255; count++)
-		if (WindowChooseLoco::pLocoSlots[count] == slot)
-		{
-			if (count == 0)
-			{
-				// if start of the list, go to the end
-				while (WindowChooseLoco::pLocoSlots[count] != 255)
-					count++;
+	byte slot = GetSlotIndex(inSlot);
+	if (slot == 255)
+		return 255;
 
-				if (count == 0)
-					return 255;
-			}
-			return WindowChooseLoco::pLocoSlots[count - 1];
-		}
+	slot++;
+	if (WindowChooseLoco::pLocoSlots[slot] != 255)
+		return WindowChooseLoco::pLocoSlots[slot];
+	return WindowChooseLoco::pLocoSlots[0];
+}
 
-	return 255;
+byte WindowChooseLoco::GetPrevLocoSlot(byte inSlot)
+{
+	byte slot = GetSlotIndex(inSlot);
+	if (slot == 255)
+		return 255;
+
+	if (slot == 0)
+	{
+		// if start of the list, go to the end
+		while (WindowChooseLoco::pLocoSlots[slot] != 255)
+			slot++;
+
+		if (slot == 0)
+			return 255;
+	}
+
+	return WindowChooseLoco::pLocoSlots[slot - 1];
 }
 
 WindowChooseLoco::WindowChooseLoco(int inFirstLine, Handle *inpHandle) : Window(inFirstLine)

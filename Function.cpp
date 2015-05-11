@@ -7,6 +7,14 @@ description: <Class for a decoder function>
 #include "DcDccControler.h"
 #include "Function.hpp"
 
+Function::Function(const Function &inFunction)
+{
+	this->SlotNumber = inFunction.SlotNumber;
+	this->DccIdFunction = inFunction.DccIdFunction;
+	STRCPY(this->name, inFunction.name);
+	this->Type = inFunction.Type;
+}
+
 Function::Function(int inDccId, char *inName, FunctionType inType)
 {
 	this->DccIdFunction = inDccId;
@@ -26,9 +34,7 @@ void Function::Load(int inStartPos)
 
 void Function::Save(int inStartPos)
 {
-	int size = 0;
-	size = EEPROMextent.updateAnything(inStartPos, this->DccIdFunction);
-	inStartPos += size;
+	inStartPos += EEPROMextent.updateAnything(inStartPos, this->DccIdFunction);
 	EEPROMextent.updateString(inStartPos, this->name);
 	inStartPos += 12;
 	EEPROMextent.update(inStartPos++, this->Type);

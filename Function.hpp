@@ -35,6 +35,7 @@ class Function
 	public:
 		Function() { this->DccIdFunction = 0; this->Type = Unknown; }
 		Function(int DccId, char *inName, FunctionType inType);
+		Function(const Function &inFunction);
 		inline byte GetSlotNumber() const { return this->SlotNumber; }
 		inline void SetSlotNumber(byte inSlotNumber) { this->SlotNumber = inSlotNumber; }
 

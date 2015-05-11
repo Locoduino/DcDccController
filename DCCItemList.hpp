@@ -6,7 +6,8 @@
 //-------------------------------------------------------------------
 #include "Locomotive.hpp"
 #include "Function.hpp"
-#include "EEPROM_ItemList.hpp"
+#include "../EEPROMextent/EEPROMextent.h"
+
 //-------------------------------------------------------------------
 
 #define DCCItemList	DCCItemListClass::DCCItemListInstance
@@ -22,9 +23,7 @@ public:
 	void FreeLoco(Locomotive *outpNewLoco);
 	void UpdateLoco(Locomotive *outpNewLoco);
 	void GetLoco(byte inSlotNumber, Locomotive *outpLoco);
-/*
-	void GetLocos(TaggedStringList *outpLocos);
-*/
+
 #ifdef DEBUG_MODE
 	void printList(byte numberMax = 0);
 #endif

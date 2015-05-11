@@ -66,14 +66,13 @@ bool ControlerDcc::SetDirection(bool inToLeft)
 
 void ControlerDcc::PanicStop(bool inStop)
 {
+#ifdef DEBUG_MODE
 	int val = 0;
-	this->panicStopped = inStop;
 
 	if (!inStop)
 		if (this->pControled != 0)
 			val = this->pControled->GetMappedSpeed();
 
-#ifdef DEBUG_MODE
 	Serial.print(F("ControlerDcc PanicStop "));
 	Serial.println(val == 0 ? F("pressed"):F("canceled"));
 #endif

@@ -25,8 +25,7 @@ void DcDccControler::CheckIndex(unsigned char inIndex, const __FlashStringHelper
 		Serial.println(inFunc);
 	}
 }
-#endif
-#ifdef DEBUG_MODE
+
 static void CheckPinNb(GPIO_pin_t inPin, const __FlashStringHelper *inFunc)
 {
 	return CheckPinNb(GPIO_to_Arduino_pin(inPin), inFunc);
@@ -48,24 +47,11 @@ DcDccControler DcDccControler::DDc;
 ControlerDc DcDccControler::DcControler;
 ControlerDcc DcDccControler::DccControler;
 
-char DcDccControler::buffer[80];
-
 DcDccControler::DcDccControler()
 {
 	this->dcType = PanicStopped;
 	this->pHandleList = 0;
 	this->handleAddcounter = 0;
-}
-
-char *DcDccControler::GetString(int inString)
-{
-#ifdef VISUALSTUDIO
-	strcpy_s(buffer, 80, string_table[inString]);
-#else
-	strcpy_P(buffer, (char*)pgm_read_word(&string_table[inString]));
-#endif
-
-	return buffer;
 }
 
 void DcDccControler::AddHandle(Handle *inpHandle)
@@ -93,10 +79,9 @@ void DcDccControler::StartSetup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 #ifndef VISUALSTUDIO
 	//while (!Serial);
 #endif
+#endif
 
 	LcdUi::StartSetup();
-
-	//this->EEPROMversion = EEPROM.read(0);
 
 	this->dcPWMpin = inDcPWMpin;
 	this->dcDirPin = inDcDirPin;
@@ -104,6 +89,7 @@ void DcDccControler::StartSetup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 	// Just for let the time to the PIC to initialize internals...
 	delay(500);
 
+#ifdef DEBUG_MODE
 	Serial.println(F(""));
 	Serial.println(F("Dc/Dcc Controler"));
 	Serial.println(F("Developed by Thierry Paris."));
@@ -120,7 +106,9 @@ void DcDccControler::EndSetup()
 
 	if (this->handleAddcounter == 0)
 	{
+#ifdef DEBUG_MODE
 		Serial.println(F("No handle declared !"));
+#endif
 		this->dcType = PanicStopped;
 		return;
 	}
@@ -196,6 +184,15 @@ void DcDccControler::EndSetup()
 #endif
 }
 
+byte DcDccControler::IndexOf(Handle *inpHandle)
+{
+	for (int i = 0; i < DDC.handleAddcounter; i++)
+		if (DDC.pHandleList[i] == inpHandle)
+			return i;
+
+	return 255;
+}
+
 void DcDccControler::Loop()
 {
 	this->pControler->Loop();
@@ -213,7 +210,6 @@ void DcDccControler::Loop()
 #ifdef DEBUG_MODE
 			Serial.println(F("Panic canceled"));
 #endif
-			this->dcType = DcChangeStopped;
 			// return to starting normal mode.
 			this->dcType = this->dcTypeAtStart;
 			this->pControler->PanicStop(false);

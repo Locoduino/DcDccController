@@ -22,6 +22,7 @@ public:
 	inline byte GetType() const { return WINDOWTYPE_FUNCTIONCHOICE; }
 	void Event(byte inEventType, LcdUi *inpLcd);
 
+	byte GetSelectedSlotIndex();
 	Function *GetNextSlot();
 	Function *GetPrevSlot();
 	inline void SetSelected(Function *inpSelected) { this->pSelected = inpSelected; }

@@ -17,7 +17,6 @@ WindowLocoControl::WindowLocoControl(int inFirstLine, Handle *inpHandle) : Windo
 void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 {
 	bool showValue = false;
-	Screen *pScreen = inpLcd->GetScreen();
 
 	if (this->state == STATE_INITIALIZE)
 	{
@@ -28,32 +27,41 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 	if (this->state == STATE_START)
 	{
 		if (DDC.dcType == Dc)
-			pScreen->DisplayHeader(this->dcMsg);
+			inpLcd->GetScreen()->DisplayHeader(this->dcMsg);
 		else
 		{
-			pScreen->DisplayHeader(this->dccMsg);
-			pScreen->setCursor(3, 0);
-			pScreen->write(32);
-			pScreen->setCursor(4, 0);
+			inpLcd->GetScreen()->DisplayHeader(this->dccMsg);
+			inpLcd->GetScreen()->setCursor(3, 0);
+			inpLcd->GetScreen()->write(32);
+			inpLcd->GetScreen()->setCursor(4, 0);
 			Screen::BuildString(this->pHandle->GetLocomotive().GetDccId(), Screen::buffer, this->pHandle->DccIdNbDigits);
-			pScreen->print(Screen::buffer);
-			pScreen->setCursor(4 + this->pHandle->DccIdNbDigits, 0);
-			pScreen->write(32);
-			byte len = Screen::BuildStringLeft(this->pHandle->GetLocomotive().GetName(), pScreen->GetSizeX() - (4 + this->pHandle->DccIdNbDigits + 1), Screen::buffer);
-			pScreen->setCursor(pScreen->GetSizeX() - len, 0);
-			pScreen->print(Screen::buffer);
+			inpLcd->GetScreen()->print(Screen::buffer);
+			inpLcd->GetScreen()->setCursor(4 + this->pHandle->DccIdNbDigits, 0);
+			inpLcd->GetScreen()->write(32);
+			byte len = Screen::BuildStringLeft(this->pHandle->GetLocomotive().GetName(), inpLcd->GetScreen()->GetSizeX() - (4 + this->pHandle->DccIdNbDigits + 1), Screen::buffer);
+			inpLcd->GetScreen()->setCursor(inpLcd->GetScreen()->GetSizeX() - len, 0);
+			inpLcd->GetScreen()->print(Screen::buffer);
 		}
 
 		this->state = STATE_INITIALIZE;
+	}
+
+	byte steps = this->pHandle->GetLocomotive().GetSteps();
+	byte inc;
+	switch (steps)
+	{
+		case 14: inc = 1; break;
+		case 28: inc = 1; break;
+		case 128: inc = this->pHandle->MoreLessIncrement; break;
 	}
 
 	switch (inEventType)
 	{
 		case EVENT_MORE:
 			{
-			unsigned int newValue = this->pHandle->Speed + this->pHandle->MoreLessIncrement;
-			if (newValue > this->pHandle->GetLocomotive().GetSteps())
-				newValue = this->pHandle->GetLocomotive().GetSteps();
+			unsigned int newValue = this->pHandle->Speed + inc;
+			if (newValue > steps)
+				newValue = steps;
 			this->pHandle->SetSpeed(newValue);
 			}
 			showValue = true;
@@ -61,7 +69,7 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 
 		case EVENT_LESS:
 			{
-			int newValue = this->pHandle->Speed - this->pHandle->MoreLessIncrement;
+			int newValue = this->pHandle->Speed - inc;
 			if (newValue < 0)
 				newValue = 0;
 			this->pHandle->SetSpeed(newValue);
@@ -86,9 +94,9 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		// 0 Dcc 003 nomloco11
 		// 1 +>>>>>			 -
 		//   01234567879012345
-		Screen::BuildProgress(this->pHandle->Speed, this->pHandle->GetLocomotive().GetSteps(), this->pHandle->DirectionToLeft, pScreen->GetSizeX(), Screen::buffer);
-		pScreen->setCursor(0, 1);
-		pScreen->print(Screen::buffer);
+		Screen::BuildProgress(this->pHandle->Speed, this->pHandle->GetLocomotive().GetSteps(), this->pHandle->DirectionToLeft, inpLcd->GetScreen()->GetSizeX(), Screen::buffer);
+		inpLcd->GetScreen()->setCursor(0, 1);
+		inpLcd->GetScreen()->print(Screen::buffer);
 	}
 }
 

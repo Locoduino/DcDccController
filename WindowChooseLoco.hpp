@@ -36,6 +36,7 @@ public:
 	static void RebuildChoices();
 	static byte GetNextLocoSlot(byte slot);
 	static byte GetPrevLocoSlot(byte slot);
+	static byte GetSlotIndex(byte inSlot);
 	inline static void SetSelectedLoco(byte inSelectedSlot) { WindowChooseLoco::selectedSlot = inSelectedSlot; }
 };
 

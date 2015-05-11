@@ -6,7 +6,6 @@ description: <Class for one handle>
 
 #include "DcDccControler.h"
 #include "ButtonsCommanderPotentiometer.hpp"
-//#include "TaggedStringList.hpp"
 #include "WindowLocoControl.hpp"
 #include "WindowChooseLoco.hpp"
 #include "WindowChooseFunction.hpp"
@@ -70,9 +69,6 @@ void Handle::Setup(int inNumberOfFunctions)
 	this->pFunctionHandleList = new FunctionHandle*[inNumberOfFunctions];
 	this->functionsSize = inNumberOfFunctions;
 	this->functionsAddCounter = 0;
-
-	Screen::YesMsg = 16;
-	Screen::NoMsg = 17;
 }
 
 void Handle::Setup(int inNumberOfFunctions, FunctionHandle *inpFirstFunction, ...)
@@ -103,7 +99,6 @@ void Handle::StartUI()
 	if (this->pUi != 0)
 	{
 		this->pUi->SetWindowsNumber(32);
-
 		/*
 			Splash
 			Config							Choice
@@ -148,7 +143,7 @@ void Handle::StartUI()
 					this->pUi->AddWindow(new WindowYesNo(STR_BACKLIGHTCFG), pChoiceConfig, 1);	// config back light
 				pChoiceConfig->AddChoice(STR_RESETCONFIG);
 					this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, 2);	// reset config
-			pChoiceMain->AddChoice(STR_MODELOCOCTRL);
+				pChoiceMain->AddChoice(STR_MODELOCOCTRL);
 				this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, 1); // run
 			pChoiceMain->AddChoice(STR_MODELOCOCHANGE);
 				this->pUi->AddWindow(new WindowChooseLoco(STR_MODELOCOCHANGE, this), pChoiceMain, 2);
@@ -166,8 +161,8 @@ void Handle::StartUI()
 						WindowChoice *pChoiceFunctions = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOFUNCTIONS), pChoiceLocoEdit, 0);
 							pChoiceFunctions->AddChoice(STR_FUNCTIONEDIT);
 								Window *pWinChooseFunction = this->pUi->AddWindow(new WindowChooseFunction(STR_FUNCTIONSELECT, this), pChoiceFunctions, 0);
-								Window *pWinFunctionId = this->pUi->AddWindow(new WindowInt(STR_FUNCTIONID, 10026, 1), pChoiceFunctions, 0);
 								Window *pWinFunctionName = this->pUi->AddWindow(new WindowText(STR_FUNCTIONNAME), pChoiceFunctions, 0);
+								Window *pWinFunctionId = this->pUi->AddWindow(new WindowInt(STR_FUNCTIONID, 10026, 1), pChoiceFunctions, 0);
 								WindowChoice *pChoiceType = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_FUNCTIONTYPE), pChoiceFunctions, 0);
 									pChoiceType->AddChoice(STR_FUNCTIONLIGHTS);
 									pChoiceType->AddChoice(STR_FUNCTIONFRONTLIGHTS);
@@ -192,11 +187,6 @@ void Handle::StartUI()
 		this->pWindowInterruptDcDcc = (WindowInterrupt *) this->pUi->AddWindow(new WindowInterrupt(STR_DCDCC, STR_DCDCC2)); // Dc/Dcc mode change
 		this->pWindowInterruptEmergency = (WindowInterrupt *) this->pUi->AddWindow(new WindowInterrupt(STR_STOP, STR_STOP2)); // Emergency stop
 		this->pWindowInterruptSaveLoco = (WindowInterruptConfirm *) this->pUi->AddWindow(new WindowInterruptConfirm(STR_SAVELOCO, STR_CONFIRM)); // Save the loco after modif
-
-/*		if (this->pUi->GetScreen()->GetSizeX() <= 16)
-			this->pUi->SplashScreen(STR_DDCTITLE16, STR_DDCCOPYRIGHT16);
-		else
-			this->pUi->SplashScreen(STR_DDCTITLE, STR_DDCCOPYRIGHT);*/
 	}
 }
 
@@ -282,9 +272,11 @@ bool Handle::Loop()
 			this->pModeButton->UnselectLastLoop();
 		}
 
-	if (event != EVENT_NONE || pUi->GetState() != STATE_NONE || pUi->GetCurrentWindow()->GetType() == WINDOWTYPE_SPLASH)
+	if (pUi->Loop(event))
 	{
-		pUi->Loop(event);
+		Window *pCurrent = pUi->GetCurrentWindow();
+		Locomotive &loco = this->edited;
+		Function *function = this->edited.GetFunctionFromIndex(this->editedFunction);
 
 		switch (pUi->GetState())
 		{
@@ -292,31 +284,31 @@ bool Handle::Loop()
 			switch (pUi->GetWindowId())
 			{
 			case STR_BACKLIGHTCFG:
-				pUi->GetCurrentWindow()->SetChoiceValue(this->ConfigBacklight ? Screen::YesMsg : Screen::NoMsg);
+				pCurrent->SetChoiceValue(this->ConfigBacklight ? Screen::YesMsg : Screen::NoMsg);
 				break;
 			case STR_HANDLECFGDIGITS:
-				pUi->GetCurrentWindow()->SetValue(this->DccIdNbDigits);
+				pCurrent->SetValue(this->DccIdNbDigits);
 				break;
 			case STR_LONGADDRESS:
-				pUi->GetCurrentWindow()->SetValue(this->edited.GetDccAddressKind());
+				pCurrent->SetValue(loco.GetDccAddressKind());
 				break;
 			case STR_LOCOID:
-				pUi->GetCurrentWindow()->SetValue(this->edited.GetDccId());
+				pCurrent->SetValue(loco.GetDccId());
 				break;
 			case STR_LOCONAME:
-				pUi->GetCurrentWindow()->SetValue(this->edited.GetName());
+				pCurrent->SetValue(loco.GetName());
 				break;
 			case STR_LOCOSTEPS:
-				pUi->GetCurrentWindow()->SetValue(this->edited.GetSteps());
+				pCurrent->SetValue(loco.GetSteps());
 				break;
 			case STR_FUNCTIONID:
-				pUi->GetCurrentWindow()->SetValue(this->edited.GetFunctionFromIndex(this->editedFunction)->GetDccId());
+				pCurrent->SetValue(function->GetDccId());
 				break;
 			case STR_FUNCTIONNAME:
-				pUi->GetCurrentWindow()->SetValue(this->edited.GetFunctionFromIndex(this->editedFunction)->GetName());
+				pCurrent->SetValue(function->GetName());
 				break;
 			case STR_FUNCTIONTYPE:
-				pUi->GetCurrentWindow()->SetValue(this->edited.GetFunctionFromIndex(this->editedFunction)->GetType());
+				pCurrent->SetValue(function->GetType());
 				break;
 			}
 			break;
@@ -325,12 +317,12 @@ bool Handle::Loop()
 			switch (pUi->GetWindowId())
 			{
 			case STR_BACKLIGHTCFG:
-				this->ConfigBacklight = pUi->GetCurrentWindow()->GetChoiceValue() == Screen::YesMsg;
+				this->ConfigBacklight = pCurrent->GetChoiceValue() == Screen::YesMsg;
 				this->ConfigSave();
 				break;
 
 			case STR_HANDLECFGDIGITS:
-				this->DccIdNbDigits = pUi->GetCurrentWindow()->GetIntValue();
+				this->DccIdNbDigits = pCurrent->GetIntValue();
 				this->ConfigSave();
 				break;
 
@@ -339,12 +331,12 @@ bool Handle::Loop()
 				break;
 
 			case STR_MODELOCOCHANGE:
-				DCCItemList.GetLoco(pUi->GetCurrentWindow()->GetChoiceValue(), &this->controled);
+				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->controled);
 				this->ConfigSave();
 				break;
 
 			case STR_LOCOSELECT:
-				DCCItemList.GetLoco(pUi->GetCurrentWindow()->GetChoiceValue(), &this->edited);
+				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
 				break;
 
 			case STR_LOCONEW:
@@ -352,9 +344,9 @@ bool Handle::Loop()
 				break;
 
 			case STR_LOCOREMOVE:
-				if (pUi->GetCurrentWindow()->GetType() == WINDOWTYPE_CONFIRM)
+				if (pCurrent->GetType() == WINDOWTYPE_CONFIRM)
 				{
-					WindowConfirm *pConfirm = (WindowConfirm *)pUi->GetCurrentWindow();
+					WindowConfirm *pConfirm = (WindowConfirm *)pCurrent;
 
 					if (pConfirm->GetChoiceValue() == STR_YES)
 					{
@@ -365,37 +357,37 @@ bool Handle::Loop()
 					}
 				}
 				else
-					DCCItemList.GetLoco(pUi->GetCurrentWindow()->GetChoiceValue(), &this->edited);
+					DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
 				break;
 
 			case STR_LONGADDRESS:
-				this->edited.SetDccAddressKind(pUi->GetCurrentWindow()->GetIntValue());
+				loco.SetDccAddressKind(pCurrent->GetIntValue());
 				break;
 			case STR_LOCOID:
-				this->edited.SetDccId(pUi->GetCurrentWindow()->GetIntValue());
+				loco.SetDccId(pCurrent->GetIntValue());
 				break;
 			case STR_LOCONAME:
-				this->edited.SetName(pUi->GetCurrentWindow()->GetTextValue());
+				loco.SetName(pCurrent->GetTextValue());
 				break;
 			case STR_LOCOSTEPS:
-				this->edited.SetSteps(pUi->GetCurrentWindow()->GetChoiceValue());
+				loco.SetSteps(pCurrent->GetChoiceValue());
 				break;
 
 			case STR_FUNCTIONSELECT:
 			{
-				WindowChooseFunction *pChoose = (WindowChooseFunction *)pUi->GetCurrentWindow();
-				this->editedFunction = this->edited.GetFunctionIndex(pChoose->GetSelected());
+				WindowChooseFunction *pChoose = (WindowChooseFunction *)pCurrent;
+				this->editedFunction = loco.GetFunctionIndex(pChoose->GetSelected());
 			}
 				break;
 
 			case STR_FUNCTIONID:
-				this->edited.GetFunctionFromIndex(this->editedFunction)->SetDccId(pUi->GetCurrentWindow()->GetIntValue());
+				function->SetDccId(pCurrent->GetIntValue());
 				break;
 			case STR_FUNCTIONNAME:
-				this->edited.GetFunctionFromIndex(this->editedFunction)->SetName(pUi->GetCurrentWindow()->GetTextValue());
+				function->SetName(pCurrent->GetTextValue());
 				break;
 			case STR_FUNCTIONTYPE:
-				this->edited.GetFunctionFromIndex(this->editedFunction)->SetType((FunctionType)(pUi->GetCurrentWindow()->GetIntValue()));
+				function->SetType((FunctionType)(pCurrent->GetIntValue()));
 				break;
 
 			case STR_SAVELOCO:
@@ -431,29 +423,22 @@ void Handle::SetDirection(bool inToLeft)
 
 void Handle::ConfigLoad()
 {
-	for (int i = 0; i < DDC.handleAddcounter; i++)
-	{
-		if (DDC.pHandleList[i] == this)
-		{
-			this->ConfigBacklight = EEPROMextent.read(EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE)) > 0;
-			this->DccIdNbDigits = EEPROMextent.read(EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE) + 1);
-			byte slot = EEPROMextent.read(EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE) + 2);
-			DCCItemList.GetLoco(slot, &this->controled);
-			break;
-		}
-	}
+	byte i = DDC.IndexOf(this);
+	int pos= EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE);
+
+	this->ConfigBacklight = EEPROMextent.read(pos) > 0;
+	this->DccIdNbDigits = EEPROMextent.read(pos + 1);
+	byte slot = EEPROMextent.read(pos + 2);
+	if (slot < DCCItemList.ListSize / DCCItemList.ItemSize)
+		DCCItemList.GetLoco(slot, &this->controled);
 }
 
 void Handle::ConfigSave()
 {
-	for (int i = 0; i < DDC.handleAddcounter; i++)
-	{
-		if (DDC.pHandleList[i] == this)
-		{
-			EEPROMextent.write(EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE), (byte) this->ConfigBacklight);
-			EEPROMextent.write(EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE) + 1, this->DccIdNbDigits);
-			EEPROMextent.write(EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE) + 2, this->controled.GetSlotNumber());
-			break;
-		}
-	}
+	byte i = DDC.IndexOf(this);
+	int pos = EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE);
+
+	EEPROMextent.write(pos, (byte) this->ConfigBacklight);
+	EEPROMextent.write(pos + 1, this->DccIdNbDigits);
+	EEPROMextent.write(pos + 2, this->controled.GetSlotNumber());
 }

@@ -133,16 +133,21 @@ byte Locomotive::GetFunctionIndex(Function *inpRef) const
 
 void Locomotive::Copy(const Locomotive &inLocomotive)
 {
+	this->SlotNumber = inLocomotive.SlotNumber;
 	this->DccId = inLocomotive.DccId;
+	this->addressKind = inLocomotive.addressKind;
 	STRCPY(this->Name, inLocomotive.Name);
 	this->steps = inLocomotive.steps;
+
+	this->SetFunctionsSize(inLocomotive.GetFunctionNumber());
+
+	for (int f = 0; f < inLocomotive.GetFunctionNumber(); f++)
+		this->AddFunction(new Function(*inLocomotive.GetFunctionFromIndex(f)));
 }
 
 void Locomotive::Load(int inStartPos)
 {
-	int size = 0;
-	size = EEPROMextent.readAnything(inStartPos, this->DccId);
-	inStartPos += size;
+	inStartPos += EEPROMextent.readAnything(inStartPos, this->DccId);
 	EEPROMextent.readString(inStartPos, this->Name, 12);
 	inStartPos += 12;
 	this->addressKind = EEPROMextent.read(inStartPos++);
@@ -151,18 +156,14 @@ void Locomotive::Load(int inStartPos)
 
 void Locomotive::LoadName(int inStartPos, char *outpName)
 {
-	int size = 0;
 	uint16_t dccId;
-	size = EEPROMextent.readAnything(inStartPos, dccId);
-	inStartPos += size;
+	inStartPos += EEPROMextent.readAnything(inStartPos, dccId);
 	EEPROMextent.readString(inStartPos, outpName, 12);
 }
 
 void Locomotive::Save(int inStartPos)
 {
-	int size = 0;
-	size = EEPROMextent.updateAnything(inStartPos, this->DccId);
-	inStartPos += size;
+	inStartPos += EEPROMextent.updateAnything(inStartPos, this->DccId);
 	EEPROMextent.updateString(inStartPos, this->Name);
 	inStartPos += 12;
 	EEPROMextent.write(inStartPos++, this->addressKind);

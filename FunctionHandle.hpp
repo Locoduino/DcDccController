@@ -23,7 +23,6 @@ class FunctionHandle
 		inline bool IsActivated() const { return this->activated; }
 		inline void SetActivated(bool inActivated) { this->activated = inActivated; }
 		bool Loop();
-		void Setup();
 };
 
 //-------------------------------------------------------------------

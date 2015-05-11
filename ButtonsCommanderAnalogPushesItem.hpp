@@ -3,8 +3,6 @@
 #define __buttonsCommanderAnalogPushesItem_H__
 //-------------------------------------------------------------------
 
-//#include "ButtonsCommanderAnalogPushes.hpp"
-
 //-------------------------------------------------------------------
 
 class ButtonsCommanderAnalogPushesItem : public ButtonsCommanderButton

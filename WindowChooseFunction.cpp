@@ -7,30 +7,33 @@ description: <Class for a function choice window>
 #include "DcDccControler.h"
 #include "WindowChooseFunction.hpp"
 
-Function *WindowChooseFunction::GetNextSlot()
+byte WindowChooseFunction::GetSelectedSlotIndex()
 {
 	for (int count = 0; this->pHandle->GetEditedLocomotive().GetFunctionNumber(); count++)
 		if (this->pHandle->GetEditedLocomotive().GetFunctionFromIndex(count) == this->pSelected)
-		{
-			if (count < this->pHandle->GetEditedLocomotive().GetFunctionNumber() - 1)
-				return this->pHandle->GetEditedLocomotive().GetFunctionFromIndex(count + 1);
-			return this->pHandle->GetEditedLocomotive().GetFunctionFromIndex(0);
-		}
+			return count;
 
 	return 0;
 }
 
+Function *WindowChooseFunction::GetNextSlot()
+{
+	byte slot = GetSelectedSlotIndex();
+	const Locomotive &loco = this->pHandle->GetEditedLocomotive();
+
+	if (slot < loco.GetFunctionNumber() - 1)
+		return loco.GetFunctionFromIndex(slot + 1);
+	return loco.GetFunctionFromIndex(0);
+}
+
 Function *WindowChooseFunction::GetPrevSlot()
 {
-	for (int count = 0; this->pHandle->GetEditedLocomotive().GetFunctionNumber(); count++)
-		if (this->pHandle->GetEditedLocomotive().GetFunctionFromIndex(count) == this->pSelected)
-		{
-			if (count == 0)
-				return this->pHandle->GetEditedLocomotive().GetFunctionFromIndex(this->pHandle->GetEditedLocomotive().GetFunctionNumber() - 1);
-			return this->pHandle->GetEditedLocomotive().GetFunctionFromIndex(count - 1);
-		}
+	byte slot = GetSelectedSlotIndex();
+	const Locomotive &loco = this->pHandle->GetEditedLocomotive();
 
-	return 0;
+	if (slot == 0)
+		return loco.GetFunctionFromIndex(loco.GetFunctionNumber() - 1);
+	return loco.GetFunctionFromIndex(slot - 1);
 }
 
 WindowChooseFunction::WindowChooseFunction(int inFirstLine, Handle *inpHandle) : Window(inFirstLine)
@@ -70,8 +73,6 @@ void WindowChooseFunction::Event(byte inEventType, LcdUi *inpLcd)
 	case EVENT_LESS:
 		this->pSelected = GetPrevSlot();
 		showValue = true;
-		break;
-	case EVENT_MOVE:
 		break;
 	case EVENT_SELECT:
 		this->SetState(STATE_CONFIRMED);

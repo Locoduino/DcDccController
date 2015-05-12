@@ -34,7 +34,7 @@ public:
 
 	void Setup(byte inNumberOfFunctions);
 	void Setup(byte inNumberOfFunctions, Function *inpFirstFunction, ...);
-	void AddFunction(Function *);
+	byte AddFunction(Function *);
 	Function *GetFunction(int inDccIdFunction) const;
 	void SetFunctionsSize(byte size);
 	inline Function *GetFunctionFromIndex(byte inIndex)	const { return this->pFunctions == 0 ? 0 : this->pFunctions[inIndex]; }

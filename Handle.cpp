@@ -98,7 +98,7 @@ void Handle::StartUI()
 {
 	if (this->pUi != 0)
 	{
-		this->pUi->SetWindowsNumber(32);
+		this->pUi->SetWindowsNumber(34);
 		/*
 			Splash
 			Config							Choice
@@ -335,29 +335,35 @@ bool Handle::Loop()
 				this->ConfigSave();
 				break;
 
-			case STR_LOCOSELECT:
-				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
-				break;
-
-			case STR_LOCONEW:
-				this->edited.Clear();
-				break;
-
-			case STR_LOCOREMOVE:
-				if (pCurrent->GetType() == WINDOWTYPE_CONFIRM)
+			case STR_MODELOCOEDIT:
+				switch (pCurrent->GetChoiceValue())
 				{
-					WindowConfirm *pConfirm = (WindowConfirm *)pCurrent;
-
-					if (pConfirm->GetChoiceValue() == STR_YES)
-					{
-						DCCItemList.FreeLoco(&this->edited);
-						this->edited.Clear();
-						WindowChooseLoco::SetSelectedLoco(255);
-						WindowChooseLoco::RebuildChoices();
-					}
-				}
-				else
+				case STR_LOCOSELECT:
 					DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
+					break;
+
+				case STR_LOCONEW:
+					this->edited.Clear();
+					break;
+
+				case STR_LOCOREMOVE:
+					if (pCurrent->GetType() == WINDOWTYPE_CONFIRM)
+					{
+						WindowConfirm *pConfirm = (WindowConfirm *)pCurrent;
+
+						if (pConfirm->GetChoiceValue() == STR_YES)
+						{
+							DCCItemList.FreeLoco(&this->edited);
+							this->edited.Clear();
+							WindowChooseLoco::SetSelectedLoco(255);
+							WindowChooseLoco::RebuildChoices();
+						}
+					}
+					else
+						DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
+					break;
+
+				}
 				break;
 
 			case STR_LONGADDRESS:
@@ -373,11 +379,24 @@ bool Handle::Loop()
 				loco.SetSteps(pCurrent->GetChoiceValue());
 				break;
 
-			case STR_FUNCTIONSELECT:
-			{
-				WindowChooseFunction *pChoose = (WindowChooseFunction *)pCurrent;
-				this->editedFunction = loco.GetFunctionIndex(pChoose->GetSelected());
-			}
+			case STR_LOCOFUNCTIONS:
+				switch (pCurrent->GetChoiceValue())
+				{
+				case STR_FUNCTIONSELECT:
+				{
+					WindowChooseFunction *pChoose = (WindowChooseFunction *)pCurrent;
+					this->editedFunction = loco.GetFunctionIndex(pChoose->GetSelected());
+				}
+				break;
+
+				case STR_FUNCTIONNEW:
+					this->editedFunction = this->edited.AddFunction(new Function());
+					break;
+
+				case STR_FUNCTIONREMOVE:
+					// TODO
+					break;
+				}
 				break;
 
 			case STR_FUNCTIONID:

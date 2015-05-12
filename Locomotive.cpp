@@ -103,10 +103,12 @@ void Locomotive::Setup(byte inNumberOfFunctions, Function *inpFirstFunction, ...
 #endif
 }
 
-void Locomotive::AddFunction(Function *pFunction)
+byte Locomotive::AddFunction(Function *pFunction)
 {
 	CHECK(this->functionsAddCounter, "Locomotive::AddFunction");
-	this->pFunctions[this->functionsAddCounter++] = pFunction;
+	this->pFunctions[this->functionsAddCounter] = pFunction;
+
+	return this->functionsAddCounter++;
 }
 
 Function *Locomotive::GetFunction(int inDccId) const

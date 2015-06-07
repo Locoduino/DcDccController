@@ -53,13 +53,7 @@ const char  str_functionedit[] PROGMEM =	"Edit function";
 const char  str_functionsel[] PROGMEM =		"Choose function";
 const char  str_locofunctions[] PROGMEM =	"Choose function";
 const char  str_functionId[] PROGMEM =		"Address";
-const char  str_functionName[] PROGMEM =	"Name";
-const char  str_functionType[] PROGMEM =	"Type";
-const char  str_functionLights[] PROGMEM =	"Lights";
-const char str_functionFrontLights[] PROGMEM= "Front Lights";
-const char str_functionRearLights[] PROGMEM= "Rear Lights";
-const char str_functionCabinLights[] PROGMEM="Cabin Lights";
-const char str_saveLoco[] PROGMEM =			"Save the loco?";
+const char  str_saveLoco[] PROGMEM =		"Save the loco?";
 										//   0123456789012345
 
 

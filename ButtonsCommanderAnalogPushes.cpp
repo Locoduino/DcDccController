@@ -75,7 +75,9 @@ bool ButtonsCommanderAnalogPushes::Loop()
 						this->lastButtonPressed = i;
 						this->pButtons[i].SelectLastLoop();
 #ifdef DEBUG_MODE
-						Serial.println(F("Analog push button pressed "));
+						Serial.print(F("Analog push button "));
+						Serial.print(i);
+						Serial.println(F(" pressed"));
 #endif
 					}
 			}

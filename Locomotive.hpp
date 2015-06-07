@@ -18,7 +18,7 @@ private:
 	uint8_t addressKind;
 	char Name[12];
 	uint8_t steps;
-	Function* *pFunctions;
+	Function *pFunctions;
 	byte functionsAddCounter;
 	byte size;
 
@@ -27,18 +27,16 @@ private:
 
 public:
 	static Locomotive AnalogLocomotive;
+	static byte FunctionNumber;
 
 public:
 	Locomotive();
 	Locomotive(uint16_t inDccId, uint8_t adressKind, char *inName, uint8_t inSteps = 0);
 
-	void Setup(byte inNumberOfFunctions);
-	void Setup(byte inNumberOfFunctions, Function *inpFirstFunction, ...);
-	byte AddFunction(Function *);
-	Function *GetFunction(int inDccIdFunction) const;
+	byte AddFunction(const Function &inNewFunction);
 	void SetFunctionsSize(byte size);
-	inline Function *GetFunctionFromIndex(byte inIndex)	const { return this->pFunctions == 0 ? 0 : this->pFunctions[inIndex]; }
-	byte GetFunctionIndex(Function *inpRef) const;
+	inline Function &GetFunctionFromIndex(byte inIndex)	const { return this->pFunctions[inIndex]; }
+	byte GetFunctionIndex(const Function &inRef) const;
 	void Copy(const Locomotive &inLocomotive);
 	inline const char *GetName() const { return this->Name; }
 	inline void SetName(const char *inNewName) { STRCPY(this->Name, inNewName); }

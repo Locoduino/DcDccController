@@ -27,6 +27,7 @@ class ControlerDcc : public Controler
 		void Setup(uint8_t inDcPWMpin, uint8_t inDcDirPin);
 		bool SetSpeed(int inNewSpeed);
 		bool SetDirection(bool inToLeft);
+		void ToggleFunction(byte inFunctionNumber);
 		void PanicStop(bool inStop);
 		inline void Loop() { dps.update();	}
 };

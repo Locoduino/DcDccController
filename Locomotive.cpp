@@ -32,12 +32,14 @@ void Locomotive::CheckIndex(byte inIndex, const __FlashStringHelper *inFunc)
 #endif
 
 Locomotive Locomotive::AnalogLocomotive(1, 0, "analog", 128);
+byte Locomotive::FunctionNumber = 255;
 
 Locomotive::Locomotive()
 {
 	this->pFunctions = 0;
 	this->functionsAddCounter = 0;
 	this->size = 0;
+	SetFunctionsSize(FunctionNumber);
 
 	Clear();
 }
@@ -51,19 +53,14 @@ Locomotive::Locomotive(uint16_t inDccId, uint8_t inAdressKind, char *inName, uin
 	this->steps = inSteps;
 }
 
-void Locomotive::Setup(byte inNumberOfFunctions)
-{
-	SetFunctionsSize(inNumberOfFunctions);
-}
-
 void Locomotive::SetFunctionsSize(byte inNumberOfFunctions)
 {
 	// Delete all existing functions
-	for (int i = 0; i < this->GetFunctionNumber(); i++)
-	{
-		delete this->pFunctions[i];
-		this->pFunctions[i] = 0;
-	}
+	if (this->pFunctions != 0)
+		for (int i = 0; i < this->GetFunctionNumber(); i++)
+		{
+			this->pFunctions[i].DccIdFunction = 0;
+		}
 
 	this->functionsAddCounter = 0;
 
@@ -77,56 +74,22 @@ void Locomotive::SetFunctionsSize(byte inNumberOfFunctions)
 	if (this->size == 0)
 		this->pFunctions = 0;
 	else
-		this->pFunctions = new Function*[this->size];
+		this->pFunctions = new Function[this->size];
 }
 
-void Locomotive::Setup(byte inNumberOfFunctions, Function *inpFirstFunction, ...)
-{
-	va_list argList;
-
-	this->Setup(inNumberOfFunctions);
-
-	this->AddFunction(inpFirstFunction);
-	inNumberOfFunctions--;
-
-	va_start(argList, inpFirstFunction);
-	for (; inNumberOfFunctions; inNumberOfFunctions--)
-	{
-		Function *pFunction;
-		pFunction = va_arg(argList, Function *);
-		this->AddFunction(pFunction);
-	}
-	va_end(argList);
-#ifdef DEBUG_MODE
-	if (inNumberOfFunctions > 0)
-		Serial.println(F("   Not enough items in the list !"));
-#endif
-}
-
-byte Locomotive::AddFunction(Function *pFunction)
+byte Locomotive::AddFunction(const Function &inFunction)
 {
 	CHECK(this->functionsAddCounter, "Locomotive::AddFunction");
-	this->pFunctions[this->functionsAddCounter] = pFunction;
+	this->pFunctions[this->functionsAddCounter].Copy(inFunction);
 
 	return this->functionsAddCounter++;
 }
 
-Function *Locomotive::GetFunction(int inDccId) const
+byte Locomotive::GetFunctionIndex(const Function &inRef) const
 {
 	for (int i = 0; i < this->functionsAddCounter; i++)
 	{
-		if (this->pFunctions[i]->DccIdFunction == inDccId)
-			return this->pFunctions[i];
-	}
-
-	return 0;
-}
-
-byte Locomotive::GetFunctionIndex(Function *inpRef) const
-{
-	for (int i = 0; i < this->functionsAddCounter; i++)
-	{
-		if (this->pFunctions[i] == inpRef)
+		if (this->pFunctions[i].DccIdFunction == inRef.DccIdFunction)
 			return i;
 	}
 
@@ -144,7 +107,7 @@ void Locomotive::Copy(const Locomotive &inLocomotive)
 	this->SetFunctionsSize(inLocomotive.GetFunctionNumber());
 
 	for (int f = 0; f < inLocomotive.GetFunctionNumber(); f++)
-		this->AddFunction(new Function(*inLocomotive.GetFunctionFromIndex(f)));
+		this->AddFunction(inLocomotive.GetFunctionFromIndex(f));
 }
 
 void Locomotive::Load(int inStartPos)

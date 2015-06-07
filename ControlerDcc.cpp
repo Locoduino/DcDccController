@@ -64,6 +64,26 @@ bool ControlerDcc::SetDirection(bool inToLeft)
 	return true;
 }
 
+void ControlerDcc::ToggleFunction(byte inFunctionNumber)
+{
+	this->pControled->GetFunctionFromIndex(inFunctionNumber).Toggle();
+
+#ifdef DEBUG_MODE
+	Serial.print(F("ControlerDcc SetFunction "));
+	Serial.print(inFunctionNumber);
+	Serial.println(this->pControled->GetFunctionFromIndex(inFunctionNumber).IsActivated() ? F("On") : F("Off"));
+#endif
+
+	byte fcts = 0;
+
+	for (int i = 0; i < this->pControled->FunctionNumber; i++)
+		if (this->pControled->GetFunctionFromIndex(i).IsActivated())
+			fcts ^= 1 << i;
+
+	dps.setFunctions(this->pControled->GetDccId(), this->pControled->GetDccAddressKind(), fcts);
+	dps.update();
+}
+
 void ControlerDcc::PanicStop(bool inStop)
 {
 #ifdef DEBUG_MODE

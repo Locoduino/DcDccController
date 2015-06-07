@@ -92,12 +92,6 @@ const char * const string_table[] PROGMEM
 	str_functionsel,
 	str_locofunctions,
 	str_functionId,
-	str_functionName,
-	str_functionType,
-	str_functionLights,
-	str_functionFrontLights,
-	str_functionRearLights,
-	str_functionCabinLights,
 	str_saveLoco,
 	str_special_rst
 };
@@ -150,13 +144,7 @@ const char * const DDC_config_table[] PROGMEM =
 #define STR_FUNCTIONSELECT	37
 #define STR_LOCOFUNCTIONS	38
 #define STR_FUNCTIONID		39
-#define STR_FUNCTIONNAME	40
-#define STR_FUNCTIONTYPE	41
-#define STR_FUNCTIONLIGHTS	42
-#define STR_FUNCTIONFRONTLIGHTS	43
-#define STR_FUNCTIONREARLIGHTS	44
-#define STR_FUNCTIONCABINLIGHTS	45
-#define STR_SAVELOCO		46
+#define STR_SAVELOCO		40
 
 //////////////////////////////////////////
 //  Exclusion area
@@ -339,7 +327,7 @@ public:
 	void StartSetup(uint8_t inDcPWMpin = 0, uint8_t inDcDirPin = 0);
 	void EndSetup();
 	void AddHandle(Handle *pHandle);
-	byte IndexOf(Handle *inpHandle);
+	byte IndexOf(Handle *inpHandle) const;
 	inline void SetDcDccButton(ButtonsCommanderButton *inpDcDccButton) { this->pDcDccButton = inpDcDccButton; }
 	inline void SetPanicButton(ButtonsCommanderButton *inpPanicButton) { this->pPanicButton = inpPanicButton; }
 

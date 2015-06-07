@@ -1,25 +1,25 @@
 //-------------------------------------------------------------------
-#ifndef __functionHandle_H__
-#define __functionHandle_H__
+#ifndef __windowFunction_H__
+#define __windowFunction_H__
 //-------------------------------------------------------------------
 
-#include "ButtonsCommanderButton.hpp"
+#include "WindowInt.hpp"
 
 //-------------------------------------------------------------------
 
-// This class describes a function handle.
+#define WINDOWTYPE_FUNCTION	103
 
-class FunctionHandle
+class WindowFunction : public WindowInt
 {
-	private:
-		int functionNumber;
-		ButtonsCommanderButton *pButton;
+private:
+	int intValue;
 
-	public:
-		FunctionHandle();
-		FunctionHandle(int inFunctionNumber, ButtonsCommanderButton *inpButton);
-		
-		bool Loop();
+public:
+	WindowFunction(byte inFirstLine, int inNumber);
+
+	inline byte GetType() const { return WINDOWTYPE_FUNCTION; }
+
+	void Event(byte inEventType, LcdUi *inpLcd);
 };
 
 //-------------------------------------------------------------------

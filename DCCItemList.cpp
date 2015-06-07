@@ -40,7 +40,7 @@ DCCItemListClass DCCItemListClass::DCCItemListInstance;
 
 void DCCItemListClass::AddLoco(Locomotive *outpNewLoco)
 {
-	byte slotLoco = GetFirstFreeSlot();
+/*	byte slotLoco = GetFirstFreeSlot();
 
 	// no more place !
 	if (slotLoco == 255)
@@ -58,19 +58,20 @@ void DCCItemListClass::AddLoco(Locomotive *outpNewLoco)
 			return;
 
 		int pos = SaveItemPrefix(slot, FUNCTION_TYPE, slotLoco);
-		outpNewLoco->GetFunctionFromIndex(i)->Save(pos);
-		outpNewLoco->GetFunctionFromIndex(i)->SetSlotNumber(slot);
+		outpNewLoco->GetFunctionFromIndex(i).Save(pos);
+		outpNewLoco->GetFunctionFromIndex(i).SetSlotNumber(slot);
 	}
 	outpNewLoco->SetSlotNumber(slotLoco);
 
 #ifdef DEBUG_MODE
 	Serial.println(F("Loco created !"));
 #endif
+	*/
 }
 
 void DCCItemListClass::FreeLoco(Locomotive *outpLoco)
 {
-	byte slotLoco = outpLoco->GetSlotNumber();
+/*	byte slotLoco = outpLoco->GetSlotNumber();
 
 	// not yet saved !
 	if (slotLoco == 255)
@@ -81,11 +82,12 @@ void DCCItemListClass::FreeLoco(Locomotive *outpLoco)
 #ifdef DEBUG_MODE
 	Serial.println(F("Loco Deleted !"));
 #endif
+	*/
 }
 
 void DCCItemListClass::UpdateLoco(Locomotive *outpLoco)
 {
-	byte slotLoco = outpLoco->GetSlotNumber();
+/*	byte slotLoco = outpLoco->GetSlotNumber();
 
 	// not yet saved !
 	if (slotLoco == 255)
@@ -103,18 +105,19 @@ void DCCItemListClass::UpdateLoco(Locomotive *outpLoco)
 		byte slot = GetFirstFreeSlot();
 
 		int pos = SaveItemPrefix(slot, FUNCTION_TYPE, slotLoco);
-		outpLoco->GetFunctionFromIndex(i)->Save(pos);
-		outpLoco->GetFunctionFromIndex(i)->SetSlotNumber(slot);
+		outpLoco->GetFunctionFromIndex(i).Save(pos);
+		outpLoco->GetFunctionFromIndex(i).SetSlotNumber(slot);
 	}
 
 #ifdef DEBUG_MODE
 	Serial.println(F("Loco updated !"));
 #endif
+	*/
 }
 
 void DCCItemListClass::GetLoco(byte inSlotNumber, Locomotive *outpLoco)
 {
-	outpLoco->Load(GetItemPos(inSlotNumber));
+/*	outpLoco->Load(GetItemPos(inSlotNumber));
 	outpLoco->SetSlotNumber(inSlotNumber);
 
 	byte count = this->CountOwnedItems(inSlotNumber);
@@ -128,15 +131,16 @@ void DCCItemListClass::GetLoco(byte inSlotNumber, Locomotive *outpLoco)
 		slotCurr = FindItem(FUNCTION_TYPE, slotCurr, inSlotNumber);
 		Function *f = new Function();
 		f->Load(GetItemPos(slotCurr));
-		outpLoco->AddFunction(f);
+		outpLoco->AddFunction(*f);
 		slotCurr++;
 	}
+	*/
 }
 
 #ifdef DEBUG_MODE
 void DCCItemListClass::printList(byte inNumberMax)
 {
-	int pos = StartListPos;
+/*	int pos = StartListPos;
 	byte found = 0;
 
 	for (; pos < EEPROM_SIZE; pos += ItemSize)
@@ -165,6 +169,6 @@ void DCCItemListClass::printList(byte inNumberMax)
 		Serial.print(" Name='");
 		Serial.print(name);
 		Serial.println("'");
-	}
+	}*/
 }
 #endif

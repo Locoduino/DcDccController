@@ -14,6 +14,8 @@ WindowLocoControl::WindowLocoControl(int inFirstLine, Handle *inpHandle) : Windo
 	this->dccMsg = STR_DCC;
 }
 
+#define DEBUG_MODE
+
 void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 {
 	bool showValue = false;
@@ -48,42 +50,62 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 
 	byte steps = this->pHandle->GetLocomotive().GetSteps();
 	byte inc;
+#ifdef DEBUG_MODE
+	Serial.println(steps);
+#endif
 	switch (steps)
 	{
-		case 14: inc = 1; break;
-		case 28: inc = 1; break;
 		case 128: inc = this->pHandle->MoreLessIncrement; break;
+		default: inc = 1; break;
 	}
 
 	switch (inEventType)
 	{
 		case EVENT_MORE:
 			{
+#ifdef DEBUG_MODE
+			Serial.print(F("MORE "));
+#endif
 			unsigned int newValue = this->pHandle->Speed + inc;
 			if (newValue > steps)
 				newValue = steps;
 			this->pHandle->SetSpeed(newValue);
-			}
+#ifdef DEBUG_MODE
+			Serial.println(newValue);
+#endif
+		}
 			showValue = true;
 			break;
 
 		case EVENT_LESS:
 			{
+#ifdef DEBUG_MODE
+			Serial.print(F("LESS "));
+#endif
 			int newValue = this->pHandle->Speed - inc;
 			if (newValue < 0)
 				newValue = 0;
 			this->pHandle->SetSpeed(newValue);
-			}
+#ifdef DEBUG_MODE
+			Serial.println(newValue);
+#endif
+		}
 			showValue = true;
 			break;
 
 		case EVENT_MOVE:
 			break;
 		case EVENT_SELECT:
+#ifdef DEBUG_MODE
+			Serial.println(F("SELECT"));
+#endif
 			this->pHandle->SetDirection(!this->pHandle->DirectionToLeft);
 			showValue = true;
 			break;
 		case EVENT_CANCEL:
+#ifdef DEBUG_MODE
+			Serial.println(F("CANCEL"));
+#endif
 			this->state = STATE_ABORTED;
 			break;
 	}

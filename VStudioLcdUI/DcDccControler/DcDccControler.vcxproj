@@ -40,7 +40,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\LcdUI;..\..\..\LcdUI\VStudioMfc;..\..\..\EEPROMextent;..\..\</IncludePath>
+    <IncludePath>$(SolutionDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\..\LcdUI;$(SolutionDir)\..\..\LcdUI\VStudioMfc;$(SolutionDir)\..\..\EEPROMextent;..\..\</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -48,7 +48,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);VISUALSTUDIO;ARDUINO=105;_AFXDLL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);VISUALSTUDIO;ARDUINO=105;_AFXDLL;DEBUG_MODE</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
@@ -101,8 +101,8 @@
     <ClCompile Include="..\..\Handle.cpp" />
     <ClCompile Include="..\..\Locomotive.cpp" />
     <ClCompile Include="..\..\TextCommunicationHelper.cpp" />
-    <ClCompile Include="..\..\WindowChooseFunction.cpp" />
     <ClCompile Include="..\..\WindowChooseLoco.cpp" />
+    <ClCompile Include="..\..\WindowFunction.cpp" />
     <ClCompile Include="..\..\WindowLocoControl.cpp" />
     <ClCompile Include="..\ButtonsCommanderKeyboard.cpp" />
   </ItemGroup>
@@ -133,8 +133,8 @@
     <ClInclude Include="..\..\Handle.hpp" />
     <ClInclude Include="..\..\Locomotive.hpp" />
     <ClInclude Include="..\..\TextCommunicationHelper.hpp" />
-    <ClInclude Include="..\..\WindowChooseFunction.hpp" />
     <ClInclude Include="..\..\WindowChooseLoco.hpp" />
+    <ClInclude Include="..\..\WindowFunction.hpp" />
     <ClInclude Include="..\..\WindowLocoControl.hpp" />
     <ClInclude Include="..\arduino2.hpp" />
     <ClInclude Include="..\ButtonsCommanderKeyboard.hpp" />

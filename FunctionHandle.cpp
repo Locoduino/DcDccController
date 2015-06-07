@@ -10,14 +10,12 @@ description: <Class for a decoder function on a handle>
 FunctionHandle::FunctionHandle()
 {
 	this->functionNumber = 0;
-	this->activated = false;
 	this->pButton = 0;
 }
 
 FunctionHandle::FunctionHandle(int inFunctionNumber, ButtonsCommanderButton *inpButton)
 {
 	this->functionNumber = inFunctionNumber;
-	this->activated = false;
 	this->pButton = inpButton;
 }
 

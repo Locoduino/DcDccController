@@ -16,6 +16,7 @@ class Controler
 		virtual void Setup(uint8_t inPwmPin, uint8_t inDirPin) { }
 		virtual bool SetSpeed(int inNewSpeed) { return false; }
 		virtual bool SetDirection(bool inToLeft) { return false; }
+		virtual void ToggleFunction(byte inFunctionNumber) { }
 		virtual void PanicStop(bool inStop) { }
 		virtual void Loop() { }
 };

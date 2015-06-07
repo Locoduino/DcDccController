@@ -36,9 +36,9 @@ class Handle
 		ButtonsCommanderButton *pModeButton;	// If null, the mode will be LocomotiveControl at start
 
 		LcdUi *pUi;
-		WindowInterrupt *pWindowInterruptDcDcc;
-		WindowInterrupt *pWindowInterruptEmergency;
-		WindowInterrupt *pWindowInterruptSaveLoco;
+		byte windowInterruptDcDcc;
+		byte windowInterruptEmergency;
+		byte windowInterruptSaveLoco;
 
 		// Handle control situation
 		unsigned int Speed;
@@ -62,21 +62,22 @@ class Handle
 		Handle();
 		Handle(byte inId);
 		
-		void Setup();
-		void Setup(int inNumberOfFunctions);
+		void Setup(int inNumberOfFunctions = 0);
 		void Setup(int inNumberOfFunctions, FunctionHandle *inpFirstFunction, ...);
 		void StartUI();
+		void StartContent();
 		void Interrupt(int inEvent);
 		void InterruptEnd();
 
 		void AddFunction(FunctionHandle *);
 		FunctionHandle *GetFunction(int inFunctionNumber);
 
-		inline LcdUi *GetUI() { return this->pUi; }
+		inline LcdUi *GetUI() const { return this->pUi; }
 		void SetLocomotive(const Locomotive &Locomotive);
 		inline const Locomotive &GetLocomotive() const { return this->controled; }
 		inline const Locomotive &GetEditedLocomotive() const { return this->edited; }
 		inline byte GetEditedFunction() const { return this->editedFunction; }
+		inline byte GetFunctionNumber() const { return this->functionsAddCounter; }
 
 		inline bool IsLeftDir() const { return this->DirectionToLeft; }
 		inline bool IsRightDir() const { return !this->DirectionToLeft; }
@@ -84,6 +85,7 @@ class Handle
 
 		void SetSpeed(int inNewSpeed);
 		void SetDirection(bool inToLeft);
+		void ToggleFunction(int inFunctionNumber);
 
 		bool Loop();
 

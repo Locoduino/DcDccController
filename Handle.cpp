@@ -8,7 +8,7 @@ description: <Class for one handle>
 #include "ButtonsCommanderPotentiometer.hpp"
 #include "WindowLocoControl.hpp"
 #include "WindowChooseLoco.hpp"
-#include "WindowChooseFunction.hpp"
+#include "WindowFunction.hpp"
 
 #include <stdarg.h>
 
@@ -43,8 +43,8 @@ Handle::Handle()
 	this->pSpeedPushLess = 0;
 	this->pDirectionPush = 0;
 	this->pModeButton = 0;
-	this->pWindowInterruptDcDcc = 0;
-	this->pWindowInterruptEmergency = 0;
+	this->windowInterruptDcDcc = 0;
+	this->windowInterruptEmergency = 0;
 	this->Speed = 0;
 	this->MoreLessIncrement = 1;
 	this->DirectionToLeft = true;
@@ -61,14 +61,18 @@ Handle::Handle()
 Handle::Handle(byte inId) : Handle()
 {
 	this->id = inId;
-	this->pUi = new LcdUi();
 }
 
 void Handle::Setup(int inNumberOfFunctions)
 {
-	this->pFunctionHandleList = new FunctionHandle*[inNumberOfFunctions];
-	this->functionsSize = inNumberOfFunctions;
-	this->functionsAddCounter = 0;
+	if (this->pUi == 0)
+		this->pUi = new LcdUi();
+	if (inNumberOfFunctions > 0)
+	{
+		this->pFunctionHandleList = new FunctionHandle*[inNumberOfFunctions];
+		this->functionsSize = inNumberOfFunctions;
+		this->functionsAddCounter = 0;
+	}
 }
 
 void Handle::Setup(int inNumberOfFunctions, FunctionHandle *inpFirstFunction, ...)
@@ -98,7 +102,7 @@ void Handle::StartUI()
 {
 	if (this->pUi != 0)
 	{
-		this->pUi->SetWindowsNumber(34);
+		this->pUi->SetWindowsNumber(24 + Locomotive::FunctionNumber);
 		/*
 			Splash
 			Config							Choice
@@ -113,22 +117,15 @@ void Handle::StartUI()
 						ID					EditInt	1-127 or 1-10126
 						Name				EditText
 						Steps				Choice 14/28/128
-						Functions			Choice
-							Edit			ChooseFunction
-								ID			EditInt	1-127 or 1-10126
-								Name		EditText
-								Type		Choice (Front/Rear/Sound...)
-							Add
-								ID			EditInt	1-127 or 1-10126
-								Name		EditText
-								Type		Choice (Front/Rear/Sound...)
-							Remove			ChooseFunction
-								Confirm		Confirm
+						Function n			Int
+						Function n+1        Int
 				Add							
 						Address long		YesNo
 						ID					EditInt	1-127 or 1-10126
 						Name				EditText
 						Steps				Choose 14/28/128
+						Function n			Int
+						Function n+1        Int
 				Remove						Choose loco (current is selected)
 						Confirm				Confirm
 		*/
@@ -143,7 +140,7 @@ void Handle::StartUI()
 					this->pUi->AddWindow(new WindowYesNo(STR_BACKLIGHTCFG), pChoiceConfig, 1);	// config back light
 				pChoiceConfig->AddChoice(STR_RESETCONFIG);
 					this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, 2);	// reset config
-				pChoiceMain->AddChoice(STR_MODELOCOCTRL);
+			pChoiceMain->AddChoice(STR_MODELOCOCTRL);
 				this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, 1); // run
 			pChoiceMain->AddChoice(STR_MODELOCOCHANGE);
 				this->pUi->AddWindow(new WindowChooseLoco(STR_MODELOCOCHANGE, this), pChoiceMain, 2);
@@ -158,23 +155,8 @@ void Handle::StartUI()
 							pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
 							pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
 							pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
-						WindowChoice *pChoiceFunctions = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOFUNCTIONS), pChoiceLocoEdit, 0);
-							pChoiceFunctions->AddChoice(STR_FUNCTIONEDIT);
-								Window *pWinChooseFunction = this->pUi->AddWindow(new WindowChooseFunction(STR_FUNCTIONSELECT, this), pChoiceFunctions, 0);
-								Window *pWinFunctionName = this->pUi->AddWindow(new WindowText(STR_FUNCTIONNAME), pChoiceFunctions, 0);
-								Window *pWinFunctionId = this->pUi->AddWindow(new WindowInt(STR_FUNCTIONID, 10026, 1), pChoiceFunctions, 0);
-								WindowChoice *pChoiceType = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_FUNCTIONTYPE), pChoiceFunctions, 0);
-									pChoiceType->AddChoice(STR_FUNCTIONLIGHTS);
-									pChoiceType->AddChoice(STR_FUNCTIONFRONTLIGHTS);
-									pChoiceType->AddChoice(STR_FUNCTIONREARLIGHTS);
-									pChoiceType->AddChoice(STR_FUNCTIONCABINLIGHTS);
-							pChoiceFunctions->AddChoice(STR_FUNCTIONNEW);
-								this->pUi->AddWindow(pWinFunctionId, pChoiceFunctions, 1);
-								this->pUi->AddWindow(pWinFunctionName, pChoiceFunctions, 1);
-								this->pUi->AddWindow(pChoiceType, pChoiceFunctions, 1);
-							pChoiceFunctions->AddChoice(STR_FUNCTIONREMOVE);
-								this->pUi->AddWindow(new WindowChooseFunction(STR_FUNCTIONSELECT, this), pChoiceFunctions, 2);
-								this->pUi->AddWindow(new WindowConfirm(STR_FUNCTIONREMOVE, STR_CONFIRM), pChoiceFunctions, 2);
+						for (int i = 0; i < Locomotive::FunctionNumber; i++)
+							this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 0);
 					pChoiceLocoEdit->AddChoice(STR_LOCONEW);
 						this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
 						this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
@@ -184,20 +166,31 @@ void Handle::StartUI()
 						this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOREMOVE, this), pChoiceLocoEdit, 2);
 						this->pUi->AddWindow(new WindowConfirm(STR_LOCOREMOVE, STR_CONFIRM), pChoiceLocoEdit, 2);
 
-		this->pWindowInterruptDcDcc = (WindowInterrupt *) this->pUi->AddWindow(new WindowInterrupt(STR_DCDCC, STR_DCDCC2)); // Dc/Dcc mode change
-		this->pWindowInterruptEmergency = (WindowInterrupt *) this->pUi->AddWindow(new WindowInterrupt(STR_STOP, STR_STOP2)); // Emergency stop
-		this->pWindowInterruptSaveLoco = (WindowInterruptConfirm *) this->pUi->AddWindow(new WindowInterruptConfirm(STR_SAVELOCO, STR_CONFIRM)); // Save the loco after modif
+		this->windowInterruptDcDcc = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_DCDCC, STR_DCDCC2))); // Dc/Dcc mode change
+		this->windowInterruptEmergency = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_STOP, STR_STOP2))); // Emergency stop
+		this->windowInterruptSaveLoco = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterruptConfirm(STR_SAVELOCO, STR_CONFIRM))); // Save the loco after modif
 	}
 }
 
+void Handle::StartContent()
+{
+	this->controled.SetFunctionsSize(Locomotive::FunctionNumber);
+	this->edited.SetFunctionsSize(Locomotive::FunctionNumber);
+}
+	
 void Handle::AddFunction(FunctionHandle *pFunction)
 {
 	CHECK(this->functionsAddCounter, "Handle::AddFunction");
 	this->pFunctionHandleList[this->functionsAddCounter++] = pFunction;
 }
 
+#define DEBUG_MODE
+
 void Handle::SetLocomotive(const Locomotive &inLocomotive)
 {
+#ifdef DEBUG_MODE
+	Serial.println(F("SetLocomotive"));
+#endif
 	this->controled.Copy(inLocomotive);
 	if (this->pSpeedPotentiometer != 0)
 		((ButtonsCommanderPotentiometer *) this->pSpeedPotentiometer)->SetMinMax(0, inLocomotive.GetSteps());
@@ -207,8 +200,8 @@ void Handle::Interrupt(int inEvent)
 {
 	switch(inEvent)
 	{
-	case EVENT_DCDCC:		this->pUi->Interrupt(this->pWindowInterruptDcDcc);		break;
-	case EVENT_EMERGENCY:	this->pUi->Interrupt(this->pWindowInterruptEmergency);	break;
+	case EVENT_DCDCC:		this->pUi->Interrupt(this->windowInterruptDcDcc);		break;
+	case EVENT_EMERGENCY:	this->pUi->Interrupt(this->windowInterruptEmergency);	break;
 	}	
 }
 
@@ -229,6 +222,9 @@ bool Handle::Loop()
 			event = EVENT_MOVE;
 			this->Speed = this->pSpeedPotentiometer->GetPosition();
 			this->pSpeedPotentiometer->UnselectLastLoop();
+#ifdef DEBUG_MODE
+			Serial.println(F("Speed Potentiometer Moved"));
+#endif
 		}
 
 	if (this->pSpeedEncoder != 0)
@@ -242,6 +238,9 @@ bool Handle::Loop()
 				event = EVENT_LESS;
 
 			this->pSpeedEncoder->UnselectLastLoop();
+#ifdef DEBUG_MODE
+			Serial.println(F("Speed Encoder moved"));
+#endif
 		}
 
 	if (this->pSpeedPushMore != 0)
@@ -249,6 +248,9 @@ bool Handle::Loop()
 		{
 			event = EVENT_MORE;
 			this->pSpeedPushMore->UnselectLastLoop();
+#ifdef DEBUG_MODE
+			Serial.println(F("SpeedPushMore"));
+#endif
 		}
 
 	if (this->pSpeedPushLess != 0)
@@ -256,6 +258,9 @@ bool Handle::Loop()
 		{
 			event = EVENT_LESS;
 			this->pSpeedPushLess->UnselectLastLoop();
+#ifdef DEBUG_MODE
+			Serial.println(F("SpeedPushLess"));
+#endif
 		}
 
 	if (this->pDirectionPush != 0)
@@ -263,6 +268,9 @@ bool Handle::Loop()
 		{
 			event = EVENT_SELECT;
 			this->pDirectionPush->UnselectLastLoop();
+#ifdef DEBUG_MODE
+			Serial.println(F("Button select/dir pressed"));
+#endif
 		}
 
 	if (this->pModeButton != 0)
@@ -270,13 +278,33 @@ bool Handle::Loop()
 		{
 			event = EVENT_CANCEL;
 			this->pModeButton->UnselectLastLoop();
+#ifdef DEBUG_MODE
+			Serial.println(F("Button Cancel pressed"));
+#endif
 		}
+
+	for (int i = 0; i < this->GetFunctionNumber(); i++)
+	{
+		if (this->pFunctionHandleList[i]->Loop())
+		{
+			this->ToggleFunction(i);
+#ifdef DEBUG_MODE
+			Serial.print(F("Function button "));
+			Serial.print(i+1);
+			Serial.println(F(" pressed"));
+#endif
+		}
+	}
 
 	if (pUi->Loop(event))
 	{
-		Window *pCurrent = pUi->GetCurrentWindow();
+		Window *pCurrent = pUi->GetGlobalCurrentWindow();
 		Locomotive &loco = this->edited;
-		Function *function = this->edited.GetFunctionFromIndex(this->editedFunction);
+
+#ifdef DEBUG_MODE
+		//LcdUi::printEvent(event, F("pUi->Loop"));
+		//Window::printState(pUi->GetState(), F("pUi->Loop"));
+#endif
 
 		switch (pUi->GetState())
 		{
@@ -302,13 +330,7 @@ bool Handle::Loop()
 				pCurrent->SetValue(loco.GetSteps());
 				break;
 			case STR_FUNCTIONID:
-				pCurrent->SetValue(function->GetDccId());
-				break;
-			case STR_FUNCTIONNAME:
-				pCurrent->SetValue(function->GetName());
-				break;
-			case STR_FUNCTIONTYPE:
-				pCurrent->SetValue(function->GetType());
+				pCurrent->SetValue(loco.GetFunctionFromIndex(pCurrent->GetTag()).GetDccId());
 				break;
 			}
 			break;
@@ -335,13 +357,13 @@ bool Handle::Loop()
 				this->ConfigSave();
 				break;
 
+			case STR_LOCOSELECT:
+				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
+				break;
+
 			case STR_MODELOCOEDIT:
 				switch (pCurrent->GetChoiceValue())
 				{
-				case STR_LOCOSELECT:
-					DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
-					break;
-
 				case STR_LOCONEW:
 					this->edited.Clear();
 					break;
@@ -378,39 +400,12 @@ bool Handle::Loop()
 			case STR_LOCOSTEPS:
 				loco.SetSteps(pCurrent->GetChoiceValue());
 				break;
-
-			case STR_LOCOFUNCTIONS:
-				switch (pCurrent->GetChoiceValue())
-				{
-				case STR_FUNCTIONSELECT:
-				{
-					WindowChooseFunction *pChoose = (WindowChooseFunction *)pCurrent;
-					this->editedFunction = loco.GetFunctionIndex(pChoose->GetSelected());
-				}
-				break;
-
-				case STR_FUNCTIONNEW:
-					this->editedFunction = this->edited.AddFunction(new Function());
-					break;
-
-				case STR_FUNCTIONREMOVE:
-					// TODO
-					break;
-				}
-				break;
-
 			case STR_FUNCTIONID:
-				function->SetDccId(pCurrent->GetIntValue());
-				break;
-			case STR_FUNCTIONNAME:
-				function->SetName(pCurrent->GetTextValue());
-				break;
-			case STR_FUNCTIONTYPE:
-				function->SetType((FunctionType)(pCurrent->GetIntValue()));
+				loco.GetFunctionFromIndex(pCurrent->GetTag()).SetDccId(pCurrent->GetIntValue());
 				break;
 
 			case STR_SAVELOCO:
-				if (this->pWindowInterruptSaveLoco->GetChoiceValue() == STR_YES)
+				if (pCurrent->GetChoiceValue() == STR_YES)
 				{
 					DCCItemList.UpdateLoco(&this->edited);
 					WindowChooseLoco::RebuildChoices();
@@ -438,6 +433,12 @@ void Handle::SetDirection(bool inToLeft)
 	this->DirectionToLeft = inToLeft;
 	DDC.pControler->SetControled(&this->controled);
 	DDC.pControler->SetDirection(this->DirectionToLeft);
+}
+
+void Handle::ToggleFunction(int inFunctionNumber)
+{
+	DDC.pControler->SetControled(&this->controled);
+	DDC.pControler->ToggleFunction(inFunctionNumber);
 }
 
 void Handle::ConfigLoad()

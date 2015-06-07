@@ -43,6 +43,8 @@ void static CheckPinNb(int inPin, const __FlashStringHelper *inFunc)
 }
 #endif
 
+//#define DEBUG_MODE
+
 DcDccControler DcDccControler::DDc;
 ControlerDc DcDccControler::DcControler;
 ControlerDcc DcDccControler::DccControler;
@@ -52,6 +54,7 @@ DcDccControler::DcDccControler()
 	this->dcType = PanicStopped;
 	this->pHandleList = 0;
 	this->handleAddcounter = 0;
+	this->pControler = 0;
 }
 
 void DcDccControler::AddHandle(Handle *inpHandle)
@@ -127,11 +130,19 @@ void DcDccControler::EndSetup()
 
 	for (int i = 0; i < this->handleAddcounter; i++)
 	{
-		this->pHandleList[i]->ConfigLoad();
-		this->pHandleList[i]->StartUI();
+		if (this->pHandleList[i]->GetFunctionNumber() < Locomotive::FunctionNumber)
+			Locomotive::FunctionNumber = this->pHandleList[i]->GetFunctionNumber();
 	}
 
-#ifdef VISUALSTUDIO
+	// Must be done only when the good value is in Locomotive::FunctionNumber...
+	for (int i = 0; i < this->handleAddcounter; i++)
+	{
+		this->pHandleList[i]->ConfigLoad();
+		this->pHandleList[i]->StartUI();
+		this->pHandleList[i]->StartContent();
+	}
+
+#ifdef VISUALSTUDIO11
 	bool IsDc = false;
 #else
 	bool IsDc = true;
@@ -150,6 +161,7 @@ void DcDccControler::EndSetup()
 		this->handleAddcounter = 1;
 		// Affect a special loco to this handle.
 		this->pHandleList[0]->SetLocomotive(Locomotive::AnalogLocomotive);
+		this->pHandleList[0]->MoreLessIncrement = 10;
 	}
 	else
 	{
@@ -174,7 +186,8 @@ void DcDccControler::EndSetup()
 	}
 
 	DDC.dcType = DDC.dcTypeAtStart;
-	DDC.pControler->Setup(this->dcPWMpin, this->dcDirPin);
+	if (DDC.pControler != 0)
+		DDC.pControler->Setup(this->dcPWMpin, this->dcDirPin);
 
 #ifdef DEBUG_MODE
 	Serial.print(F("*** Setup Finished."));
@@ -184,7 +197,7 @@ void DcDccControler::EndSetup()
 #endif
 }
 
-byte DcDccControler::IndexOf(Handle *inpHandle)
+byte DcDccControler::IndexOf(Handle *inpHandle) const
 {
 	for (int i = 0; i < DDC.handleAddcounter; i++)
 		if (DDC.pHandleList[i] == inpHandle)
@@ -195,7 +208,8 @@ byte DcDccControler::IndexOf(Handle *inpHandle)
 
 void DcDccControler::Loop()
 {
-	this->pControler->Loop();
+	if (this->pControler != 0)
+		this->pControler->Loop();
 
 	bool updateStatus = false;
 
@@ -212,14 +226,16 @@ void DcDccControler::Loop()
 #endif
 			// return to starting normal mode.
 			this->dcType = this->dcTypeAtStart;
-			this->pControler->PanicStop(false);
+			if (this->pControler != 0)
+				this->pControler->PanicStop(false);
 			for (int i = 0; i < this->handleAddcounter; i++)
 				this->pHandleList[i]->InterruptEnd();
 		}
 		else
 		{
 			this->dcType = PanicStopped;
-			this->pControler->PanicStop(true);
+			if (this->pControler != 0)
+				this->pControler->PanicStop(true);
 			for (int i = 0; i < this->handleAddcounter; i++)
 				this->pHandleList[i]->Interrupt(EVENT_EMERGENCY);
 		}
@@ -262,7 +278,8 @@ void DcDccControler::Loop()
 #endif
 			this->dcType = PanicStopped;
 			this->pPanicButton->UnselectLastLoop();
-			this->pControler->PanicStop(true);
+			if (this->pControler != 0)
+				this->pControler->PanicStop(true);
 			for (int i = 0; i < this->handleAddcounter; i++)
 				this->pHandleList[i]->Interrupt(EVENT_EMERGENCY);
 			updateStatus = true;

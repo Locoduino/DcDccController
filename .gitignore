@@ -4,3 +4,5 @@ VStudioLcdUI/DcDccControler/Debug/
 VStudioLcdUI/VStudioLcdUI.v12.suo
 VStudioLcdUI/Debug/
 VStudioLcdUI/VStudioLcdUI.sdf
+VStudioLcdUI/VStudioLcdUI.opensdf
+.gitignore

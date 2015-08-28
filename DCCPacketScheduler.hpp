@@ -14,9 +14,9 @@
 #define REPEAT_INTERVAL           11
 #define PERIODIC_REFRESH_INTERVAL 23
 
-#define SPEED_REPEAT      3
+#define SPEED_REPEAT      8
 #define FUNCTION_REPEAT   3
-#define E_STOP_REPEAT     5
+#define E_STOP_REPEAT     9
 #define OPS_MODE_PROGRAMMING_REPEAT 3
 #define OTHER_REPEAT      2
 

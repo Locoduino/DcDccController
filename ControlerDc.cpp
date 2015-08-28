@@ -58,6 +58,7 @@ bool ControlerDc::SetDirection(bool inToLeft)
 
 void ControlerDc::PanicStop(bool inStop) 
 {
+	this->panicStopped = inStop;
 	if (inStop)
 	{
 #ifdef DEBUG_MODE

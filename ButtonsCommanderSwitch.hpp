@@ -4,7 +4,7 @@
 //-------------------------------------------------------------------
 
 #ifdef VISUALSTUDIO
-#include "VStudioLcdUI\arduino2.hpp"
+#include "VStudioLcdUi\arduino2.hpp"
 #else
 #include "arduino2.hpp"
 #endif
@@ -17,14 +17,14 @@
 class ButtonsCommanderSwitch : public ButtonsCommanderButton
 {
  private:
-	unsigned long debounceDelay;    // the debounce time; increase if the output flickers
-	
-	bool buttonState;       // the current reading from the input pin
-	bool lastButtonState;   // the previous reading from the input pin. Initialized from current value during setup.
-	unsigned long lastDebounceTime;  // the last time the output pin was toggled
-
 	GPIO_pin_t pin;
 
+	unsigned long debounceDelay;    // the debounce time; increase if the output flickers
+	unsigned long lastDebounceTime;  // the last time the output pin was toggled
+
+	bool buttonState;       // the current reading from the input pin
+	bool lastButtonState;   // the previous reading from the input pin. Initialized from current value during setup.
+	
 public:
 	ButtonsCommanderSwitch();
 	

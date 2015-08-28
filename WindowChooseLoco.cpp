@@ -128,6 +128,15 @@ void WindowChooseLoco::Event(byte inEventType, LcdUi *inpLcd)
 		break;
 	case EVENT_SELECT:
 		this->SetState(STATE_CONFIRMED);
+#ifdef DEBUG_MODE
+		{
+		char name[12];
+		Locomotive::LoadName(DCCItemList.GetItemPos(WindowChooseLoco::selectedSlot), name);
+
+		Serial.print(F("Loco selected : "));
+		Serial.println(name);
+		}
+#endif
 		break;
 	case EVENT_CANCEL:
 		this->SetState(STATE_ABORTED);

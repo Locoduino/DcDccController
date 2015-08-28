@@ -4,7 +4,7 @@
 //-------------------------------------------------------------------
 
 #ifdef VISUALSTUDIO
-#include "VStudioLcdUI\arduino2.hpp"
+#include "VStudioLcdUi\arduino2.hpp"
 #else
 #include "arduino2.hpp"
 #endif
@@ -14,7 +14,7 @@
 //#include "TaggedStringList.hpp"
 #include "Controler.hpp"
 #ifndef __LcdUi_H__
-#include "../LcdUi/LcdUI.h"
+#include "../LcdUi/LcdUi.h"
 #endif
 //-------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ class Handle
 {
 	public:
 		// Handle definition
-		byte id;
+		//byte id;
 		byte handleNumber;	// Handle index in the DcDccControler list.
 
 		// Handle hardware
@@ -41,9 +41,7 @@ class Handle
 		byte windowInterruptSaveLoco;
 
 		// Handle control situation
-		unsigned int Speed;
 		int MoreLessIncrement;
-		bool DirectionToLeft;
 
 		// Handle configuration
 		bool ConfigBacklight;
@@ -52,7 +50,11 @@ class Handle
 	private:
 		// Handle interactive situation
 		Locomotive controled;
+#ifdef NANOCONTROLER
+#define edited	controled
+#else
 		Locomotive edited;
+#endif
 		byte editedFunction;
 		FunctionHandle* *pFunctionHandleList;
 		int functionsSize;
@@ -60,10 +62,10 @@ class Handle
 
 	public:
 		Handle();
-		Handle(byte inId);
 		
 		void Setup(int inNumberOfFunctions = 0);
 		void Setup(int inNumberOfFunctions, FunctionHandle *inpFirstFunction, ...);
+		void EndSetup(bool inDcMode);
 		void StartUI();
 		void StartContent();
 		void Interrupt(int inEvent);
@@ -73,15 +75,15 @@ class Handle
 		FunctionHandle *GetFunction(int inFunctionNumber);
 
 		inline LcdUi *GetUI() const { return this->pUi; }
-		void SetLocomotive(const Locomotive &Locomotive);
-		inline const Locomotive &GetLocomotive() const { return this->controled; }
+		void SetControledLocomotive(const Locomotive &Locomotive);
+		inline const Locomotive &GetControledLocomotive() const { return this->controled; }
 		inline const Locomotive &GetEditedLocomotive() const { return this->edited; }
 		inline byte GetEditedFunction() const { return this->editedFunction; }
 		inline byte GetFunctionNumber() const { return this->functionsAddCounter; }
 
-		inline bool IsLeftDir() const { return this->DirectionToLeft; }
-		inline bool IsRightDir() const { return !this->DirectionToLeft; }
-		//inline bool IsStopped() const { return ports[inType].Get(inPort).IsStopped(); }
+		inline bool IsLeftDir() const { return this->controled.GetDirectionToLeft(); }
+		inline bool IsRightDir() const { return !IsLeftDir(); }
+		inline bool IsPanicStopped() const { return this->pUi->GetWindowInterrupt() == this->windowInterruptEmergency; }
 
 		void SetSpeed(int inNewSpeed);
 		void SetDirection(bool inToLeft);

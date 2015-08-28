@@ -82,7 +82,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Accessory.cpp" />
     <ClCompile Include="..\..\ButtonsCommander.cpp" />
     <ClCompile Include="..\..\ButtonsCommanderAnalogPushes.cpp" />
     <ClCompile Include="..\..\ButtonsCommanderAnalogPushesItem.cpp" />
@@ -107,7 +106,6 @@
     <ClCompile Include="..\ButtonsCommanderKeyboard.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Accessory.hpp" />
     <ClInclude Include="..\..\arduino2.hpp" />
     <ClInclude Include="..\..\arduino2_pins_leonardo.hpp" />
     <ClInclude Include="..\..\arduino2_pins_mega.hpp" />

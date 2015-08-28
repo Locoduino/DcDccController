@@ -42,7 +42,7 @@ extern "C"{
 // Definitions specific for selected board
 #if defined(__AVR_ATmega2560__)
 #include "arduino2_pins_mega.hpp"
-#elif defined(__AVR_ATmega328p__)
+#elif defined(__AVR_ATmega328P__)
 #include "arduino2_pins_nano.hpp"
 #elif defined(__AVR_ATmega32U4__)
 #include "arduino2_pins_leonardo.hpp"

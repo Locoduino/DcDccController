@@ -143,6 +143,7 @@ void Locomotive::Clear()
 	this->steps = 0;
 	this->addressKind = 0;
 	this->Name[0] = 0;
+	this->directionToLeft = true;
 
 	SetFunctionsSize(0);
 }

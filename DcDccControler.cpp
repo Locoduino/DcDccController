@@ -8,13 +8,9 @@ description: <Base functions of the library>
 #include "WindowChooseLoco.hpp"
 #include "Locomotive.hpp"
 
-#ifndef VISUALSTUDIO
-#include "MemoryFree.hpp"
-#else
+#ifdef VISUALSTUDIO
 char DcDccControler::LastKeyPressed;
 #endif
-
-static int freemem = 0;
 
 #ifdef DEBUG_MODE
 void DcDccControler::CheckIndex(unsigned char inIndex, const __FlashStringHelper *inFunc)
@@ -76,9 +72,13 @@ void DcDccControler::AddHandle(Handle *inpHandle)
 
 void DcDccControler::StartSetup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 {
-#ifdef DEBUG_MODE
 	Serial.begin(115200);
-	Serial.println("Setup started...");
+#ifdef DEBUG_MODE
+#ifdef NANOCONTROLER
+	Serial.println(F("Setup started (nano version)..."));
+#else
+	Serial.println(F("Setup started..."));
+#endif
 #ifndef VISUALSTUDIO
 	//while (!Serial);
 #endif
@@ -99,7 +99,6 @@ void DcDccControler::StartSetup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 	Serial.println(F(""));
 
 	Serial.println(F("*** Setup started."));
-	freemem = freeMemory();
 #endif
 }
 
@@ -116,14 +115,19 @@ void DcDccControler::EndSetup()
 		return;
 	}
 
+#ifndef NANOCONTROLER
+	WindowChooseLoco::ClearChoices();
+#endif
+
 #ifdef VISUALSTUDIO
 	DCCItemList.Setup(EEPROM_DDC_CONFIG_SIZE + (EEPROM_DDC_HANDLE_CONFIG_SIZE * this->handleAddcounter), 30, EEPROM_SIZE);
 #else
 	DCCItemList.Setup(EEPROM_DDC_CONFIG_SIZE + (EEPROM_DDC_HANDLE_CONFIG_SIZE * this->handleAddcounter), 20, EEPROM_SIZE);
 #endif
 
-	WindowChooseLoco::ClearChoices();
+#ifndef NANOCONTROLER
 	WindowChooseLoco::RebuildChoices();
+#endif
 
 	Screen::YesMsg = STR_YES;
 	Screen::NoMsg = STR_NO;
@@ -134,15 +138,16 @@ void DcDccControler::EndSetup()
 			Locomotive::FunctionNumber = this->pHandleList[i]->GetFunctionNumber();
 	}
 
+	ConfigLoad();
+
 	// Must be done only when the good value is in Locomotive::FunctionNumber...
 	for (int i = 0; i < this->handleAddcounter; i++)
 	{
-		this->pHandleList[i]->ConfigLoad();
 		this->pHandleList[i]->StartUI();
 		this->pHandleList[i]->StartContent();
 	}
 
-#ifdef VISUALSTUDIO11
+#ifdef VISUALSTUDIO
 	bool IsDc = false;
 #else
 	bool IsDc = true;
@@ -160,7 +165,7 @@ void DcDccControler::EndSetup()
 		// Force to use only the first handle...
 		this->handleAddcounter = 1;
 		// Affect a special loco to this handle.
-		this->pHandleList[0]->SetLocomotive(Locomotive::AnalogLocomotive);
+		this->pHandleList[0]->SetControledLocomotive(Locomotive::AnalogLocomotive);
 		this->pHandleList[0]->MoreLessIncrement = 10;
 	}
 	else
@@ -186,15 +191,25 @@ void DcDccControler::EndSetup()
 	}
 
 	DDC.dcType = DDC.dcTypeAtStart;
-	if (DDC.pControler != 0)
-		DDC.pControler->Setup(this->dcPWMpin, this->dcDirPin);
+	if (DDC.pControler == 0)
+		return;
 
-#ifdef DEBUG_MODE
+	DDC.pControler->Setup(this->dcPWMpin, this->dcDirPin);
+
+	for (int i = 0; i < this->handleAddcounter; i++)
+		this->pHandleList[i]->EndSetup(DDC.dcType == Dc);
+
+//#ifdef DEBUG_MODE
 	Serial.print(F("*** Setup Finished."));
+#ifndef VISUALSTUDIO
+	extern uint8_t *__brkval;
+	extern uint8_t *__heap_start;
+
 	Serial.print(F("   Memory used = "));
-	Serial.print(freemem - freeMemory());
+	Serial.print((int)(__brkval == 0 ? (int)&__heap_start : (int)__brkval) - (int)&__heap_start);
 	Serial.println(F(" bytes"));
 #endif
+//#endif
 }
 
 byte DcDccControler::IndexOf(Handle *inpHandle) const
@@ -293,18 +308,35 @@ void DcDccControler::Loop()
 	}
 }
 
-void DcDccControler::LoadConfig()
+void DcDccControler::ConfigLoad()
 {
-
+	// The first three bytes must be 'DDC' to assume that there is already a saved configuration
+	// in the EEPROM. If not, reset all the EEPROM to 0, and save the 'DDC' identifier.
+	if (EEPROMextent.read(0) != 'D' || EEPROMextent.read(1) != 'D' || EEPROMextent.read(2) != 'C')
+	{
+		ConfigReset();
+		ConfigSave();
+	}
+	else
+	{
+		// Must be done only when the good value is in Locomotive::FunctionNumber...
+		for (int i = 0; i < this->handleAddcounter; i++)
+		{
+			this->pHandleList[i]->ConfigLoad();
+		}
+	}
 }
 
-int DcDccControler::SaveConfig()
+int DcDccControler::ConfigSave()
 {
+	EEPROMextent.write(0, 'D');
+	EEPROMextent.write(1, 'D');
+	EEPROMextent.write(2, 'C');
 
 	return 0;
 }
 
-void DcDccControler::ResetConfig()
+void DcDccControler::ConfigReset()
 {
 	for (int i = 0; i < EEPROM_SIZE; i++)
 		EEPROMextent.update(i, 0);

@@ -4,7 +4,7 @@
 //-------------------------------------------------------------------
 
 #ifdef VISUALSTUDIO
-#include "VStudioLcdUI\arduino2.hpp"
+#include "VStudioLcdUi\arduino2.hpp"
 #else
 #include "arduino2.hpp"
 #endif

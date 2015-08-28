@@ -22,27 +22,27 @@ class DCCPacketQueue
   public:
     DCCPacketQueue(void);
     
-    virtual void setup(byte);
+    void setup(byte);
     
     ~DCCPacketQueue(void)
     {
       free(queue);
     }
     
-    virtual inline bool isFull(void)
+    inline bool isFull(void)
     {
       return (written == size);
     }
-    virtual inline bool isEmpty(void)
+    inline bool isEmpty(void)
     {
       return (written == 0);
     }
-    virtual inline bool notEmpty(void)
+    inline bool notEmpty(void)
     {
       return (written > 0);
     }
     
-    virtual inline bool notRepeat(unsigned int address)
+    inline bool notRepeat(unsigned int address)
     {
       return (address != queue[read_pos].getAddress());
     }

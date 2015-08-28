@@ -19,6 +19,8 @@ class ControlerDcc : public Controler
 {
 	private:
 		DCCPacketScheduler dps;
+		void SetSpeedRaw();
+		void SetFunctionsRaw();
 
 	public:
 		inline ControlerDcc() { }
@@ -29,7 +31,7 @@ class ControlerDcc : public Controler
 		bool SetDirection(bool inToLeft);
 		void ToggleFunction(byte inFunctionNumber);
 		void PanicStop(bool inStop);
-		inline void Loop() { dps.update();	}
+		void Loop();
 };
 
 //-------------------------------------------------------------------

@@ -5,7 +5,7 @@
 #include "DcDccControler.h"
 //-------------------------------------------------------------------
 
-#define WINDOWTYPE_LOCOCONTROL	100
+#define WINDOWTYPE_LOCOCONTROL	14
 
 class WindowLocoControl : public Window
 {

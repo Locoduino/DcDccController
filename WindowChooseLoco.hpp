@@ -7,7 +7,7 @@
 
 //-------------------------------------------------------------------
 
-#define WINDOWTYPE_LOCOCHOICE	101
+#define WINDOWTYPE_LOCOCHOICE	12
 
 /*
 A loco choice include a known list of locos. This list is handled by the slot list pLocoSlots.

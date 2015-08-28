@@ -14,22 +14,29 @@
 // Has no effect if DEBUG_MODE is not activated.
 //#define DEBUG_VERBOSE_MODE
 
+#ifdef __AVR_ATmega328P__
+#define NANOCONTROLER
+#endif
+
 #define GPIO2_PREFER_SPEED    1
 
 #ifdef VISUALSTUDIO
+#define NANOCONTROLER		// for test only
 #include "arduino.h"
 #include "Serial.hpp"
-#include "VStudioLcdUI\arduino2.hpp"
+#include "VStudioLcdUi\arduino2.hpp"
 #else
 #include "arduino2.hpp"
 #endif
 
 #ifndef __LcdUi_H__
-#include "../LcdUi/LcdUI.h"
+#include "../LcdUi/LcdUi.h"
 #endif
 
+#ifndef NANOCONTROLER
 #ifndef __EEPROMextent_h__
 #include "../EEPROMextent/EEPROMextent.h"
+#endif
 #endif
 
 #ifdef DEBUG_MODE
@@ -56,7 +63,6 @@ const char * const string_table[] PROGMEM
 	str_copyright,
 	str_dc,
 	str_dcc,
-	str_cv,
 	str_stop,
 	str_stop2,
 	str_dcdcc,
@@ -64,9 +70,6 @@ const char * const string_table[] PROGMEM
 	str_modemodechoice,
 	str_modelococtrl,
 	str_modelocoedit,
-	str_modelocoprogram,
-	str_modeacccontrol,
-	str_modeaccedit,
 	str_modeconfig,
 	str_locoselect,
 	str_resetconfig,
@@ -86,11 +89,6 @@ const char * const string_table[] PROGMEM
 	str_locoSteps28,
 	str_locoSteps128,
 	str_handleCfgDigits,
-	str_functionnew,
-	str_functiondel,
-	str_functionedit,
-	str_functionsel,
-	str_locofunctions,
 	str_functionId,
 	str_saveLoco,
 	str_special_rst
@@ -108,43 +106,34 @@ const char * const DDC_config_table[] PROGMEM =
 #define STR_COPYRIGHT	1
 #define STR_DC			2
 #define STR_DCC			3
-#define STR_CV			4
-#define STR_STOP		5
-#define STR_STOP2		6
-#define STR_DCDCC		7
-#define STR_DCDCC2		8
-#define STR_MODEMODECHOICE	9
-#define STR_MODELOCOCTRL	10
-#define STR_MODELOCOEDIT	11
-#define STR_MODELOCOPROGRAM	12
-#define STR_MODEACCCONTROL	13
-#define STR_MODEACCEDIT		14
-#define STR_MODECONFIG		15
-#define STR_LOCOSELECT		16
-#define STR_RESETCONFIG		17
-#define STR_YES				18
-#define STR_NO				19
-#define STR_CONFIRM			20
-#define STR_BACKLIGHTCFG	21
-#define STR_LOCONEW			22
-#define STR_LOCOREMOVE		23
-#define STR_LOCOEDIT		24
-#define STR_MODELOCOCHANGE	25
-#define STR_LONGADDRESS		26
-#define STR_LOCOID			27
-#define STR_LOCONAME		28
-#define STR_LOCOSTEPS		29
-#define STR_LOCOSTEPS14		30
-#define STR_LOCOSTEPS28		31
-#define STR_LOCOSTEPS128	32
-#define STR_HANDLECFGDIGITS	33
-#define STR_FUNCTIONNEW		34
-#define STR_FUNCTIONREMOVE	35
-#define STR_FUNCTIONEDIT	36
-#define STR_FUNCTIONSELECT	37
-#define STR_LOCOFUNCTIONS	38
-#define STR_FUNCTIONID		39
-#define STR_SAVELOCO		40
+#define STR_STOP		4
+#define STR_STOP2		5
+#define STR_DCDCC		6
+#define STR_DCDCC2		7
+#define STR_MODEMODECHOICE	8
+#define STR_MODELOCOCTRL	9
+#define STR_MODELOCOEDIT	10
+#define STR_MODECONFIG		11
+#define STR_LOCOSELECT		12
+#define STR_RESETCONFIG		13
+#define STR_YES				14
+#define STR_NO				15
+#define STR_CONFIRM			16
+#define STR_BACKLIGHTCFG	17
+#define STR_LOCONEW			18
+#define STR_LOCOREMOVE		19
+#define STR_LOCOEDIT		20
+#define STR_MODELOCOCHANGE	21
+#define STR_LONGADDRESS		22
+#define STR_LOCOID			23
+#define STR_LOCONAME		24
+#define STR_LOCOSTEPS		25
+#define STR_LOCOSTEPS14		26
+#define STR_LOCOSTEPS28		27
+#define STR_LOCOSTEPS128	28
+#define STR_HANDLECFGDIGITS	29
+#define STR_FUNCTIONID		30
+#define STR_SAVELOCO		31
 
 //////////////////////////////////////////
 //  Exclusion area
@@ -204,7 +193,6 @@ const char * const DDC_config_table[] PROGMEM =
 //	ButtonsCommanderPotentiometer.cpp
 //	ButtonsCommanderPotentiometer.hpp
 
-//#define NO_ACCESSORY
 //#define NO_LOCOMOTIVE
 //#define NO_SCREEN
 
@@ -240,9 +228,6 @@ const char * const DDC_config_table[] PROGMEM =
 /////////////////////////////////////
 
 #include "Handle.hpp"
-#ifndef NO_ACCESSORY
-#include "Accessory.hpp"
-#endif
 #ifndef NO_COMMANDER
 #include "Commander.hpp"
 #endif
@@ -279,12 +264,12 @@ const char * const DDC_config_table[] PROGMEM =
 #define DCC_SHORT_ADDRESS           0x00
 #define DCC_LONG_ADDRESS            0x01
 
-// LcdUI defines
+// LcdUi defines
 #define EVENT_DCDCC		100
 #define EVENT_EMERGENCY	101
 
-#define WINDOWTYPE_INTERRUPT_DCDCC		100
-#define WINDOWTYPE_INTERRUPT_EMERGENCY	101
+#define WINDOWTYPE_INTERRUPT_DCDCC		10
+#define WINDOWTYPE_INTERRUPT_EMERGENCY	11
 #define EEPROM_DDC_CONFIG_SIZE			64
 
 enum DcDcc
@@ -333,9 +318,9 @@ public:
 
 	void Loop();
 
-	void LoadConfig();
-	int SaveConfig();
-	void ResetConfig();
+	void ConfigLoad();
+	int ConfigSave();
+	void ConfigReset();
 
 #ifdef DEBUG_MODE
 	void CheckIndex(unsigned char inIndex, const __FlashStringHelper *inFunc);

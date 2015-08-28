@@ -1,5 +1,5 @@
 /*************************************************************
-project: <LcdUI>
+project: <LcdUi>
 author: <Thierry PARIS>
 description: <Class for a basic screen>
 *************************************************************/
@@ -7,7 +7,7 @@ description: <Class for a basic screen>
 #include "LcdUi.h"
 #include "WindowFunction.hpp"
 
-WindowFunction::WindowFunction(byte inFirstLine, int inNumber) : WindowInt(inFirstLine, 10026, 1, inNumber)
+WindowFunction::WindowFunction(byte inFirstLine, int inNumber) : Window(inFirstLine, inNumber)
 {
 	this->intValue = 0;
 }
@@ -25,14 +25,14 @@ void WindowFunction::Event(byte inEventType, LcdUi *inpLcd)
 		inpLcd->GetScreen()->BuildString(this->tag + 1, Screen::buffer);
 		inpLcd->GetScreen()->print(Screen::buffer);
 
-		if (this->intValue > this->GetMaxIntValue())
-			this->intValue = this->GetMaxIntValue();
-		if (this->intValue < this->GetMinIntValue())
-			this->intValue = this->GetMinIntValue();
+		if (this->intValue > FUNCTION_MAX)
+			this->intValue = FUNCTION_MAX;
+		if (this->intValue < FUNCTION_MIN)
+			this->intValue = FUNCTION_MIN;
 
 		this->state = STATE_INITIALIZE;
 	}
 
-	WindowInt::Event(inEventType, inpLcd);
+	Window::Event(inEventType, inpLcd);
 }
 

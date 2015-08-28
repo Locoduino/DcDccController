@@ -7,9 +7,10 @@ class Controler
 {
 	protected:
 		Locomotive *pControled;
+		bool panicStopped;
 
 	public:
-		inline Controler() { this->pControled = 0; }
+		inline Controler() { this->pControled = 0; this->panicStopped = false; }
 		
 	public:
 		inline void SetControled(Locomotive *inpControled) { this->pControled = inpControled; }

@@ -6,7 +6,7 @@ description: <DDC UI demo>
 
 #include "English16.hpp"			// Must be BEFORE define DcDccControler.h
 
-#include <LcdUI.h>
+#include <LcdUi.h>
 #include <EEPROMextent.h>
 #include "DcDccControler.h"
 #include "ButtonsCommanderKeyboard.hpp"
@@ -23,7 +23,7 @@ ScreenTwoLines Screen;
 #define BUTTON_F2			6
 #define BUTTON_MODE			7
 
-Handle handle(1);
+Handle handle;
 
 void setup()
 {								
@@ -53,15 +53,14 @@ void setup()
 	handle.pSpeedPushLess = KEYBOARD(buttons, BUTTON_SPEED_LESS);
 	handle.pDirectionPush = KEYBOARD(buttons, BUTTON_DIR);
 	handle.pModeButton = KEYBOARD(buttons, BUTTON_MODE);
-	handle.Setup(0);
-	/*        handle.AddFunction(new FunctionHandle(1, PUSH(buttons, BUTTON_F1)));
+	handle.Setup(2);
+	handle.AddFunction(new FunctionHandle(1, PUSH(buttons, BUTTON_F1)));
 	handle.AddFunction(new FunctionHandle(2, PUSH(buttons, BUTTON_F2)));
-	*/
-
+	
 	Screen.Setup(16, 2, string_table, 8, 10, 9, 4, 5, 6, 7);
 	handle.GetUI()->Setup(&Screen);
 
-	//handle.MoreLessIncrement = 10;
+	handle.MoreLessIncrement = 10;
 
 	DDC.AddHandle(&handle);
 	DDC.SetDcDccButton(KEYBOARD(buttons, BUTTON_DCDCC));

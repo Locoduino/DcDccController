@@ -36,7 +36,7 @@ void Handle::CheckIndex(int inIndex, const __FlashStringHelper *inFunc)
 
 Handle::Handle()
 {
-	this->id = 0;
+//	this->id = 0;
 	this->pSpeedPotentiometer = 0;
 	this->pSpeedEncoder = 0;
 	this->pSpeedPushMore = 0;
@@ -45,9 +45,9 @@ Handle::Handle()
 	this->pModeButton = 0;
 	this->windowInterruptDcDcc = 0;
 	this->windowInterruptEmergency = 0;
-	this->Speed = 0;
+	//this->Speed = 0;
 	this->MoreLessIncrement = 1;
-	this->DirectionToLeft = true;
+	//this->DirectionToLeft = true;
 	this->pUi = 0;
 
 	this->pFunctionHandleList = 0;
@@ -58,10 +58,10 @@ Handle::Handle()
 	this->ConfigBacklight = true;
 }
 
-Handle::Handle(byte inId) : Handle()
+/*Handle::Handle(byte inId) : Handle()
 {
 	this->id = inId;
-}
+}*/
 
 void Handle::Setup(int inNumberOfFunctions)
 {
@@ -72,6 +72,10 @@ void Handle::Setup(int inNumberOfFunctions)
 		this->pFunctionHandleList = new FunctionHandle*[inNumberOfFunctions];
 		this->functionsSize = inNumberOfFunctions;
 		this->functionsAddCounter = 0;
+		this->controled.SetFunctionsSize(inNumberOfFunctions);
+#ifndef NANOCONTROLER
+		this->edited.SetFunctionsSize(inNumberOfFunctions);
+#endif
 	}
 }
 
@@ -101,8 +105,9 @@ void Handle::Setup(int inNumberOfFunctions, FunctionHandle *inpFirstFunction, ..
 void Handle::StartUI()
 {
 	if (this->pUi != 0)
+#ifndef NANOCONTROLER
 	{
-		this->pUi->SetWindowsNumber(24 + Locomotive::FunctionNumber);
+		this->pUi->SetWindowsNumber(24 + (2 * Locomotive::FunctionNumber));
 		/*
 			Splash
 			Config							Choice
@@ -119,7 +124,7 @@ void Handle::StartUI()
 						Steps				Choice 14/28/128
 						Function n			Int
 						Function n+1        Int
-				Add							
+				Add
 						Address long		YesNo
 						ID					EditInt	1-127 or 1-10126
 						Name				EditText
@@ -130,46 +135,121 @@ void Handle::StartUI()
 						Confirm				Confirm
 		*/
 
+		// Master version
 		WindowSplash *pSplash = (WindowSplash *)this->pUi->AddWindow(new WindowSplash(STR_TITLE, STR_COPYRIGHT));	// menu
-		WindowChoice *pChoiceMain = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODEMODECHOICE));	// menu
-			pChoiceMain->AddChoice(STR_MODECONFIG);
-				WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG), pChoiceMain, 0);	// config
-				pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
-					this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, 0);
-				pChoiceConfig->AddChoice(STR_BACKLIGHTCFG);
-					this->pUi->AddWindow(new WindowYesNo(STR_BACKLIGHTCFG), pChoiceConfig, 1);	// config back light
-				pChoiceConfig->AddChoice(STR_RESETCONFIG);
-					this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, 2);	// reset config
-			pChoiceMain->AddChoice(STR_MODELOCOCTRL);
-				this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, 1); // run
-			pChoiceMain->AddChoice(STR_MODELOCOCHANGE);
-				this->pUi->AddWindow(new WindowChooseLoco(STR_MODELOCOCHANGE, this), pChoiceMain, 2);
-			pChoiceMain->AddChoice(STR_MODELOCOEDIT);
-				WindowChoice *pChoiceLocoEdit = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODELOCOEDIT), pChoiceMain, 3);
-					pChoiceLocoEdit->AddChoice(STR_LOCOEDIT, STR_SAVELOCO);
-						Window *pWinChooseLoco = this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOSELECT, this), pChoiceLocoEdit, 0);
-						Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceLocoEdit, 0);
-						Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceLocoEdit, 0);
-						Window *pWinLocoName = this->pUi->AddWindow(new WindowText(STR_LOCONAME), pChoiceLocoEdit, 0);
-						WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS), pChoiceLocoEdit, 0);
-							pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
-							pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
-							pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
-						for (int i = 0; i < Locomotive::FunctionNumber; i++)
-							this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 0);
-					pChoiceLocoEdit->AddChoice(STR_LOCONEW);
-						this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
-						this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
-						this->pUi->AddWindow(pWinLocoName, pChoiceLocoEdit, 1);
-						this->pUi->AddWindow(pChoiceSteps, pChoiceLocoEdit, 1);
-					pChoiceLocoEdit->AddChoice(STR_LOCOREMOVE);
-						this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOREMOVE, this), pChoiceLocoEdit, 2);
-						this->pUi->AddWindow(new WindowConfirm(STR_LOCOREMOVE, STR_CONFIRM), pChoiceLocoEdit, 2);
+		WindowChoice *pChoiceMain = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODEMODECHOICE, 4, false, 0));	// menu
+		pChoiceMain->AddChoice(STR_MODECONFIG);
+		WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG, 3, false), pChoiceMain);	// config
+		pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
+		this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, 0);
+		pChoiceConfig->AddChoice(STR_BACKLIGHTCFG);
+		this->pUi->AddWindow(new WindowYesNo(STR_BACKLIGHTCFG), pChoiceConfig, 1);	// config back light
+		pChoiceConfig->AddChoice(STR_RESETCONFIG);
+		this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, 2);	// reset config
+		pChoiceMain->AddChoice(STR_MODELOCOCTRL);
+		this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, 1); // run
+		pChoiceMain->AddChoice(STR_MODELOCOCHANGE);
+		this->pUi->AddWindow(new WindowChooseLoco(STR_MODELOCOCHANGE, this), pChoiceMain, 2);
+		pChoiceMain->AddChoice(STR_MODELOCOEDIT);
+		WindowChoice *pChoiceLocoEdit = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODELOCOEDIT, 3, true), pChoiceMain, 3);
+		pChoiceLocoEdit->AddChoice(STR_LOCOEDIT, STR_SAVELOCO);
+		Window *pWinChooseLoco = this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOSELECT, this), pChoiceLocoEdit, 0);
+		Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceLocoEdit, 0);
+		Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceLocoEdit, 0);
+		Window *pWinLocoName = this->pUi->AddWindow(new WindowText(STR_LOCONAME), pChoiceLocoEdit, 0);
+		WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceLocoEdit, 0);
+		pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
+		pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
+		pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
+		for (int i = 0; i < Locomotive::FunctionNumber; i++)
+			this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 0);
+		pChoiceLocoEdit->AddChoice(STR_LOCONEW);
+		this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
+		this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
+		this->pUi->AddWindow(pWinLocoName, pChoiceLocoEdit, 1);
+		this->pUi->AddWindow(pChoiceSteps, pChoiceLocoEdit, 1);
+		for (int i = 0; i < Locomotive::FunctionNumber; i++)
+			this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 1);
+		pChoiceLocoEdit->AddChoice(STR_LOCOREMOVE);
+		this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOREMOVE, this), pChoiceLocoEdit, 2);
+		this->pUi->AddWindow(new WindowConfirm(STR_LOCOREMOVE, STR_CONFIRM), pChoiceLocoEdit, 2);
 
 		this->windowInterruptDcDcc = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_DCDCC, STR_DCDCC2))); // Dc/Dcc mode change
 		this->windowInterruptEmergency = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_STOP, STR_STOP2))); // Emergency stop
 		this->windowInterruptSaveLoco = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterruptConfirm(STR_SAVELOCO, STR_CONFIRM))); // Save the loco after modif
 	}
+#else
+	{
+		this->pUi->SetWindowsNumber(12 + Locomotive::FunctionNumber);
+		/*
+		Splash
+			LocoControl				WindowLocoControl
+			Config					Choice
+				Nb digits			EditInt 2-4
+				Back light			YesNo
+				Reset				YesNo
+				Address long		YesNo
+				ID					EditInt	1-127 or 1-10126
+				Steps				Choice 14/28/128
+				Function n			Int
+				Function n+1        Int
+		*/
+
+		WindowSplash *pSplash = (WindowSplash *)this->pUi->AddWindow(new WindowSplash(STR_TITLE, STR_COPYRIGHT));	// menu
+		WindowChoice *pChoiceMain = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODEMODECHOICE, 2, false));	// menu
+		int nb = pChoiceMain->AddChoice(STR_MODECONFIG);
+			WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG, 6, false), pChoiceMain, nb);	// config
+			nb = pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
+				this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, nb);
+			nb = pChoiceConfig->AddChoice(STR_BACKLIGHTCFG);
+				this->pUi->AddWindow(new WindowYesNo(STR_BACKLIGHTCFG), pChoiceConfig, nb);	// config back light
+			nb = pChoiceConfig->AddChoice(STR_RESETCONFIG);
+				this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, nb);	// reset config
+			nb = pChoiceConfig->AddChoice(STR_LONGADDRESS);
+				Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceConfig, nb);
+			nb = pChoiceConfig->AddChoice(STR_LOCOID);
+				Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceConfig, nb);
+			nb = pChoiceConfig->AddChoice(STR_LOCOSTEPS);
+				WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceConfig, nb);
+				pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
+				pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
+				pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
+			for (int i = 0; i < Locomotive::FunctionNumber; i++)
+			{
+				nb = pChoiceConfig->AddChoice(STR_FUNCTIONID);
+					this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceConfig, nb);
+			}
+		nb = pChoiceMain->AddChoice(STR_MODELOCOCTRL);
+			this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, nb); // run
+
+		this->windowInterruptDcDcc = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_DCDCC, STR_DCDCC2))); // Dc/Dcc mode change
+		this->windowInterruptEmergency = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_STOP, STR_STOP2))); // Emergency stop
+	}
+#endif
+}
+
+void Handle::EndSetup(bool inDcMode)
+{
+	this->SetSpeed(0);
+	byte ControlIndex = 255;
+	for (ControlIndex = 0; ControlIndex < this->pUi->GetWindowNumber(); ControlIndex++)
+		if (this->pUi->GetWindow(ControlIndex)->GetType() == WINDOWTYPE_LOCOCONTROL)
+			break;
+
+	// If Dc goto to control directly
+	if (inDcMode)
+	{
+		this->pUi->SetWindow(ControlIndex);
+	}
+	else
+	// If Dcc
+	//	If loco configurated, goto control
+	//	else goto Config.
+	{
+		if (this->controled.GetSlotNumber() != 255)
+			this->pUi->SetWindow(ControlIndex);
+	}
+
 }
 
 void Handle::StartContent()
@@ -186,7 +266,7 @@ void Handle::AddFunction(FunctionHandle *pFunction)
 
 #define DEBUG_MODE
 
-void Handle::SetLocomotive(const Locomotive &inLocomotive)
+void Handle::SetControledLocomotive(const Locomotive &inLocomotive)
 {
 #ifdef DEBUG_MODE
 	Serial.println(F("SetLocomotive"));
@@ -220,7 +300,6 @@ bool Handle::Loop()
 		if (this->pSpeedPotentiometer->IsSelectedLastLoop())
 		{
 			event = EVENT_MOVE;
-			this->Speed = this->pSpeedPotentiometer->GetPosition();
 			this->pSpeedPotentiometer->UnselectLastLoop();
 #ifdef DEBUG_MODE
 			Serial.println(F("Speed Potentiometer Moved"));
@@ -315,22 +394,29 @@ bool Handle::Loop()
 				pCurrent->SetChoiceValue(this->ConfigBacklight ? Screen::YesMsg : Screen::NoMsg);
 				break;
 			case STR_HANDLECFGDIGITS:
-				pCurrent->SetValue(this->DccIdNbDigits);
+				((WindowInt*)pCurrent)->SetValue(this->DccIdNbDigits);
 				break;
 			case STR_LONGADDRESS:
-				pCurrent->SetValue(loco.GetDccAddressKind());
+				((WindowInt*)pCurrent)->SetValue(loco.GetDccAddressKind());
 				break;
 			case STR_LOCOID:
-				pCurrent->SetValue(loco.GetDccId());
+				((WindowInt*)pCurrent)->SetValue(loco.GetDccId());
 				break;
 			case STR_LOCONAME:
-				pCurrent->SetValue(loco.GetName());
+				((WindowText*)pCurrent)->SetValue(loco.GetName());
 				break;
 			case STR_LOCOSTEPS:
-				pCurrent->SetValue(loco.GetSteps());
+				int val;
+				switch (loco.GetSteps())
+				{
+				case 14: val = STR_LOCOSTEPS14; break;
+				case 28: val = STR_LOCOSTEPS28; break;
+				default: val = STR_LOCOSTEPS128; break;
+				}
+				((WindowChoice*)pCurrent)->SetChoiceValue(val);
 				break;
 			case STR_FUNCTIONID:
-				pCurrent->SetValue(loco.GetFunctionFromIndex(pCurrent->GetTag()).GetDccId());
+				((WindowInt*)pCurrent)->SetValue(loco.GetFunctionFromIndex(pCurrent->GetTag()).GetDccId());
 				break;
 			}
 			break;
@@ -344,12 +430,12 @@ bool Handle::Loop()
 				break;
 
 			case STR_HANDLECFGDIGITS:
-				this->DccIdNbDigits = pCurrent->GetIntValue();
+				this->DccIdNbDigits = ((WindowInt*)pCurrent)->GetIntValue();
 				this->ConfigSave();
 				break;
 
 			case STR_RESETCONFIG:
-				DDC.ResetConfig();
+				DDC.ConfigReset();
 				break;
 
 			case STR_MODELOCOCHANGE:
@@ -359,6 +445,7 @@ bool Handle::Loop()
 
 			case STR_LOCOSELECT:
 				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
+				this->ConfigSave();
 				break;
 
 			case STR_MODELOCOEDIT:
@@ -389,21 +476,41 @@ bool Handle::Loop()
 				break;
 
 			case STR_LONGADDRESS:
-				loco.SetDccAddressKind(pCurrent->GetIntValue());
+				loco.SetDccAddressKind(((WindowInt*)pCurrent)->GetIntValue());
+#ifdef NANOCONTROLER
+				this->ConfigSave();
+#endif
 				break;
 			case STR_LOCOID:
-				loco.SetDccId(pCurrent->GetIntValue());
+				loco.SetDccId(((WindowInt*)pCurrent)->GetIntValue());
+#ifdef NANOCONTROLER
+				this->ConfigSave();
+#endif
 				break;
 			case STR_LOCONAME:
-				loco.SetName(pCurrent->GetTextValue());
+				loco.SetName(((WindowText*) pCurrent)->GetTextValue());
 				break;
 			case STR_LOCOSTEPS:
-				loco.SetSteps(pCurrent->GetChoiceValue());
+				int val;
+				switch (pCurrent->GetChoiceValue())
+				{
+					case STR_LOCOSTEPS14: val = 14; this->MoreLessIncrement = 1; break;
+					case STR_LOCOSTEPS28: val = 28; this->MoreLessIncrement = 1; break;
+					default: val = 128; this->MoreLessIncrement = 10; break;
+				}
+				loco.SetSteps(val);
+#ifdef NANOCONTROLER
+				this->ConfigSave();
+#endif
 				break;
 			case STR_FUNCTIONID:
-				loco.GetFunctionFromIndex(pCurrent->GetTag()).SetDccId(pCurrent->GetIntValue());
+				loco.GetFunctionFromIndex(pCurrent->GetTag()).SetDccId(((WindowInt*)pCurrent)->GetIntValue());
+#ifdef NANOCONTROLER
+				this->ConfigSave();
+#endif
 				break;
 
+#ifndef NANOCONTROLER
 			case STR_SAVELOCO:
 				if (pCurrent->GetChoiceValue() == STR_YES)
 				{
@@ -411,6 +518,7 @@ bool Handle::Loop()
 					WindowChooseLoco::RebuildChoices();
 				}
 				break;
+#endif
 			}
 			pUi->SetState(STATE_POSTCONFIRMED);
 			break;
@@ -423,16 +531,14 @@ bool Handle::Loop()
 
 void Handle::SetSpeed(int inNewSpeed)
 {
-	this->Speed = inNewSpeed;
 	DDC.pControler->SetControled(&this->controled);
-	DDC.pControler->SetSpeed(this->Speed);
+	DDC.pControler->SetSpeed(inNewSpeed);
 }
 
 void Handle::SetDirection(bool inToLeft)
 {
-	this->DirectionToLeft = inToLeft;
 	DDC.pControler->SetControled(&this->controled);
-	DDC.pControler->SetDirection(this->DirectionToLeft);
+	DDC.pControler->SetDirection(inToLeft);
 }
 
 void Handle::ToggleFunction(int inFunctionNumber)
@@ -448,9 +554,19 @@ void Handle::ConfigLoad()
 
 	this->ConfigBacklight = EEPROMextent.read(pos) > 0;
 	this->DccIdNbDigits = EEPROMextent.read(pos + 1);
-	byte slot = EEPROMextent.read(pos + 2);
+	this->MoreLessIncrement = EEPROMextent.read(pos + 2);
+	// Add here a new config
+	byte slot = 0;
+#ifndef NANOCONTROLER
+	slot = EEPROMextent.read(pos + 3);
 	if (slot < DCCItemList.ListSize / DCCItemList.ItemSize)
+#endif
+	{
 		DCCItemList.GetLoco(slot, &this->controled);
+		this->MoreLessIncrement = 1;
+		if (this->controled.GetSteps() == 128)
+			this->MoreLessIncrement = 10;
+	}
 }
 
 void Handle::ConfigSave()
@@ -460,5 +576,11 @@ void Handle::ConfigSave()
 
 	EEPROMextent.write(pos, (byte) this->ConfigBacklight);
 	EEPROMextent.write(pos + 1, this->DccIdNbDigits);
-	EEPROMextent.write(pos + 2, this->controled.GetSlotNumber());
+	EEPROMextent.write(pos + 2, this->MoreLessIncrement);
+#ifdef NANOCONTROLER
+	// Save/load only the current loco.
+	DCCItemList.UpdateLoco(&this->edited);
+#else
+	EEPROMextent.write(pos + 3, this->controled.GetSlotNumber());
+#endif
 }

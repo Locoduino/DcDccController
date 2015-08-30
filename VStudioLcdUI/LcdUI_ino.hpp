@@ -27,7 +27,7 @@ Handle handle;
 
 void setup()
 {								
-	DDC.StartSetup();
+	DDC.StartSetup(10, 9);
 
 	buttons.Setup(8,
 		new ButtonsCommanderKeyboard(),	 // BUTTON_SPEED_MORE	
@@ -52,7 +52,7 @@ void setup()
 	handle.pSpeedPushMore = KEYBOARD(buttons, BUTTON_SPEED_MORE);
 	handle.pSpeedPushLess = KEYBOARD(buttons, BUTTON_SPEED_LESS);
 	handle.pDirectionPush = KEYBOARD(buttons, BUTTON_DIR);
-	handle.pModeButton = KEYBOARD(buttons, BUTTON_MODE);
+	handle.pCancelButton = KEYBOARD(buttons, BUTTON_MODE);
 	handle.Setup(2);
 	handle.AddFunction(new FunctionHandle(1, PUSH(buttons, BUTTON_F1)));
 	handle.AddFunction(new FunctionHandle(2, PUSH(buttons, BUTTON_F2)));

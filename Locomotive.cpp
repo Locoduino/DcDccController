@@ -31,7 +31,7 @@ void Locomotive::CheckIndex(byte inIndex, const __FlashStringHelper *inFunc)
 #define CHECK(val, text)
 #endif
 
-Locomotive Locomotive::AnalogLocomotive(1, 0, "analog", 128);
+Locomotive Locomotive::AnalogLocomotive(1, 0, "analog", 255);
 byte Locomotive::FunctionNumber = 255;
 
 Locomotive::Locomotive()
@@ -49,7 +49,9 @@ Locomotive::Locomotive(uint16_t inDccId, uint8_t inAdressKind, char *inName, uin
 	this->SlotNumber = 255;
 	this->DccId = inDccId;
 	this->addressKind = inAdressKind;
+#ifndef NANOCONTROLER
 	STRCPY(this->Name, inName);
+#endif
 	this->steps = inSteps;
 }
 
@@ -101,7 +103,9 @@ void Locomotive::Copy(const Locomotive &inLocomotive)
 	this->SlotNumber = inLocomotive.SlotNumber;
 	this->DccId = inLocomotive.DccId;
 	this->addressKind = inLocomotive.addressKind;
+#ifndef NANOCONTROLER
 	STRCPY(this->Name, inLocomotive.Name);
+#endif
 	this->steps = inLocomotive.steps;
 
 	this->SetFunctionsSize(inLocomotive.GetFunctionNumber());
@@ -113,24 +117,30 @@ void Locomotive::Copy(const Locomotive &inLocomotive)
 void Locomotive::Load(int inStartPos)
 {
 	inStartPos += EEPROMextent.readAnything(inStartPos, this->DccId);
+#ifndef NANOCONTROLER
 	EEPROMextent.readString(inStartPos, this->Name, 12);
 	inStartPos += 12;
+#endif
 	this->addressKind = EEPROMextent.read(inStartPos++);
 	this->steps = EEPROMextent.read(inStartPos++);
 }
 
+#ifndef NANOCONTROLER
 void Locomotive::LoadName(int inStartPos, char *outpName)
 {
 	uint16_t dccId;
 	inStartPos += EEPROMextent.readAnything(inStartPos, dccId);
 	EEPROMextent.readString(inStartPos, outpName, 12);
 }
+#endif
 
 void Locomotive::Save(int inStartPos)
 {
 	inStartPos += EEPROMextent.updateAnything(inStartPos, this->DccId);
+#ifndef NANOCONTROLER
 	EEPROMextent.updateString(inStartPos, this->Name);
 	inStartPos += 12;
+#endif
 	EEPROMextent.write(inStartPos++, this->addressKind);
 	EEPROMextent.write(inStartPos, this->steps);
 }
@@ -142,7 +152,9 @@ void Locomotive::Clear()
 	this->DccId = 0;
 	this->steps = 0;
 	this->addressKind = 0;
+#ifndef NANOCONTROLER
 	this->Name[0] = 0;
+#endif
 	this->directionToLeft = true;
 
 	SetFunctionsSize(0);

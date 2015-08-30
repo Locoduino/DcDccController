@@ -7,6 +7,7 @@
 
 //-------------------------------------------------------------------
 
+#ifndef NANOCONTROLER
 #define WINDOWTYPE_LOCOCHOICE	12
 
 /*
@@ -39,6 +40,6 @@ public:
 	static byte GetSlotIndex(byte inSlot);
 	inline static void SetSelectedLoco(byte inSelectedSlot) { WindowChooseLoco::selectedSlot = inSelectedSlot; }
 };
-
+#endif
 #endif
 //-------------------------------------------------------------------

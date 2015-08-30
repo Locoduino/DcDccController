@@ -11,7 +11,7 @@ class Function
 		byte SlotNumber;	// Slot number in the EEPROM list, 255 (EEPROMLIST_EMPTY_SLOT) if not saved.
 		int DccIdFunction;
 
-private:
+	private:
 		bool activated;
 
 	public:

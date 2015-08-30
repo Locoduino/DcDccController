@@ -5,6 +5,7 @@ description: <Class for a loco choice window>
 *************************************************************/
 
 #include "DcDccControler.h"
+#ifndef NANOCONTROLER
 #include "WindowChooseLoco.hpp"
 
 byte *WindowChooseLoco::pLocoSlots;
@@ -153,4 +154,4 @@ void WindowChooseLoco::Event(byte inEventType, LcdUi *inpLcd)
 		pScreen->DisplayChoice(name);
 	}
 }
-
+#endif

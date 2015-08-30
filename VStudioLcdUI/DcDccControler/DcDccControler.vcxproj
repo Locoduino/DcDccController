@@ -100,6 +100,7 @@
     <ClCompile Include="..\..\Handle.cpp" />
     <ClCompile Include="..\..\Locomotive.cpp" />
     <ClCompile Include="..\..\TextCommunicationHelper.cpp" />
+    <ClCompile Include="..\..\WindowChooseDcFreq.cpp" />
     <ClCompile Include="..\..\WindowChooseLoco.cpp" />
     <ClCompile Include="..\..\WindowFunction.cpp" />
     <ClCompile Include="..\..\WindowLocoControl.cpp" />
@@ -131,6 +132,7 @@
     <ClInclude Include="..\..\Handle.hpp" />
     <ClInclude Include="..\..\Locomotive.hpp" />
     <ClInclude Include="..\..\TextCommunicationHelper.hpp" />
+    <ClInclude Include="..\..\WindowChooseDcFreq.hpp" />
     <ClInclude Include="..\..\WindowChooseLoco.hpp" />
     <ClInclude Include="..\..\WindowFunction.hpp" />
     <ClInclude Include="..\..\WindowLocoControl.hpp" />

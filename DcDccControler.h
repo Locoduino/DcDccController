@@ -56,6 +56,13 @@ extern const char * const string_table[] PROGMEM;
 
 // Unlocalized special strings
 const char str_special_rst[] PROGMEM = "$rst";
+#ifdef SHORTLENGTH_MSG
+const char str_title[] PROGMEM = "Dc/Dcc Cont V0.5";
+const char str_copyright[] PROGMEM = "By Thierry Paris";
+#else
+const char str_title[] PROGMEM = "Dc/Dcc Controler V0.5";
+const char str_copyright[] PROGMEM = "By Thierry Paris";
+#endif
 
 const char * const string_table[] PROGMEM
 {
@@ -76,7 +83,7 @@ const char * const string_table[] PROGMEM
 	str_yes,
 	str_no,
 	str_confirm,
-	str_bkltconfig,
+	str_pwmfreqency,
 	str_loconew,
 	str_locodel,
 	str_locoedit,
@@ -119,7 +126,7 @@ const char * const DDC_config_table[] PROGMEM =
 #define STR_YES				14
 #define STR_NO				15
 #define STR_CONFIRM			16
-#define STR_BACKLIGHTCFG	17
+#define STR_PWMFREQCFG		17
 #define STR_LOCONEW			18
 #define STR_LOCOREMOVE		19
 #define STR_LOCOEDIT		20
@@ -227,6 +234,14 @@ const char * const DDC_config_table[] PROGMEM =
 
 /////////////////////////////////////
 
+enum DcDcc
+{
+	DcChangeStopped,
+	PanicStopped,
+	Dc,
+	Dcc
+};
+
 #include "Handle.hpp"
 #ifndef NO_COMMANDER
 #include "Commander.hpp"
@@ -272,18 +287,10 @@ const char * const DDC_config_table[] PROGMEM =
 #define WINDOWTYPE_INTERRUPT_EMERGENCY	11
 #define EEPROM_DDC_CONFIG_SIZE			64
 
-enum DcDcc
-{
-	DcChangeStopped,
-	PanicStopped,
-	Dc,
-	Dcc
-};
-
 class DcDccControler
 {
 protected:
-	uint8_t dcPWMpin;
+	uint8_t dcPWMpin;	// To be able to change Dc frequency, the pin used must be 9 or 10 !
 	uint8_t dcDirPin;
 
 public:
@@ -303,8 +310,6 @@ private:
 
 public:
 	static DcDccControler DDc;
-	static ControlerDc DcControler;
-	static ControlerDcc DccControler;
 
 public:
 	DcDccControler();

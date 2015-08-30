@@ -16,7 +16,9 @@ private:
 	byte SlotNumber;	// Slot number in the EEPROM list, 255 (EEPROMLIST_EMPTY_SLOT) if not saved.
 	uint16_t DccId;
 	uint8_t addressKind;
+#ifndef NANOCONTROLER
 	char Name[12];
+#endif
 	uint8_t steps;
 	Function *pFunctions;
 	byte functionsAddCounter;
@@ -38,8 +40,10 @@ public:
 	inline Function &GetFunctionFromIndex(byte inIndex)	const { return this->pFunctions[inIndex]; }
 	byte GetFunctionIndex(const Function &inRef) const;
 	void Copy(const Locomotive &inLocomotive);
+#ifndef NANOCONTROLER
 	inline const char *GetName() const { return this->Name; }
 	inline void SetName(const char *inNewName) { STRCPY(this->Name, inNewName); }
+#endif
 	inline uint16_t GetDccId() const { return this->DccId; }
 	inline void SetDccId(uint16_t inDccId) { this->DccId = inDccId; }
 	inline uint8_t GetDccAddressKind() const { return this->addressKind; }
@@ -56,7 +60,9 @@ public:
 	inline void SetSlotNumber(byte inSlotNumber) { this->SlotNumber = inSlotNumber; }
 
 	void Load(int inStartPos);
+#ifndef NANOCONTROLER
 	static void LoadName(int inStartPos, char *outpName);
+#endif
 	void Save(int inStartPos);
 	void Clear();
 

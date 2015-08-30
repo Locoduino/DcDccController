@@ -109,7 +109,6 @@ void ControlerDcc::PanicStop(bool inStop)
 	SetSpeedRaw();
 }
 
-#define FRENQUENCYPACKETSMAX		10
 #define FRENQUENCYPACKETSFUNCTION	0
 #define FRENQUENCYPACKETSSPEED1		1
 #define FRENQUENCYPACKETSSPEED2		2
@@ -121,7 +120,14 @@ void ControlerDcc::Loop()
 	byte mod = FrequencyPacketsCount % 10;
 	FrequencyPacketsCount++;
 	if (mod == FRENQUENCYPACKETSFUNCTION)
+	{
 		SetFunctionsRaw();
+		return;
+	}
 	if (mod == FRENQUENCYPACKETSSPEED1 || mod == FRENQUENCYPACKETSSPEED2)
+	{
 		SetSpeedRaw();
+		return;
+	}
+	dps.update();
 }

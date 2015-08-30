@@ -5,9 +5,12 @@ description: <Class for one handle>
 *************************************************************/
 
 #include "DcDccControler.h"
+#ifndef NO_BUTTONSCOMMANDERPOTENTIOMETER
 #include "ButtonsCommanderPotentiometer.hpp"
+#endif
 #include "WindowLocoControl.hpp"
 #include "WindowChooseLoco.hpp"
+#include "WindowChooseDcFreq.hpp"
 #include "WindowFunction.hpp"
 
 #include <stdarg.h>
@@ -37,12 +40,14 @@ void Handle::CheckIndex(int inIndex, const __FlashStringHelper *inFunc)
 Handle::Handle()
 {
 //	this->id = 0;
+#ifndef NO_BUTTONSCOMMANDERPOTENTIOMETER
 	this->pSpeedPotentiometer = 0;
+#endif
 	this->pSpeedEncoder = 0;
 	this->pSpeedPushMore = 0;
 	this->pSpeedPushLess = 0;
 	this->pDirectionPush = 0;
-	this->pModeButton = 0;
+	this->pCancelButton = 0;
 	this->windowInterruptDcDcc = 0;
 	this->windowInterruptEmergency = 0;
 	//this->Speed = 0;
@@ -55,7 +60,6 @@ Handle::Handle()
 	this->functionsAddCounter = 0;
 
 	this->DccIdNbDigits = 4;
-	this->ConfigBacklight = true;
 }
 
 /*Handle::Handle(byte inId) : Handle()
@@ -63,7 +67,7 @@ Handle::Handle()
 	this->id = inId;
 }*/
 
-void Handle::Setup(int inNumberOfFunctions)
+void Handle::Setup(byte inNumberOfFunctions)
 {
 	if (this->pUi == 0)
 		this->pUi = new LcdUi();
@@ -79,7 +83,7 @@ void Handle::Setup(int inNumberOfFunctions)
 	}
 }
 
-void Handle::Setup(int inNumberOfFunctions, FunctionHandle *inpFirstFunction, ...)
+void Handle::Setup(byte inNumberOfFunctions, FunctionHandle *inpFirstFunction, ...)
 {
 	va_list argList;
 
@@ -142,8 +146,8 @@ void Handle::StartUI()
 		WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG, 3, false), pChoiceMain);	// config
 		pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
 		this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, 0);
-		pChoiceConfig->AddChoice(STR_BACKLIGHTCFG);
-		this->pUi->AddWindow(new WindowYesNo(STR_BACKLIGHTCFG), pChoiceConfig, 1);	// config back light
+		pChoiceConfig->AddChoice(STR_PWMFREQCFG);
+		this->pUi->AddWindow(new WindowChooseDcFreq(STR_PWMFREQCFG), pChoiceConfig, 1);	// DC Freq
 		pChoiceConfig->AddChoice(STR_RESETCONFIG);
 		this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, 2);	// reset config
 		pChoiceMain->AddChoice(STR_MODELOCOCTRL);
@@ -182,42 +186,55 @@ void Handle::StartUI()
 	{
 		this->pUi->SetWindowsNumber(12 + Locomotive::FunctionNumber);
 		/*
-		Splash
-			LocoControl				WindowLocoControl
-			Config					Choice
-				Nb digits			EditInt 2-4
-				Back light			YesNo
-				Reset				YesNo
-				Address long		YesNo
-				ID					EditInt	1-127 or 1-10126
-				Steps				Choice 14/28/128
-				Function n			Int
-				Function n+1        Int
+		In Dc :
+			Splash
+				LocoControl				WindowLocoControl
+				Config					Choice
+					PWM freq			WindowChooseDcFreq
+					Reset				YesNo
+		
+		In Dcc :
+			Splash
+				LocoControl				WindowLocoControl
+				Config					Choice
+					Nb digits			EditInt 2-4
+					Reset				YesNo
+					Address long		YesNo
+					ID					EditInt	1-127 or 1-10126
+					Steps				Choice 14/28/128
+					Function n			Int
+					Function n+1        Int
 		*/
 
 		WindowSplash *pSplash = (WindowSplash *)this->pUi->AddWindow(new WindowSplash(STR_TITLE, STR_COPYRIGHT));	// menu
 		WindowChoice *pChoiceMain = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODEMODECHOICE, 2, false));	// menu
 		int nb = pChoiceMain->AddChoice(STR_MODECONFIG);
 			WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG, 6, false), pChoiceMain, nb);	// config
-			nb = pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
-				this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, nb);
-			nb = pChoiceConfig->AddChoice(STR_BACKLIGHTCFG);
-				this->pUi->AddWindow(new WindowYesNo(STR_BACKLIGHTCFG), pChoiceConfig, nb);	// config back light
-			nb = pChoiceConfig->AddChoice(STR_RESETCONFIG);
-				this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, nb);	// reset config
-			nb = pChoiceConfig->AddChoice(STR_LONGADDRESS);
-				Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceConfig, nb);
-			nb = pChoiceConfig->AddChoice(STR_LOCOID);
-				Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceConfig, nb);
-			nb = pChoiceConfig->AddChoice(STR_LOCOSTEPS);
-				WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceConfig, nb);
-				pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
-				pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
-				pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
-			for (int i = 0; i < Locomotive::FunctionNumber; i++)
+			if (DDC.dcType == Dc)
 			{
-				nb = pChoiceConfig->AddChoice(STR_FUNCTIONID);
-					this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceConfig, nb);
+				nb = pChoiceConfig->AddChoice(STR_PWMFREQCFG);
+					this->pUi->AddWindow(new WindowChooseDcFreq(STR_PWMFREQCFG), pChoiceConfig, nb);	// DC Freq
+			}
+			else
+			{
+				nb = pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
+					this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, nb);
+				nb = pChoiceConfig->AddChoice(STR_LONGADDRESS);
+					Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceConfig, nb);
+				nb = pChoiceConfig->AddChoice(STR_LOCOID);
+					Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceConfig, nb);
+				nb = pChoiceConfig->AddChoice(STR_LOCOSTEPS);
+					WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceConfig, nb);
+					pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
+					pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
+					pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
+				for (int i = 0; i < Locomotive::FunctionNumber; i++)
+				{
+					nb = pChoiceConfig->AddChoice(STR_FUNCTIONID);
+						this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceConfig, nb);
+				}
+				nb = pChoiceConfig->AddChoice(STR_RESETCONFIG);
+					this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, nb);	// reset config
 			}
 		nb = pChoiceMain->AddChoice(STR_MODELOCOCTRL);
 			this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, nb); // run
@@ -272,8 +289,10 @@ void Handle::SetControledLocomotive(const Locomotive &inLocomotive)
 	Serial.println(F("SetLocomotive"));
 #endif
 	this->controled.Copy(inLocomotive);
+#ifndef NO_BUTTONSCOMMANDERPOTENTIOMETER
 	if (this->pSpeedPotentiometer != 0)
 		((ButtonsCommanderPotentiometer *) this->pSpeedPotentiometer)->SetMinMax(0, inLocomotive.GetSteps());
+#endif
 }
 
 void Handle::Interrupt(int inEvent)
@@ -296,6 +315,7 @@ bool Handle::Loop()
 
 	int event = EVENT_NONE;
 
+#ifndef NO_BUTTONSCOMMANDERPOTENTIOMETER
 	if (this->pSpeedPotentiometer != 0)
 		if (this->pSpeedPotentiometer->IsSelectedLastLoop())
 		{
@@ -305,6 +325,7 @@ bool Handle::Loop()
 			Serial.println(F("Speed Potentiometer Moved"));
 #endif
 		}
+#endif
 
 	if (this->pSpeedEncoder != 0)
 		if (this->pSpeedEncoder->IsSelectedLastLoop())
@@ -352,11 +373,11 @@ bool Handle::Loop()
 #endif
 		}
 
-	if (this->pModeButton != 0)
-		if (this->pModeButton->IsSelectedLastLoop())
+	if (this->pCancelButton != 0)
+		if (this->pCancelButton->IsSelectedLastLoop())
 		{
 			event = EVENT_CANCEL;
-			this->pModeButton->UnselectLastLoop();
+			this->pCancelButton->UnselectLastLoop();
 #ifdef DEBUG_MODE
 			Serial.println(F("Button Cancel pressed"));
 #endif
@@ -390,8 +411,8 @@ bool Handle::Loop()
 		case STATE_INITIALIZE:
 			switch (pUi->GetWindowId())
 			{
-			case STR_BACKLIGHTCFG:
-				pCurrent->SetChoiceValue(this->ConfigBacklight ? Screen::YesMsg : Screen::NoMsg);
+			case STR_PWMFREQCFG:
+				((WindowChooseDcFreq *)pCurrent)->SetCurrentChoice(((ControlerDc *)DDC.pControler)->GetFrequencyDivisor());
 				break;
 			case STR_HANDLECFGDIGITS:
 				((WindowInt*)pCurrent)->SetValue(this->DccIdNbDigits);
@@ -402,9 +423,11 @@ bool Handle::Loop()
 			case STR_LOCOID:
 				((WindowInt*)pCurrent)->SetValue(loco.GetDccId());
 				break;
+#ifndef NANOCONTROLER
 			case STR_LOCONAME:
 				((WindowText*)pCurrent)->SetValue(loco.GetName());
 				break;
+#endif
 			case STR_LOCOSTEPS:
 				int val;
 				switch (loco.GetSteps())
@@ -424,9 +447,9 @@ bool Handle::Loop()
 		case STATE_CONFIRMED:
 			switch (pUi->GetWindowId())
 			{
-			case STR_BACKLIGHTCFG:
-				this->ConfigBacklight = pCurrent->GetChoiceValue() == Screen::YesMsg;
-				this->ConfigSave();
+			case STR_PWMFREQCFG:
+				((ControlerDc *)DDC.pControler)->SetFrequencyDivisor(((WindowChooseDcFreq *)pCurrent)->GetChoiceIntValue());
+				DDC.ConfigSave();
 				break;
 
 			case STR_HANDLECFGDIGITS:
@@ -438,6 +461,7 @@ bool Handle::Loop()
 				DDC.ConfigReset();
 				break;
 
+#ifndef NANOCONTROLER
 			case STR_MODELOCOCHANGE:
 				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->controled);
 				this->ConfigSave();
@@ -474,6 +498,7 @@ bool Handle::Loop()
 
 				}
 				break;
+#endif
 
 			case STR_LONGADDRESS:
 				loco.SetDccAddressKind(((WindowInt*)pCurrent)->GetIntValue());
@@ -487,9 +512,11 @@ bool Handle::Loop()
 				this->ConfigSave();
 #endif
 				break;
+#ifndef NANOCONTROLER
 			case STR_LOCONAME:
 				loco.SetName(((WindowText*) pCurrent)->GetTextValue());
 				break;
+#endif
 			case STR_LOCOSTEPS:
 				int val;
 				switch (pCurrent->GetChoiceValue())
@@ -541,7 +568,7 @@ void Handle::SetDirection(bool inToLeft)
 	DDC.pControler->SetDirection(inToLeft);
 }
 
-void Handle::ToggleFunction(int inFunctionNumber)
+void Handle::ToggleFunction(byte inFunctionNumber)
 {
 	DDC.pControler->SetControled(&this->controled);
 	DDC.pControler->ToggleFunction(inFunctionNumber);
@@ -552,20 +579,23 @@ void Handle::ConfigLoad()
 	byte i = DDC.IndexOf(this);
 	int pos= EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE);
 
-	this->ConfigBacklight = EEPROMextent.read(pos) > 0;
-	this->DccIdNbDigits = EEPROMextent.read(pos + 1);
-	this->MoreLessIncrement = EEPROMextent.read(pos + 2);
-	// Add here a new config
-	byte slot = 0;
-#ifndef NANOCONTROLER
-	slot = EEPROMextent.read(pos + 3);
-	if (slot < DCCItemList.ListSize / DCCItemList.ItemSize)
-#endif
+	if (DDC.dcType == Dcc)
 	{
-		DCCItemList.GetLoco(slot, &this->controled);
-		this->MoreLessIncrement = 1;
-		if (this->controled.GetSteps() == 128)
-			this->MoreLessIncrement = 10;
+		this->DccIdNbDigits = EEPROMextent.read(pos + 1);
+		this->MoreLessIncrement = EEPROMextent.read(pos + 2);
+
+		// Add here a new config
+		byte controledSlot = 0;
+#ifndef NANOCONTROLER
+		controledSlot = EEPROMextent.read(pos + 3);
+		if (controledSlot < DCCItemList.ListSize / DCCItemList.ItemSize)
+#endif
+		{
+			DCCItemList.GetLoco(controledSlot, &this->controled);
+			this->MoreLessIncrement = 1;
+			if (this->controled.GetSteps() == 128)
+				this->MoreLessIncrement = 10;
+		}
 	}
 }
 
@@ -574,13 +604,16 @@ void Handle::ConfigSave()
 	byte i = DDC.IndexOf(this);
 	int pos = EEPROM_DDC_CONFIG_SIZE + (i * EEPROM_DDC_HANDLE_CONFIG_SIZE);
 
-	EEPROMextent.write(pos, (byte) this->ConfigBacklight);
-	EEPROMextent.write(pos + 1, this->DccIdNbDigits);
-	EEPROMextent.write(pos + 2, this->MoreLessIncrement);
+	if (DDC.dcType == Dcc)
+	{
+		EEPROMextent.write(pos, 0);
+		EEPROMextent.write(pos + 1, this->DccIdNbDigits);
+		EEPROMextent.write(pos + 2, this->MoreLessIncrement);
 #ifdef NANOCONTROLER
-	// Save/load only the current loco.
-	DCCItemList.UpdateLoco(&this->edited);
+		// Save/load only the current loco.
+		DCCItemList.UpdateLoco(&this->edited);
 #else
-	EEPROMextent.write(pos + 3, this->controled.GetSlotNumber());
+		EEPROMextent.write(pos + 3, this->controled.GetSlotNumber());
 #endif
+	}
 }

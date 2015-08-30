@@ -23,7 +23,7 @@ class ControlerDcc : public Controler
 		void SetFunctionsRaw();
 
 	public:
-		inline ControlerDcc() { }
+		inline ControlerDcc() { this->dcType = Dcc; }
 		
 	public:
 		void Setup(uint8_t inDcPWMpin, uint8_t inDcDirPin);

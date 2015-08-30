@@ -5,6 +5,7 @@ description: <Class for a loco control window>
 *************************************************************/
 
 #include "DcDccControler.h"
+#include "WindowChooseDcFreq.hpp"
 #include "WindowLocoControl.hpp"
 
 WindowLocoControl::WindowLocoControl(int inFirstLine, Handle *inpHandle) : Window(inFirstLine)
@@ -29,7 +30,15 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 	if (this->state == STATE_START)
 	{
 		if (DDC.dcType == Dc)
+		{
 			inpLcd->GetScreen()->DisplayHeader(this->dcMsg);
+			WindowChooseDcFreq::BuildFreqString(((ControlerDc *)DDC.pControler)->GetFrequencyDivisor());
+			char text[20];
+			STRNCPY(text, 20, Screen::buffer);
+			byte len = Screen::BuildStringLeft(text, inpLcd->GetScreen()->GetSizeX() - 4, Screen::buffer);
+			inpLcd->GetScreen()->setCursor(inpLcd->GetScreen()->GetSizeX() - len, 0);
+			inpLcd->GetScreen()->print(Screen::buffer);
+		}
 		else
 		{
 			inpLcd->GetScreen()->DisplayHeader(this->dccMsg);
@@ -38,26 +47,33 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 			inpLcd->GetScreen()->setCursor(4, 0);
 			Screen::BuildString(this->pHandle->GetControledLocomotive().GetDccId(), Screen::buffer, this->pHandle->DccIdNbDigits);
 			inpLcd->GetScreen()->print(Screen::buffer);
+#ifndef NANOCONTROLER
 			inpLcd->GetScreen()->setCursor(4 + this->pHandle->DccIdNbDigits, 0);
 			inpLcd->GetScreen()->write(32);
 			byte len = Screen::BuildStringLeft(this->pHandle->GetControledLocomotive().GetName(), inpLcd->GetScreen()->GetSizeX() - (4 + this->pHandle->DccIdNbDigits + 1), Screen::buffer);
 			inpLcd->GetScreen()->setCursor(inpLcd->GetScreen()->GetSizeX() - len, 0);
 			inpLcd->GetScreen()->print(Screen::buffer);
+#endif
 		}
 
 		this->state = STATE_INITIALIZE;
 	}
 
-	byte steps = this->pHandle->GetControledLocomotive().GetSteps();
 	byte inc;
-#ifdef DEBUG_MODE
-	//Serial.println(steps);
-#endif
-	switch (steps)
+	byte steps = this->pHandle->GetControledLocomotive().GetSteps();
+	if (DDC.dcType == Dcc)
 	{
+#ifdef DEBUG_MODE
+		//Serial.println(steps);
+#endif
+		switch (steps)
+		{
 		case 128: inc = this->pHandle->MoreLessIncrement; break;
 		default: inc = 1; break;
+		}
 	}
+	else
+		inc = this->pHandle->MoreLessIncrement;
 
 	switch (inEventType)
 	{
@@ -93,6 +109,7 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 			showValue = true;
 			break;
 
+#ifndef NO_BUTTONSCOMMANDERPOTENTIOMETER
 		case EVENT_MOVE:
 		{
 #ifdef DEBUG_MODE
@@ -108,6 +125,8 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		}
 		showValue = true;
 		break;
+#endif
+
 		case EVENT_SELECT:
 #ifdef DEBUG_MODE
 			Serial.println(F("SELECT"));
@@ -132,7 +151,8 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		int speed = abs(this->pHandle->GetControledLocomotive().GetMappedSpeed());
 		if (speed == 1)
 			speed = 0;
-		Screen::BuildProgress(speed, 127, this->pHandle->GetControledLocomotive().GetDirectionToLeft(), inpLcd->GetScreen()->GetSizeX(), Screen::buffer);
+		Screen::BuildProgress(speed, DDC.pControler->GetType() == Dc ? 255 : 127, 
+			this->pHandle->GetControledLocomotive().GetDirectionToLeft(), inpLcd->GetScreen()->GetSizeX(), Screen::buffer);
 		inpLcd->GetScreen()->setCursor(0, 1);
 		inpLcd->GetScreen()->print(Screen::buffer);
 	}

@@ -42,8 +42,6 @@ void static CheckPinNb(int inPin, const __FlashStringHelper *inFunc)
 //#define DEBUG_MODE
 
 DcDccControler DcDccControler::DDc;
-ControlerDc DcDccControler::DcControler;
-ControlerDcc DcDccControler::DccControler;
 
 DcDccControler::DcDccControler()
 {
@@ -63,7 +61,6 @@ void DcDccControler::AddHandle(Handle *inpHandle)
 			pNewList[i] = this->pHandleList[i];
 
 	pNewList[i] = inpHandle;
-	inpHandle->handleNumber = this->handleAddcounter;
 
 	this->handleAddcounter++;
 	delete this->pHandleList;
@@ -78,6 +75,11 @@ void DcDccControler::StartSetup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 	Serial.println(F("Setup started (nano version)..."));
 #else
 	Serial.println(F("Setup started..."));
+	if (inDcPWMpin != 9 && inDcPWMpin != 10)
+	{
+		Serial.println(F("ERROR: The PWM pin must be 9 or 10 for DC frequency adjustment !"));
+		Serial.println(F("Any other pin can dramaticaly change the meaning of all time related functions (delay, millis...)"));
+	}
 #endif
 #ifndef VISUALSTUDIO
 	//while (!Serial);
@@ -138,17 +140,8 @@ void DcDccControler::EndSetup()
 			Locomotive::FunctionNumber = this->pHandleList[i]->GetFunctionNumber();
 	}
 
-	ConfigLoad();
-
-	// Must be done only when the good value is in Locomotive::FunctionNumber...
-	for (int i = 0; i < this->handleAddcounter; i++)
-	{
-		this->pHandleList[i]->StartUI();
-		this->pHandleList[i]->StartContent();
-	}
-
 #ifdef VISUALSTUDIO
-	bool IsDc = false;
+	bool IsDc = true;
 #else
 	bool IsDc = true;
 	if (this->pDcDccButton != 0)
@@ -161,7 +154,7 @@ void DcDccControler::EndSetup()
 		Serial.println(F("Start in Dc mode"));
 #endif
 		DDC.dcTypeAtStart = Dc;
-		DDC.pControler = &DcControler;
+		DDC.pControler = new ControlerDc();
 		// Force to use only the first handle...
 		this->handleAddcounter = 1;
 		// Affect a special loco to this handle.
@@ -174,27 +167,23 @@ void DcDccControler::EndSetup()
 		Serial.println(F("Start in Dcc mode"));
 #endif
 		DDC.dcTypeAtStart = Dcc;
-		DDC.pControler = &DccControler;
-
-	/*
-		for (int i = 0; i < this->handleAddcounter; i++)
-			this->pHandleList[i]->mode = LocomotiveEdit;
-		if (Locomotive::GetLocomotivesSize() > 0)
-		{
-			Locomotive *pLoco = Locomotive::GetLocomotive(0);
-			if (pLoco != 0)
-			{
-				this->pHandleList[0]->SetLocomotive(*pLoco);
-				DDC.mode = LocomotiveControl;
-			}
-		}*/
+		DDC.pControler = new ControlerDcc();
 	}
 
 	DDC.dcType = DDC.dcTypeAtStart;
 	if (DDC.pControler == 0)
 		return;
 
+	ConfigLoad();
+
 	DDC.pControler->Setup(this->dcPWMpin, this->dcDirPin);
+
+	// Must be done only when the good value is in Locomotive::FunctionNumber...
+	for (int i = 0; i < this->handleAddcounter; i++)
+	{
+		this->pHandleList[i]->StartUI();
+		this->pHandleList[i]->StartContent();
+	}
 
 	for (int i = 0; i < this->handleAddcounter; i++)
 		this->pHandleList[i]->EndSetup(DDC.dcType == Dc);
@@ -319,6 +308,13 @@ void DcDccControler::ConfigLoad()
 	}
 	else
 	{
+		if (this->dcType == Dc)
+		{
+			uint16_t dCFrequencyDivisor;
+			EEPROMextent.readAnything(3, dCFrequencyDivisor);
+			((ControlerDc *)DDC.pControler)->SetFrequencyDivisor(dCFrequencyDivisor);
+		}
+
 		// Must be done only when the good value is in Locomotive::FunctionNumber...
 		for (int i = 0; i < this->handleAddcounter; i++)
 		{
@@ -333,6 +329,8 @@ int DcDccControler::ConfigSave()
 	EEPROMextent.write(1, 'D');
 	EEPROMextent.write(2, 'C');
 
+	if (this->dcType == Dc)
+		EEPROMextent.writeAnything(3, ((ControlerDc *)DDC.pControler)->GetFrequencyDivisor());
 	return 0;
 }
 

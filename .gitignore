@@ -6,3 +6,5 @@ VStudioLcdUI/Debug/
 VStudioLcdUI/VStudioLcdUI.sdf
 VStudioLcdUI/VStudioLcdUI.opensdf
 .gitignore
+
+VStudioLcdUI/.vs/VStudioLcdUI/v14/.suo

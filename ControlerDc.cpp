@@ -11,7 +11,6 @@ void ControlerDc::Setup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 { 
 	this->dcPWMpin = inDcPWMpin; 
 	this->dcDirPin = inDcDirPin; 
-	//this->DCFrequencyDivisor = 64;
 
 	analogWrite(this->dcPWMpin, 0);
 	pinMode(this->dcDirPin, OUTPUT);
@@ -47,6 +46,16 @@ bool ControlerDc::SetSpeed(int inNewSpeed)
 
 	return true;
 }
+
+void ControlerDc::SetSlowMode(bool inSlowMode) 
+{ 
+	this->slowMode = inSlowMode; 
+	this->maxSpeed = inSlowMode ? SLOWMODELIMIT : 255; 
+
+	if (this->pControled->GetMappedSpeed() > this->maxSpeed)
+		SetSpeed(this->maxSpeed);
+}
+
 
 bool ControlerDc::SetDirection(bool inToLeft)
 {
@@ -98,7 +107,7 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 {
 #ifndef VISUALSTUDIO
 	byte mode;
-	if (/*this->dcPWMpin == 5 || this->dcPWMpin == 6 || */this->dcPWMpin == 9 || this->dcPWMpin == 10) 
+/*	if (this->dcPWMpin == 5 || this->dcPWMpin == 6 || this->dcPWMpin == 9 || this->dcPWMpin == 10) 
 	{
 		switch (inDivisor) 
 		{
@@ -109,13 +118,14 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 			case 1024: mode = 0x05; break;
 			default: return;
 		}
-		/*if (this->dcPWMpin == 5 || this->dcPWMpin == 6)
+		if (this->dcPWMpin == 5 || this->dcPWMpin == 6)
 			TCCR0B = TCCR0B & 0b11111000 | mode;
-		else*/
+		else
 			TCCR1B = TCCR1B & 0b11111000 | mode;
 		return;
 	}
-/*	Only 9 or 10 are allowed for the PWM pins...
+*/
+	// Only pin 3 or 11 are allowed for PWM pin.
 	if (this->dcPWMpin == 3 || this->dcPWMpin == 11) 
 	{
 		switch (inDivisor) 
@@ -131,7 +141,7 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 		}
 		TCCR2B = TCCR2B & 0b11111000 | mode;
 	}
-	*/
+	
 #endif
 }
 

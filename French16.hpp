@@ -30,7 +30,7 @@ const char  str_resetconfig[] PROGMEM =		"Reset Config";
 const char  str_yes[] PROGMEM =				"oui";
 const char  str_no[] PROGMEM =				"non";
 const char  str_confirm[] PROGMEM =			"Sur ?";
-const char  str_pwmfreqency[] PROGMEM =		"DC frequence";
+const char  str_pwmfreqency[] PROGMEM =		"Dc frequence";
 const char  str_loconew[] PROGMEM =			"Nouvelle Loco";
 const char  str_locodel[] PROGMEM =			"Supprimer loco";
 const char  str_locoedit[] PROGMEM =		"Editer loco";
@@ -43,8 +43,9 @@ const char  str_locoSteps14[] PROGMEM =		"14";
 const char  str_locoSteps28[] PROGMEM =		"28";
 const char  str_locoSteps128[] PROGMEM =	"128";
 const char  str_handleCfgDigits[] PROGMEM = "digits adresse";
-const char  str_functionId[] PROGMEM =		"Adresse";
+const char  str_functionId[] PROGMEM =		"Adresse F";
 const char	str_saveLoco[] PROGMEM =		"Sauver la loco ?";
+const char  str_dcslow[] PROGMEM =			"Dc lent";
 										//   0123456789012345
 
 

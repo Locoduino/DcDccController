@@ -29,7 +29,7 @@ public:
 #define FUNCTION_MIN	1
 #define FUNCTION_MAX	10026
 
-class WindowFunction : public Window
+class WindowFunction : public WindowInt
 {
 private:
 	int intValue;

@@ -11,7 +11,7 @@ void ControlerDcc::Setup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 { 
 	// Set the PWM pin, which is connected to the PWM of LM18200 at maximum !
 	pinMode(inDcPWMpin, OUTPUT);
-	digitalWrite(inDcPWMpin, HIGH);
+	analogWrite(inDcPWMpin, 255);
 
 	this->dps.setup();
 }
@@ -90,8 +90,8 @@ void ControlerDcc::ToggleFunction(byte inFunctionNumber)
 
 #ifdef DEBUG_MODE
 	Serial.print(F("ControlerDcc SetFunction "));
-	Serial.print(inFunctionNumber);
-	Serial.println(this->pControled->GetFunctionFromIndex(inFunctionNumber).IsActivated() ? F("On") : F("Off"));
+	Serial.print(this->pControled->GetFunctionFromIndex(inFunctionNumber).DccIdFunction);
+	Serial.println(this->pControled->GetFunctionFromIndex(inFunctionNumber).IsActivated() ? F(" On") : F(" Off"));
 #endif
 
 	SetFunctionsRaw();

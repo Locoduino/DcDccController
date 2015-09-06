@@ -77,7 +77,12 @@ void Handle::Setup(byte inNumberOfFunctions)
 		this->functionsSize = inNumberOfFunctions;
 		this->functionsAddCounter = 0;
 		this->controled.SetFunctionsSize(inNumberOfFunctions);
-#ifndef NANOCONTROLER
+#ifdef NANOCONTROLER
+		Function dummy;
+		for (int i = 0; i < inNumberOfFunctions; i++)
+			this->controled.AddFunction(dummy);
+
+#else
 		this->edited.SetFunctionsSize(inNumberOfFunctions);
 #endif
 	}
@@ -187,29 +192,35 @@ void Handle::StartUI()
 		this->pUi->SetWindowsNumber(12 + Locomotive::FunctionNumber);
 		/*
 		In Dc :
-			Splash
-				LocoControl				WindowLocoControl
-				Config					Choice
-					PWM freq			WindowChooseDcFreq
-					Reset				YesNo
+		0	Splash
+		1		Mode Choice				Choice
+		2			Config DDC			Choice
+		3				PWM freq		WindowChooseDcFreq
+		4			LocoControl			WindowLocoControl
+		5	Dc-Dcc						Interrupt
+		6	Stop						Interrupt
 		
 		In Dcc :
-			Splash
-				LocoControl				WindowLocoControl
-				Config					Choice
-					Nb digits			EditInt 2-4
-					Reset				YesNo
-					Address long		YesNo
-					ID					EditInt	1-127 or 1-10126
-					Steps				Choice 14/28/128
-					Function n			Int
-					Function n+1        Int
+		0	Splash
+		1		Mode Choice				Choice
+		2			Config DDC			Choice
+		3				Nb digits		EditInt 2-4
+		4				Reset			Confirm
+		5			Loco Edit			Choice
+		6				Address long	YesNo
+		7				ID				EditInt	1-127 or 1-10126
+		8				Steps			Choice 14/28/128
+		9				Function n		EditInt	1-127 or 1-10126
+		10				Function n+1	EditInt	1-127 or 1-10126
+		11			LocoControl			WindowLocoControl
+		12	Dc-Dcc						Interrupt
+		13	Stop						Interrupt
 		*/
 
-		WindowSplash *pSplash = (WindowSplash *)this->pUi->AddWindow(new WindowSplash(STR_TITLE, STR_COPYRIGHT));	// menu
+		WindowSplash *pSplash = (WindowSplash *)this->pUi->AddWindow(new WindowSplash(STR_TITLE, STR_COPYRIGHT));	// splash
 		WindowChoice *pChoiceMain = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODEMODECHOICE, 2, false));	// menu
 		int nb = pChoiceMain->AddChoice(STR_MODECONFIG);
-			WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG, 6, false), pChoiceMain, nb);	// config
+			WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG, 2, false), pChoiceMain, nb);	// config DDC
 			if (DDC.dcType == Dc)
 			{
 				nb = pChoiceConfig->AddChoice(STR_PWMFREQCFG);
@@ -219,22 +230,24 @@ void Handle::StartUI()
 			{
 				nb = pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
 					this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, nb);
-				nb = pChoiceConfig->AddChoice(STR_LONGADDRESS);
-					Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceConfig, nb);
-				nb = pChoiceConfig->AddChoice(STR_LOCOID);
-					Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceConfig, nb);
-				nb = pChoiceConfig->AddChoice(STR_LOCOSTEPS);
-					WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceConfig, nb);
-					pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
-					pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
-					pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
-				for (int i = 0; i < Locomotive::FunctionNumber; i++)
-				{
-					nb = pChoiceConfig->AddChoice(STR_FUNCTIONID);
-						this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceConfig, nb);
-				}
 				nb = pChoiceConfig->AddChoice(STR_RESETCONFIG);
 					this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, nb);	// reset config
+				nb = pChoiceMain->AddChoice(STR_LOCOEDIT);
+					WindowChoice *pChoiceConfigLoco = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOEDIT, 3+ Locomotive::FunctionNumber, false, true), pChoiceMain, nb);	// config loco
+						nb = pChoiceConfigLoco->AddChoice(STR_LONGADDRESS);
+							Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceConfigLoco, nb);
+						nb = pChoiceConfigLoco->AddChoice(STR_LOCOID);
+							Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceConfigLoco, nb);
+						nb = pChoiceConfigLoco->AddChoice(STR_LOCOSTEPS);
+							WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceConfigLoco, nb);
+								pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
+								pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
+								pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
+						for (int i = 0; i < Locomotive::FunctionNumber; i++)
+						{
+							nb = pChoiceConfigLoco->AddChoice(STR_FUNCTIONID, i+1);
+								this->pUi->AddWindow(new WindowInt(STR_FUNCTIONID, 12, 1, i), pChoiceConfigLoco, nb);
+						}
 			}
 		nb = pChoiceMain->AddChoice(STR_MODELOCOCTRL);
 			this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, nb); // run
@@ -272,7 +285,9 @@ void Handle::EndSetup(bool inDcMode)
 void Handle::StartContent()
 {
 	this->controled.SetFunctionsSize(Locomotive::FunctionNumber);
+#ifndef NANOCONTROLER
 	this->edited.SetFunctionsSize(Locomotive::FunctionNumber);
+#endif
 }
 	
 void Handle::AddFunction(FunctionHandle *pFunction)
@@ -387,12 +402,28 @@ bool Handle::Loop()
 	{
 		if (this->pFunctionHandleList[i]->Loop())
 		{
-			this->ToggleFunction(i);
+			if (DDC.pControler->GetType() == Dcc)
+			{
+				this->ToggleFunction(i);
 #ifdef DEBUG_MODE
-			Serial.print(F("Function button "));
-			Serial.print(i+1);
-			Serial.println(F(" pressed"));
+				Serial.print(F("Function button "));
+				Serial.print(i + 1);
+				Serial.println(F(" pressed"));
 #endif
+			}
+			else
+			{
+				if (i == 0)
+				{
+					Window *pCurrent = pUi->GetGlobalCurrentWindow();
+					((ControlerDc *)DDC.pControler)->SetSlowMode(!((ControlerDc *)DDC.pControler)->IsSlowMode());
+					if (((ControlerDc *)DDC.pControler)->IsSlowMode())
+						this->MoreLessIncrement = 5;
+					else
+						this->MoreLessIncrement = 10;
+					pCurrent->SetState(STATE_START);
+				}
+			}
 		}
 	}
 
@@ -611,7 +642,7 @@ void Handle::ConfigSave()
 		EEPROMextent.write(pos + 2, this->MoreLessIncrement);
 #ifdef NANOCONTROLER
 		// Save/load only the current loco.
-		DCCItemList.UpdateLoco(&this->edited);
+		DCCItemList.UpdateLoco(&this->controled);
 #else
 		EEPROMextent.write(pos + 3, this->controled.GetSlotNumber());
 #endif

@@ -75,9 +75,9 @@ void DcDccControler::StartSetup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 	Serial.println(F("Setup started (nano version)..."));
 #else
 	Serial.println(F("Setup started..."));
-	if (inDcPWMpin != 9 && inDcPWMpin != 10)
+	if (inDcPWMpin != 3 && inDcPWMpin != 11)
 	{
-		Serial.println(F("ERROR: The PWM pin must be 9 or 10 for DC frequency adjustment !"));
+		Serial.println(F("ERROR: The PWM pin must be 3 or 11 for DC frequency adjustment !"));
 		Serial.println(F("Any other pin can dramaticaly change the meaning of all time related functions (delay, millis...)"));
 	}
 #endif
@@ -141,7 +141,7 @@ void DcDccControler::EndSetup()
 	}
 
 #ifdef VISUALSTUDIO
-	bool IsDc = true;
+	bool IsDc = false;
 #else
 	bool IsDc = true;
 	if (this->pDcDccButton != 0)

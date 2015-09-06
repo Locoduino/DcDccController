@@ -43,8 +43,9 @@ const char  str_locoSteps14[] PROGMEM =		"14";
 const char  str_locoSteps28[] PROGMEM =		"28";
 const char  str_locoSteps128[] PROGMEM =	"128";
 const char  str_handleCfgDigits[] PROGMEM = "digits address";
-const char  str_functionId[] PROGMEM =		"Address";
+const char  str_functionId[] PROGMEM =		"Address F";
 const char  str_saveLoco[] PROGMEM =		"Save the loco ?";
+const char  str_dcslow[] PROGMEM =			"Dc slow";
 										//   0123456789012345
 
 

@@ -37,6 +37,7 @@ public:
 
 	byte AddFunction(const Function &inNewFunction);
 	void SetFunctionsSize(byte size);
+	void ClearFunctions();
 	inline Function &GetFunctionFromIndex(byte inIndex)	const { return this->pFunctions[inIndex]; }
 	byte GetFunctionIndex(const Function &inRef) const;
 	void Copy(const Locomotive &inLocomotive);

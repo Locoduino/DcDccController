@@ -23,7 +23,7 @@ class ControlerDcc : public Controler
 		void SetFunctionsRaw();
 
 	public:
-		inline ControlerDcc() { this->dcType = Dcc; }
+		inline ControlerDcc() { this->dcType = Dcc;  this->maxSpeed = 127; }
 		
 	public:
 		void Setup(uint8_t inDcPWMpin, uint8_t inDcDirPin);

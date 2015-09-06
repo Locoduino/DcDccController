@@ -7,10 +7,10 @@ description: <Class for a loco choice window>
 #include "DcDccControler.h"
 #include "WindowChooseDcFreq.hpp"
 
-const byte divisors_9_10_pow2[] { 10, 8, 6, 3, 0, 255 };
+const byte divisors_11_3_pow2[] { 10, 8, 7, 6, 5, 3, 0, 255 };
 
-#define BASE_PWM_FREQ_9_10	31250
-#define NB_PWM_FREQ_9_10	5
+#define BASE_PWM_FREQ_11_3	31250
+#define NB_PWM_FREQ_11_3	7
 
 WindowChooseDcFreq::WindowChooseDcFreq(int inFirstLine, int inTag) : WindowChoiceText(inFirstLine, inTag)
 {
@@ -18,7 +18,7 @@ WindowChooseDcFreq::WindowChooseDcFreq(int inFirstLine, int inTag) : WindowChoic
 
 void WindowChooseDcFreq::BuildFreqString(unsigned int inDivisor)
 {
-	unsigned int val = BASE_PWM_FREQ_9_10 / inDivisor;
+	unsigned int val = BASE_PWM_FREQ_11_3 / inDivisor;
 
 	Screen::BuildString(val, Screen::buffer);
 
@@ -40,13 +40,13 @@ void WindowChooseDcFreq::move(bool inMore)
 	int i = 0;
 	for (; i < 100; i++)
 	{
-		if (1 << divisors_9_10_pow2[i] == this->currentValue)
+		if (1 << divisors_11_3_pow2[i] == this->currentValue)
 		{
 			if (inMore)
 			{
 				i++;
-				if (divisors_9_10_pow2[i] == 255)
-					i = NB_PWM_FREQ_9_10 - 1;
+				if (divisors_11_3_pow2[i] == 255)
+					i = NB_PWM_FREQ_11_3 - 1;
 				break;
 			}
 			else
@@ -59,6 +59,6 @@ void WindowChooseDcFreq::move(bool inMore)
 	}
 	if (i >= 99)
 		i = 0;
-	SetCurrentChoice(1 << divisors_9_10_pow2[i]);
+	SetCurrentChoice(1 << divisors_11_3_pow2[i]);
 }
 

@@ -120,10 +120,12 @@ void DCCItemListClass::GetLoco(byte inSlotNumber, Locomotive *outpLoco)
 	byte count = this->CountOwnedItems(inSlotNumber);
 	byte slotCurr = 0;
 
-	outpLoco->SetFunctionsSize(count);
+	outpLoco->ClearFunctions();
+	outpLoco->SetFunctionsSize(Locomotive::FunctionNumber);
 
-	// Then Load new functions !
-	for (int i = 0; i < count; i++)
+	// Load new functions !
+	int iFunction = 0;
+	for ( ; iFunction < count && iFunction < Locomotive::FunctionNumber; iFunction++)
 	{
 		slotCurr = FindItem(FUNCTION_TYPE, slotCurr, inSlotNumber);
 		Function *f = new Function();
@@ -131,6 +133,11 @@ void DCCItemListClass::GetLoco(byte inSlotNumber, Locomotive *outpLoco)
 		outpLoco->AddFunction(*f);
 		slotCurr++;
 	}
+
+	// Add missing functions
+	Function dummy;
+	for ( ; iFunction < Locomotive::FunctionNumber; iFunction++)
+		outpLoco->AddFunction(dummy);
 }
 
 #ifdef DEBUG_MODE

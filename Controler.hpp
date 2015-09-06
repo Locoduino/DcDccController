@@ -9,6 +9,7 @@ class Controler
 		Locomotive *pControled;
 		bool panicStopped;
 		DcDcc dcType;
+		byte maxSpeed;
 
 	public:
 		inline Controler() { this->pControled = 0; this->panicStopped = false; }
@@ -23,6 +24,7 @@ class Controler
 		inline virtual void Loop() { }
 
 		inline DcDcc GetType() { return this->dcType; }
+		inline byte GetMaxSpeed() { return this->maxSpeed; }
 };
 
 //-------------------------------------------------------------------

@@ -31,7 +31,7 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 	{
 		if (DDC.dcType == Dc)
 		{
-			inpLcd->GetScreen()->DisplayHeader(this->dcMsg);
+			inpLcd->GetScreen()->DisplayHeader(((ControlerDc *)DDC.pControler)->IsSlowMode() ? STR_DCSLOW : this->dcMsg);
 			WindowChooseDcFreq::BuildFreqString(((ControlerDc *)DDC.pControler)->GetFrequencyDivisor());
 			char text[20];
 			STRNCPY(text, 20, Screen::buffer);
@@ -73,7 +73,10 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		}
 	}
 	else
+	{
 		inc = this->pHandle->MoreLessIncrement;
+		steps = ((ControlerDc *)DDC.pControler)->GetMaxSpeed();
+	}
 
 	switch (inEventType)
 	{
@@ -151,7 +154,7 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		int speed = abs(this->pHandle->GetControledLocomotive().GetMappedSpeed());
 		if (speed == 1)
 			speed = 0;
-		Screen::BuildProgress(speed, DDC.pControler->GetType() == Dc ? 255 : 127, 
+		Screen::BuildProgress(speed, DDC.pControler->GetMaxSpeed(), 
 			this->pHandle->GetControledLocomotive().GetDirectionToLeft(), inpLcd->GetScreen()->GetSizeX(), Screen::buffer);
 		inpLcd->GetScreen()->setCursor(0, 1);
 		inpLcd->GetScreen()->print(Screen::buffer);

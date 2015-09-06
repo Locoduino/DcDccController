@@ -7,9 +7,11 @@ description: <Class for a basic screen>
 #include "LcdUi.h"
 #include "WindowFunction.hpp"
 
-WindowFunction::WindowFunction(byte inFirstLine, int inNumber) : Window(inFirstLine, inNumber)
+WindowFunction::WindowFunction(byte inFirstLine, int inNumber) : WindowInt(inFirstLine, inNumber)
 {
 	this->intValue = 0;
+	this->minIntValue = 0;
+	this->maxIntValue = 0;
 }
 
 void WindowFunction::Event(byte inEventType, LcdUi *inpLcd)
@@ -33,6 +35,6 @@ void WindowFunction::Event(byte inEventType, LcdUi *inpLcd)
 		this->state = STATE_INITIALIZE;
 	}
 
-	Window::Event(inEventType, inpLcd);
+	WindowInt::Event(inEventType, inpLcd);
 }
 

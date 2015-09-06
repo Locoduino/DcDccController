@@ -55,7 +55,7 @@ Locomotive::Locomotive(uint16_t inDccId, uint8_t inAdressKind, char *inName, uin
 	this->steps = inSteps;
 }
 
-void Locomotive::SetFunctionsSize(byte inNumberOfFunctions)
+void Locomotive::ClearFunctions()
 {
 	// Delete all existing functions
 	if (this->pFunctions != 0)
@@ -64,14 +64,19 @@ void Locomotive::SetFunctionsSize(byte inNumberOfFunctions)
 			this->pFunctions[i].DccIdFunction = 0;
 		}
 
-	this->functionsAddCounter = 0;
-
-	// If the new size is the same, only restart the add counter
-	if (this->size == inNumberOfFunctions)
-		return;
-
 	if (this->pFunctions != 0)
 		delete[] this->pFunctions;
+	this->size = 0;
+	this->pFunctions = 0;
+	this->functionsAddCounter = 0;
+}
+
+void Locomotive::SetFunctionsSize(byte inNumberOfFunctions)
+{
+	if (inNumberOfFunctions == this->size)
+		return;
+
+	ClearFunctions();
 	this->size = inNumberOfFunctions;
 	if (this->size == 0)
 		this->pFunctions = 0;

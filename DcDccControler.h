@@ -98,6 +98,7 @@ const char * const string_table[] PROGMEM
 	str_handleCfgDigits,
 	str_functionId,
 	str_saveLoco,
+	str_dcslow,
 	str_special_rst
 };
 
@@ -141,6 +142,7 @@ const char * const DDC_config_table[] PROGMEM =
 #define STR_HANDLECFGDIGITS	29
 #define STR_FUNCTIONID		30
 #define STR_SAVELOCO		31
+#define STR_DCSLOW			32
 
 //////////////////////////////////////////
 //  Exclusion area

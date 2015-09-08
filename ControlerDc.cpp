@@ -14,6 +14,7 @@ void ControlerDc::Setup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 
 	analogWrite(this->dcPWMpin, 0);
 	pinMode(this->dcDirPin, OUTPUT);
+	SetFrequencyDivisor(this->DCFrequencyDivisor);
 }
 
 bool ControlerDc::SetSpeed(int inNewSpeed)
@@ -128,6 +129,10 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 	// Only pin 3 or 11 are allowed for PWM pin.
 	if (this->dcPWMpin == 3 || this->dcPWMpin == 11) 
 	{
+#ifdef DEBUG_MODE
+		Serial.print(F("Change DC freq divisor: "));
+		Serial.println(inDivisor);
+#endif
 		switch (inDivisor) 
 		{
 			case 1: mode = 0x01; break;

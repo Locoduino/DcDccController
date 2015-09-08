@@ -86,7 +86,8 @@ void ControlerDcc::SetFunctionsRaw()
 
 void ControlerDcc::ToggleFunction(byte inFunctionNumber)
 {
-	this->pControled->GetFunctionFromIndex(inFunctionNumber).Toggle();
+	Function &f = this->pControled->GetFunctionFromIndex(inFunctionNumber);
+	f.Toggle();
 
 #ifdef DEBUG_MODE
 	Serial.print(F("ControlerDcc SetFunction "));

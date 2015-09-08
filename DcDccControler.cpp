@@ -141,7 +141,7 @@ void DcDccControler::EndSetup()
 	}
 
 #ifdef VISUALSTUDIO
-	bool IsDc = false;
+	bool IsDc = true;
 #else
 	bool IsDc = true;
 	if (this->pDcDccButton != 0)
@@ -312,6 +312,7 @@ void DcDccControler::ConfigLoad()
 		{
 			uint16_t dCFrequencyDivisor;
 			EEPROMextent.readAnything(3, dCFrequencyDivisor);
+			// Set frequency, even if the pin is not correct at this moment !
 			((ControlerDc *)DDC.pControler)->SetFrequencyDivisor(dCFrequencyDivisor);
 		}
 

@@ -15,7 +15,7 @@ class Function
 		bool activated;
 
 	public:
-		Function() { this->DccIdFunction = 0; }
+		Function() { this->SlotNumber = 255;  this->DccIdFunction = 0; }
 		Function(int DccId);
 		inline Function(const Function &inFunction) { this->Copy(inFunction); }
 

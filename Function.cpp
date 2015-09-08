@@ -9,6 +9,7 @@ description: <Class for a decoder function>
 
 Function::Function(int inDccId)
 {
+	this->SlotNumber = 255;
 	this->DccIdFunction = inDccId;
 	this->activated = false;
 }

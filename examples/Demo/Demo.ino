@@ -1,129 +1,72 @@
 /*************************************************************
-project: <DCC Accessory Decoder>
+project: <Dc/Dcc Controler>
 author: <Thierry PARIS>
-description: <Test for UAD library, with some turnouts and lights, controled by Dcc.>
+description: <Tiny Dc/Dcc controler sample>
 *************************************************************/
 
-#include "UniversalAccessoryDecoder.h"
+#include "French16.hpp"
 
-/* kDCC_INTERRUPT values :
-Board         int.0   int.1   int.2   int.3   int.4   int.5
-Uno, Ethernet   2      3
-Mega2560        2      3      21      20      19      18
-Leonardo        3      2      0       1       7
-*/
-#define kDCC_INTERRUPT          5
+#include <LcdUi.h>
+#include "EEPROMextent.h"
+#include "DcDccControler.h"
 
-// total number of pushbuttons / accessories.
-#define AccessoryNumber		7
+ButtonsCommander buttons;
+ScreenTwoLines Screen;    
+Handle handle;
 
-#define TURNOUT_LEFT		0
-#define TURNOUT_DC		1
-#define TURNOUT_RIGHT		2
-#define TURNOUT_EPS		3
-#define TURNOUT_TJD		4
-#define SERVO1			5
-#define LIGHT1			6
+#define BUTTON_DIR              0
+#define BUTTON_SPEED            1
+#define BUTTON_MODE        	2
+#define BUTTON_PANIC        	3
+#define BUTTON_DCDCC        	4
+#define BUTTON_F1        	5	// Also for slow mode in Dc .
+#define BUTTON_F2        	6
 
-// Accessories
-
-Accessories accessories;
-DccCommander dccCommander;
-ButtonsCommander buttonsCommander;
-
-// Drivers
-	
-DriverL293d *l293d;
-DriverL298n *l298n;
-
-//////////////////////////////////
-//
-// Setup
-//
 void setup()
 {
-	UAD_StartSetup();
+    Serial.begin(115200);
 
-    // Setup of the Dcc commander.
-	dccCommander.Setup(0x00, 0x00, kDCC_INTERRUPT);
-	dccCommander.SetStatusLedPin(13);
+	DDC.StartSetup(11, 9);    // Dc: Pwm, Dir / Dcc : Pwm, unused
 
-    // Setup of the buttons, one by accessory
-	buttonsCommander.Setup(7,
-		new ButtonsCommanderPush(1),
-		new ButtonsCommanderPush(1),
-		new ButtonsCommanderPush(1),
-		new ButtonsCommanderPush(1),
-		new ButtonsCommanderPush(1),
-		new ButtonsCommanderPush(1),
-		new ButtonsCommanderPush(1)
+	buttons.Setup(7,
+		new ButtonsCommanderPush(),
+		new ButtonsCommanderEncoder(),
+		new ButtonsCommanderPush(),
+		new ButtonsCommanderPush(),
+		new ButtonsCommanderSwitch(),
+		new ButtonsCommanderSwitch(),
+		new ButtonsCommanderSwitch()
 		);
-    // Each button assigned to an accessory Dcc code.
-	PUSH(buttonsCommander, 0)->AddDccId(20, 0);
-	PUSH(buttonsCommander, 1)->AddDccId(20, 1);
-	PUSH(buttonsCommander, 2)->AddDccId(21, 0);
-	PUSH(buttonsCommander, 3)->AddDccId(21, 1);
-	PUSH(buttonsCommander, 4)->AddDccId(22, 0);
-	PUSH(buttonsCommander, 5)->AddDccId(22, 1);
-	PUSH(buttonsCommander, 6)->AddDccId(23, 0);
 
-    // Declare the Arduino pins.
-	PUSH(buttonsCommander, 0)->Setup(30);
-	PUSH(buttonsCommander, 1)->Setup(32);
-	PUSH(buttonsCommander, 2)->Setup(34);
-	PUSH(buttonsCommander, 3)->Setup(36);
-	PUSH(buttonsCommander, 4)->Setup(38);
-	PUSH(buttonsCommander, 5)->Setup(39);
-	PUSH(buttonsCommander, 6)->Setup(40);
+        PUSH(buttons, BUTTON_DIR)->Setup(A0);
+        ENCODER(buttons, BUTTON_SPEED)->Setup(8, 12);
+        PUSH(buttons, BUTTON_MODE)->Setup(A3);
+        PUSH(buttons, BUTTON_PANIC)->Setup(A4);
+        SWITCH(buttons, BUTTON_DCDCC)->Setup(A5);
+        SWITCH(buttons, BUTTON_F1)->Setup(A1);
+        SWITCH(buttons, BUTTON_F2)->Setup(A2);
+        
+	handle.pSpeedEncoder = ENCODER(buttons, BUTTON_SPEED);
+	handle.pDirectionPush = PUSH(buttons, BUTTON_DIR);
+	handle.pCancelButton = PUSH(buttons, BUTTON_MODE);
 
-	// Drivers setups
+    handle.Setup(2);	// Two function buttons
+    handle.AddFunction(new FunctionHandle(1, PUSH(buttons, BUTTON_F1)));
+    handle.AddFunction(new FunctionHandle(2, PUSH(buttons, BUTTON_F2)));
+      
+	Screen.Setup(16, 2, string_table, 7, -1, 6, 5, 4, 3, 2);
+	handle.GetUI()->Setup(&Screen);
 
-    // four turnouts are connected to the l293d shield.
-	l293d = new DriverL293d();
-	l293d->Setup();
-	l293d->SetupPortMotor(L293D_PORT_M1, MOTOR12_1KHZ);	//TURNOUT_RIGHT
-	l293d->SetupPortMotor(L293D_PORT_M2, MOTOR12_1KHZ);	//TURNOUT_LEFT
-	l293d->SetupPortMotor(L293D_PORT_M3, MOTOR34_1KHZ);	//TURNOUT_TJD
-	l293d->SetupPortMotor(L293D_PORT_M4, MOTOR34_1KHZ);	//TURNOUT_EPS
-	
-    // one is on the l298n circuit, with the led.
-	l298n = new DriverL298n();
-	l298n->Setup();
-	l298n->SetupPortMotor(L298N_PORT_OUT1, 50, 52);		//TURNOUT_DC
-	l298n->SetupPortMotor(L298N_PORT_OUT2, 46, 48);		//LIGHT1
+	DDC.AddHandle(&handle);
+	DDC.SetDcDccButton(SWITCH(buttons, BUTTON_DCDCC));
+	DDC.SetPanicButton(PUSH(buttons, BUTTON_PANIC));
 
-	// Accessories setups
-
-    // Assign Dcc code for each accessory.
-	accessories.Setup(AccessoryNumber);
-	accessories.Add(new AccessoryMotorTwoWays(20, 0, 50));	// TURNOUT_LEFT	
-	accessories.Add(new AccessoryMotorTwoWays(20, 1, 50));	// TURNOUT_DC
-	accessories.Add(new AccessoryMotorTwoWays(21, 0, 300));	// TURNOUT_RIGHT
-	accessories.Add(new AccessoryMotorTwoWays(21, 1, 300));	// TURNOUT_EPS
-	accessories.Add(new AccessoryMotorTwoWays(22, 0, 300));	// TURNOUT_TJD
-	accessories.Add(new AccessoryServo(22, 1, 0));		// SERVO1
-	accessories.Add(new AccessoryLight(23, 0, 500));	// LIGHT1
-
-   // Attach each accessory to its driver/port.
-	MOTOR2WAYS(accessories, TURNOUT_LEFT)->Setup(l293d, L293D_PORT_M1, 150);
-	MOTOR2WAYS(accessories, TURNOUT_RIGHT)->Setup(l293d, L293D_PORT_M2, 150);
-	MOTOR2WAYS(accessories, TURNOUT_EPS)->Setup(l293d, L293D_PORT_M3, 150);
-	MOTOR2WAYS(accessories, TURNOUT_TJD)->Setup(l293d, L293D_PORT_M4, 150);
-	MOTOR2WAYS(accessories, TURNOUT_DC)->Setup(l298n, L298N_PORT_OUT12, 150);
-	LIGHT(accessories, LIGHT1)->Setup(l298n, L298N_PORT_OUT34, 150);
-	SERVO(accessories, SERVO1)->Setup(l293d, L293D_PORT_SERVO1, 10, 150);
-
-	UAD_EndSetup();
+	DDC.EndSetup();
 }
 
 void loop()
 {
-    // Dcc is run first, and if necessary, lets the accessories work.
-	if (dccCommander.Loop())
-	{
-		accessories.Loop();
-
-		dccCommander.Loop();
-		buttonsCommander.Loop();
-	}
+    buttons.Loop();
+    DDC.Loop();
 }
+

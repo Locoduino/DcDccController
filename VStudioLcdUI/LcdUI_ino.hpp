@@ -4,7 +4,7 @@ author: <Thierry PARIS>
 description: <DDC UI demo>
 *************************************************************/
 
-#include "English16.hpp"			// Must be BEFORE define DcDccControler.h
+#include "French16.hpp"			// Must be BEFORE define DcDccControler.h
 
 #include <LcdUi.h>
 #include <EEPROMextent.h>

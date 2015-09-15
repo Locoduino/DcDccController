@@ -86,6 +86,9 @@ void DcDccControler::StartSetup(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 #endif
 #endif
 
+	pinMode(inDcPWMpin, OUTPUT);
+	analogWrite(inDcPWMpin, 0);
+
 	LcdUi::StartSetup();
 
 	this->dcPWMpin = inDcPWMpin;
@@ -141,7 +144,7 @@ void DcDccControler::EndSetup()
 	}
 
 #ifdef VISUALSTUDIO
-	bool IsDc = true;
+	bool IsDc = false;
 #else
 	bool IsDc = true;
 	if (this->pDcDccButton != 0)
@@ -188,7 +191,7 @@ void DcDccControler::EndSetup()
 	for (int i = 0; i < this->handleAddcounter; i++)
 		this->pHandleList[i]->EndSetup(DDC.dcType == Dc);
 
-//#ifdef DEBUG_MODE
+#ifdef DEBUG_MODE
 	Serial.print(F("*** Setup Finished."));
 #ifndef VISUALSTUDIO
 	extern uint8_t *__brkval;
@@ -198,7 +201,7 @@ void DcDccControler::EndSetup()
 	Serial.print((int)(__brkval == 0 ? (int)&__heap_start : (int)__brkval) - (int)&__heap_start);
 	Serial.println(F(" bytes"));
 #endif
-//#endif
+#endif
 }
 
 byte DcDccControler::IndexOf(Handle *inpHandle) const

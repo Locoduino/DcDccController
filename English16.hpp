@@ -10,6 +10,21 @@
 #include <avr/pgmspace.h>
 #endif
 
+// Small part of code only used to inititalize the Arduino at start, before any other initialization.
+class InternalStartup
+{
+public:
+	inline InternalStartup()
+	{
+		// Reset all analog pins to null !
+		for (int i = 1; i < 14; i++)
+			analogWrite(i, 0);
+	}
+};
+
+InternalStartup dummyStartup;
+// End of init
+
 // English language	for 16 characters display.
 
 #define SHORTLENGTH_MSG

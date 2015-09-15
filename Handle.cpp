@@ -296,7 +296,7 @@ void Handle::AddFunction(FunctionHandle *pFunction)
 	this->pFunctionHandleList[this->functionsAddCounter++] = pFunction;
 }
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 void Handle::SetControledLocomotive(const Locomotive &inLocomotive)
 {

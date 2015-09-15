@@ -249,7 +249,7 @@ bool DCCPacketScheduler::setSpeed128(uint16_t address, uint8_t address_kind, int
 
 bool DCCPacketScheduler::setFunctions(uint16_t address, uint8_t address_kind, uint16_t functions)
 {
-//  Serial.println(functions,HEX);
+//  Serial.println(functions,BIN);
   if(setFunctions0to4(address, address_kind, functions&0x1F))
     if(setFunctions5to8(address, address_kind, (functions>>5)&0x0F))
       if(setFunctions9to12(address, address_kind, (functions>>9)&0x0F))
@@ -269,7 +269,7 @@ bool DCCPacketScheduler::setFunctions(uint16_t address, uint8_t address_kind, ui
 bool DCCPacketScheduler::setFunctions0to4(uint16_t address, uint8_t address_kind, uint8_t functions)
 {
 //  Serial.println("setFunctions0to4");
-//  Serial.println(functions,HEX);
+//  Serial.println(functions,BIN);
   DCCPacket p(address, address_kind);
   uint8_t data[] = {0x80};
   
@@ -291,7 +291,7 @@ bool DCCPacketScheduler::setFunctions0to4(uint16_t address, uint8_t address_kind
 bool DCCPacketScheduler::setFunctions5to8(uint16_t address, uint8_t address_kind, uint8_t functions)
 {
 //  Serial.println("setFunctions5to8");
-//  Serial.println(functions,HEX);
+//  Serial.println(functions,BIN);
   DCCPacket p(address, address_kind);
   uint8_t data[] = {0xB0};
   
@@ -306,7 +306,7 @@ bool DCCPacketScheduler::setFunctions5to8(uint16_t address, uint8_t address_kind
 bool DCCPacketScheduler::setFunctions9to12(uint16_t address, uint8_t address_kind, uint8_t functions)
 {
 //  Serial.println("setFunctions9to12");
-//  Serial.println(functions,HEX);
+//  Serial.println(functions,BIN);
   DCCPacket p(address, address_kind);
   uint8_t data[] = {0xA0};
   

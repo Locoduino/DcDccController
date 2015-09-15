@@ -15,7 +15,7 @@ WindowLocoControl::WindowLocoControl(int inFirstLine, Handle *inpHandle) : Windo
 	this->dccMsg = STR_DCC;
 }
 
-#define DEBUG_MODE
+// #define DEBUG_MODE
 
 void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 {

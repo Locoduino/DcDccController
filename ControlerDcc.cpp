@@ -74,11 +74,13 @@ bool ControlerDcc::SetDirection(bool inToLeft)
 
 void ControlerDcc::SetFunctionsRaw()
 {
-	byte fcts = 0;
+	uint16_t fcts = 0;
 
 	for (int i = 0; i < this->pControled->FunctionNumber; i++)
+	{
 		if (this->pControled->GetFunctionFromIndex(i).IsActivated())
-			fcts ^= 1 << i;
+			fcts ^= 1 << (this->pControled->GetFunctionFromIndex(i).DccIdFunction - 1);
+	}
 
 	dps.setFunctions(this->pControled->GetDccId(), this->pControled->GetDccAddressKind(), fcts);
 	dps.update();

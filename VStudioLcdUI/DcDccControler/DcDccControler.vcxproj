@@ -86,6 +86,7 @@
     <ClCompile Include="..\..\ButtonsCommanderAnalogPushes.cpp" />
     <ClCompile Include="..\..\ButtonsCommanderAnalogPushesItem.cpp" />
     <ClCompile Include="..\..\ButtonsCommanderButton.cpp" />
+    <ClCompile Include="..\..\ButtonsCommanderEncoder.cpp" />
     <ClCompile Include="..\..\ButtonsCommanderPotentiometer.cpp" />
     <ClCompile Include="..\..\ButtonsCommanderPush.cpp" />
     <ClCompile Include="..\..\ButtonsCommanderSwitch.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="..\..\ButtonsCommanderAnalogPushes.hpp" />
     <ClInclude Include="..\..\ButtonsCommanderAnalogPushesItem.hpp" />
     <ClInclude Include="..\..\ButtonsCommanderButton.hpp" />
+    <ClInclude Include="..\..\ButtonsCommanderEncoder.hpp" />
     <ClInclude Include="..\..\ButtonsCommanderPotentiometer.hpp" />
     <ClInclude Include="..\..\ButtonsCommanderPush.hpp" />
     <ClInclude Include="..\..\ButtonsCommanderSwitch.hpp" />

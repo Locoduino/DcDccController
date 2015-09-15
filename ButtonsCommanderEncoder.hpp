@@ -17,12 +17,8 @@
 class ButtonsCommanderEncoder : public ButtonsCommanderButton
 {
  private:
-	int currentValue;
 	GPIO_pin_t pin1;
 	GPIO_pin_t pin2;
-	int moveAccuracy;
-	int mini, maxi;
-	int lastEncoded;
 	bool lastWasPositive;	// true : positive direction...
 
 	bool pin1Set;
@@ -32,15 +28,11 @@ public:
 	ButtonsCommanderPush *pPush;
 	
  public:
-	ButtonsCommanderEncoder(int inStartingCurrentValue, int inMinimum, int inMaximum);
+	ButtonsCommanderEncoder();
 
-	inline bool IsAnalog() const { return true; }
-	inline int GetPosition() const { return this->currentValue; }
-	inline int GetEncoded() const { return this->lastEncoded; }
 	inline bool WasLastPositive() const { return this->lastWasPositive; }
 
-	void Setup(int inPin1, int inPin2, int inMoveAccuracy = 1);
-	void SetMinMax(int inMini, int inMaxi) { this->mini = inMini; this->maxi = inMaxi; }
+	void Setup(int inPin1, int inPin2);
 	bool Loop();
 };
 

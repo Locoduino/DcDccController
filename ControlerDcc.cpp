@@ -79,7 +79,7 @@ void ControlerDcc::SetFunctionsRaw()
 	for (int i = 0; i < this->pControled->FunctionNumber; i++)
 	{
 		if (this->pControled->GetFunctionFromIndex(i).IsActivated())
-			fcts ^= 1 << (this->pControled->GetFunctionFromIndex(i).DccIdFunction - 1);
+			fcts ^= 1 << (this->pControled->GetFunctionFromIndex(i).DccIdFunction);
 	}
 
 	dps.setFunctions(this->pControled->GetDccId(), this->pControled->GetDccAddressKind(), fcts);
@@ -112,6 +112,40 @@ void ControlerDcc::PanicStop(bool inStop)
 	SetSpeedRaw();
 }
 
+void ControlerDcc::StartProgramMode()
+{
+	this->dcType = ProgramMode;
+}
+
+void ControlerDcc::EndProgramMode()
+{
+	this->dcType = Dcc;
+}
+
+void ControlerDcc::SetCv1Raw(int inId)
+{
+	//PanicStop(true);
+	dps.opsEndProgram();
+	for (int i = 0; i < 10; i++)
+		dps.update(); // send it NOW !
+	dps.opsAddressOnly(inId);
+	for (int i = 0; i < 10; i++)
+		dps.update(); // send it NOW !
+	dps.opsEndProgram();
+	for (int i = 0; i < 10; i++)
+		dps.update(); // send it NOW !
+
+#ifdef DEBUG_MODE
+	Serial.print(F("ControlerDcc SetCv 1 : "));
+	Serial.println(inId);
+#endif
+}
+
+void ControlerDcc::SetCv1(int inId)
+{
+	SetCv1Raw(inId);
+}
+
 #define FRENQUENCYPACKETSFUNCTION	0
 #define FRENQUENCYPACKETSSPEED1		1
 #define FRENQUENCYPACKETSSPEED2		2
@@ -120,17 +154,20 @@ static byte FrequencyPacketsCount = 0;
 
 void ControlerDcc::Loop() 
 { 
-	byte mod = FrequencyPacketsCount % 10;
-	FrequencyPacketsCount++;
-	if (mod == FRENQUENCYPACKETSFUNCTION)
+	if (this->dcType == Dcc)
 	{
-		SetFunctionsRaw();
-		return;
-	}
-	if (mod == FRENQUENCYPACKETSSPEED1 || mod == FRENQUENCYPACKETSSPEED2)
-	{
-		SetSpeedRaw();
-		return;
+		byte mod = FrequencyPacketsCount % 10;
+		FrequencyPacketsCount++;
+		if (mod == FRENQUENCYPACKETSFUNCTION)
+		{
+			SetFunctionsRaw();
+			return;
+		}
+		if (mod == FRENQUENCYPACKETSSPEED1 || mod == FRENQUENCYPACKETSSPEED2)
+		{
+			SetSpeedRaw();
+			return;
+		}
 	}
 	dps.update();
 }

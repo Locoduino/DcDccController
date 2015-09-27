@@ -37,7 +37,7 @@ const char  str_stop2[] PROGMEM =			"Appuyer encore";
 const char  str_dcdcc[] PROGMEM =			"Change DC/DCC";
 const char  str_dcdcc2[] PROGMEM =			"Redemarrer/annul";
 const char  str_modemodechoice[] PROGMEM =	"Choix du mode:";
-const char  str_modelococtrl[] PROGMEM =	"Controle loco";
+const char  str_modelococtrl[] PROGMEM =	"Controler loco";
 const char  str_modelocoedit[] PROGMEM =	"Edition locos";
 const char  str_modeconfig[] PROGMEM =		"Config DDC";
 const char  str_locoselect[] PROGMEM =		"Choix de loco";
@@ -61,6 +61,7 @@ const char  str_handleCfgDigits[] PROGMEM = "digits adresse";
 const char  str_functionId[] PROGMEM =		"Adresse F";
 const char	str_saveLoco[] PROGMEM =		"Sauver la loco ?";
 const char  str_dcslow[] PROGMEM =			"Dc lent";
+const char  str_programcv1[] PROGMEM =		"Programmer Cv1";
 										//   0123456789012345
 
 

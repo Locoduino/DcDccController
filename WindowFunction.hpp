@@ -26,8 +26,8 @@ public:
 
 #define WINDOWTYPE_FUNCTION	13
 
-#define FUNCTION_MIN	1
-#define FUNCTION_MAX	10026
+#define FUNCTION_MIN	0
+#define FUNCTION_MAX	28
 
 class WindowFunction : public WindowInt
 {

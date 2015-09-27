@@ -127,15 +127,15 @@ void Handle::StartUI()
 			LocoChange						Choose loco (current is selected)
 			LocoEdit						Choice
 				Edit						Choose loco (current is selected)
-						Address long		YesNo
 						ID					EditInt	1-127 or 1-10126
+						Address long		YesNo
 						Name				EditText
 						Steps				Choice 14/28/128
 						Function n			Int
 						Function n+1        Int
 				Add
-						Address long		YesNo
 						ID					EditInt	1-127 or 1-10126
+						Address long		YesNo
 						Name				EditText
 						Steps				Choose 14/28/128
 						Function n			Int
@@ -163,8 +163,8 @@ void Handle::StartUI()
 		WindowChoice *pChoiceLocoEdit = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODELOCOEDIT, 3, true), pChoiceMain, 3);
 		pChoiceLocoEdit->AddChoice(STR_LOCOEDIT, STR_SAVELOCO);
 		Window *pWinChooseLoco = this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOSELECT, this), pChoiceLocoEdit, 0);
-		Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceLocoEdit, 0);
 		Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceLocoEdit, 0);
+		Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceLocoEdit, 0);
 		Window *pWinLocoName = this->pUi->AddWindow(new WindowText(STR_LOCONAME), pChoiceLocoEdit, 0);
 		WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceLocoEdit, 0);
 		pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
@@ -173,8 +173,8 @@ void Handle::StartUI()
 		for (int i = 0; i < Locomotive::FunctionNumber; i++)
 			this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 0);
 		pChoiceLocoEdit->AddChoice(STR_LOCONEW);
-		this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
 		this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
+		this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
 		this->pUi->AddWindow(pWinLocoName, pChoiceLocoEdit, 1);
 		this->pUi->AddWindow(pChoiceSteps, pChoiceLocoEdit, 1);
 		for (int i = 0; i < Locomotive::FunctionNumber; i++)
@@ -207,8 +207,8 @@ void Handle::StartUI()
 		3				Nb digits		EditInt 2-4
 		4				Reset			Confirm
 		5			Loco Edit			Choice
-		6				Address long	YesNo
-		7				ID				EditInt	1-127 or 1-10126
+		6				ID				EditInt	1-127 or 1-10126
+		7				Address long	YesNo
 		8				Steps			Choice 14/28/128
 		9				Function n		EditInt	1-127 or 1-10126
 		10				Function n+1	EditInt	1-127 or 1-10126
@@ -234,10 +234,10 @@ void Handle::StartUI()
 					this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, nb);	// reset config
 				nb = pChoiceMain->AddChoice(STR_LOCOEDIT);
 					WindowChoice *pChoiceConfigLoco = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOEDIT, 3+ Locomotive::FunctionNumber, false, true), pChoiceMain, nb);	// config loco
-						nb = pChoiceConfigLoco->AddChoice(STR_LONGADDRESS);
-							Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceConfigLoco, nb);
 						nb = pChoiceConfigLoco->AddChoice(STR_LOCOID);
-							Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceConfigLoco, nb);
+							this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceConfigLoco, nb);
+						nb = pChoiceConfigLoco->AddChoice(STR_LONGADDRESS);
+							this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceConfigLoco, nb);
 						nb = pChoiceConfigLoco->AddChoice(STR_LOCOSTEPS);
 							WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceConfigLoco, nb);
 								pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
@@ -246,8 +246,10 @@ void Handle::StartUI()
 						for (int i = 0; i < Locomotive::FunctionNumber; i++)
 						{
 							nb = pChoiceConfigLoco->AddChoice(STR_FUNCTIONID, i+1);
-								this->pUi->AddWindow(new WindowInt(STR_FUNCTIONID, 12, 1, i), pChoiceConfigLoco, nb);
+								this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceConfigLoco, nb);
 						}
+				nb = pChoiceMain->AddChoice(STR_PROGRAMCV1);
+					this->pUi->AddWindow(new WindowInt(STR_PROGRAMCV1, 10026, 1), pChoiceMain, nb);
 			}
 		nb = pChoiceMain->AddChoice(STR_MODELOCOCTRL);
 			this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, nb); // run
@@ -452,6 +454,8 @@ bool Handle::Loop()
 				((WindowInt*)pCurrent)->SetValue(loco.GetDccAddressKind());
 				break;
 			case STR_LOCOID:
+			case STR_PROGRAMCV1:
+				((ControlerDcc *)DDC.pControler)->StartProgramMode();
 				((WindowInt*)pCurrent)->SetValue(loco.GetDccId());
 				break;
 #ifndef NANOCONTROLER
@@ -542,6 +546,22 @@ bool Handle::Loop()
 #ifdef NANOCONTROLER
 				this->ConfigSave();
 #endif
+				break;
+			case STR_PROGRAMCV1:
+				{
+				int id = ((WindowInt*)pCurrent)->GetIntValue();
+				if (id != loco.GetDccId())
+				{
+					((ControlerDcc *)DDC.pControler)->SetCv1(id);
+					loco.SetDccId(id);
+					this->SetSpeed(0);
+#ifdef NANOCONTROLER
+					this->ConfigSave();
+#endif
+				}
+
+				((ControlerDcc *)DDC.pControler)->EndProgramMode();
+				}
 				break;
 #ifndef NANOCONTROLER
 			case STR_LOCONAME:

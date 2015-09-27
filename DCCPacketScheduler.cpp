@@ -325,6 +325,34 @@ bool DCCPacketScheduler::setFunctions9to12(uint16_t address, uint8_t address_kin
 //bool DCCPacketScheduler::setTurnout(uint16_t address)
 //bool DCCPacketScheduler::unsetTurnout(uint16_t address)
 
+bool DCCPacketScheduler::opsAddressOnly(uint8_t CV1_data)
+{
+  //Long-preamble   0  0111C000  0  0DDDDDDD  0  EEEEEEEE  1 
+  //C=1 Write byte 
+  DCCPacket p(B01111000);
+  uint8_t data[] = { CV1_data };
+  p.addData(data, 1);
+  p.setKind(ops_mode_programming_kind); //always use short Adress Mode!
+  p.setRepeat(OPS_MODE_PROGRAMMING_REPEAT);
+
+  e_stop_queue.insertPacket(&p);
+  return opsDecoderReset(); //send first a Reset Packet
+}
+
+bool DCCPacketScheduler::opsProgDirectCV(uint16_t CV, uint8_t CV_data)
+{
+  //Long-preamble   0  0111CCAA  0  AAAAAAAA  0  DDDDDDDD  0  EEEEEEEE  1 
+  //CC=11 Write byte 
+  DCCPacket p(((CV >> 8) & B11) | B01111100);
+  uint8_t data[] = { CV , CV_data };
+  p.addData(data, 2);
+  p.setKind(ops_mode_programming_kind); //always use short Adress Mode!
+  p.setRepeat(OPS_MODE_PROGRAMMING_REPEAT);
+
+  e_stop_queue.insertPacket(&p);
+  return opsDecoderReset(); //send first a Reset Packet
+}
+
 bool DCCPacketScheduler::opsProgramCV(uint16_t address, uint8_t address_kind, uint16_t CV, uint8_t CV_data)
 {
   //format of packet:
@@ -345,10 +373,30 @@ bool DCCPacketScheduler::opsProgramCV(uint16_t address, uint8_t address_kind, ui
   p.setKind(ops_mode_programming_kind);
   p.setRepeat(OPS_MODE_PROGRAMMING_REPEAT);
   
-  return low_priority_queue.insertPacket(&p);
+  //return low_priority_queue.insertPacket(&p);
+
+  e_stop_queue.insertPacket(&p);
+  return opsDecoderReset(); //send first a Reset Packet
+}
+
+void DCCPacketScheduler::opsEndProgram()
+{
+  opsDecoderReset(); //send first a Reset Packet
 }
     
 //more specific functions
+
+//broadcast Decoder ResetPacket
+bool DCCPacketScheduler::opsDecoderReset(void)
+{
+  // {preamble} 0 00000000 0  00000000 0 EEEEEEEE 1
+  DCCPacket p(0); //Adr = 0
+  uint8_t data[] = { 0x00 };
+  p.addData(data, 1);
+  p.setKind(ops_mode_programming_kind);
+  p.setRepeat(OPS_MODE_PROGRAMMING_REPEAT);
+  return e_stop_queue.insertPacket(&p);
+}
 
 //broadcast e-stop command
 bool DCCPacketScheduler::eStop(void)

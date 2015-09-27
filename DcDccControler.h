@@ -99,6 +99,7 @@ const char * const string_table[] PROGMEM
 	str_functionId,
 	str_saveLoco,
 	str_dcslow,
+	str_programcv1,
 	str_special_rst
 };
 
@@ -143,6 +144,7 @@ const char * const DDC_config_table[] PROGMEM =
 #define STR_FUNCTIONID		30
 #define STR_SAVELOCO		31
 #define STR_DCSLOW			32
+#define STR_PROGRAMCV1		33
 
 //////////////////////////////////////////
 //  Exclusion area
@@ -240,6 +242,7 @@ enum DcDcc
 {
 	DcChangeStopped,
 	PanicStopped,
+	ProgramMode,
 	Dc,
 	Dcc
 };

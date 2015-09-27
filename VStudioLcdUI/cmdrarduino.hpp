@@ -26,6 +26,11 @@ public:
 	bool setFunctions9to12(uint16_t address, uint8_t address_kind, uint8_t functions) { return false; }
 	//other cool functions to follow. Just get these working first, I think.
 
+	bool opsAddressOnly(uint8_t CV1_data) { return false; }
+	bool opsProgDirectCV(uint16_t CV, uint8_t CV_data) { return false; }
+	bool opsProgramCV(uint16_t address, uint8_t address_kind, uint16_t CV, uint8_t CV_data) { return false; }
+	void opsEndProgram(void) {} 
+
 	//more specific functions
 	bool eStop(void) { return false; } //all locos
 	bool eStop(uint16_t address, uint8_t address_kind) { return false; } //just one specific loco

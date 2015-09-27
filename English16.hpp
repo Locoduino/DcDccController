@@ -61,6 +61,7 @@ const char  str_handleCfgDigits[] PROGMEM = "digits address";
 const char  str_functionId[] PROGMEM =		"Address F";
 const char  str_saveLoco[] PROGMEM =		"Save the loco ?";
 const char  str_dcslow[] PROGMEM =			"Dc slow";
+const char  str_programcv1[] PROGMEM =		"Program Cv1";
 										//   0123456789012345
 
 

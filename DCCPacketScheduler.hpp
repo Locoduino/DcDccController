@@ -17,7 +17,7 @@
 #define SPEED_REPEAT      8
 #define FUNCTION_REPEAT   3
 #define E_STOP_REPEAT     9
-#define OPS_MODE_PROGRAMMING_REPEAT 3
+#define OPS_MODE_PROGRAMMING_REPEAT 10
 #define OTHER_REPEAT      2
 
 class DCCPacketScheduler
@@ -48,7 +48,10 @@ class DCCPacketScheduler
     bool setBasicAccessory(uint16_t address, uint8_t function);
     bool unsetBasicAccessory(uint16_t address, uint8_t function);
     
+    bool opsAddressOnly(uint8_t CV1_data);
+    bool opsProgDirectCV(uint16_t CV, uint8_t CV_data);
     bool opsProgramCV(uint16_t address, uint8_t address_kind, uint16_t CV, uint8_t CV_data);
+    void opsEndProgram(void);
 
     //more specific functions  
     bool eStop(void); //all locos
@@ -59,7 +62,8 @@ class DCCPacketScheduler
 
   //private:
   
-  //  void stashAddress(DCCPacket *p); //remember the address to compare with the next packet
+    bool opsDecoderReset(void);
+//  void stashAddress(DCCPacket *p); //remember the address to compare with the next packet
     void repeatPacket(DCCPacket *p); //insert into the appropriate repeat queue
     uint8_t default_speed_steps;
     uint16_t last_packet_address;

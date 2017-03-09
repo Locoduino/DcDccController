@@ -8,3 +8,7 @@ VStudioLcdUI/VStudioLcdUI.opensdf
 .gitignore
 
 VStudioLcdUI/.vs/VStudioLcdUI/v14/.suo
+VStudio/.vs
+*.*db
+VStudio/old
+VStudio/x64

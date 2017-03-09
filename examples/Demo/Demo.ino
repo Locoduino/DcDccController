@@ -6,67 +6,99 @@ description: <Tiny Dc/Dcc controler sample>
 
 #include "French16.hpp"
 
-#include <LcdUi.h>
+//#include <NewLiquidCrystal_I2C.h>
+//#include <NewLiquidCrystal.h>
+#include <LiquidCrystal.h>
+//#include "ScreenLiquidNew.hpp"
+#include "ScreenLiquid.hpp"
 #include "EEPROMextent.h"
 #include "DcDccControler.h"
 
-ButtonsCommander buttons;
-ScreenTwoLines Screen;    
+//NewLiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
+//NewLiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+//ScreenLiquidNew screen;
+ScreenLiquid screen;
+
 Handle handle;
 
-#define BUTTON_DIR              0
-#define BUTTON_SPEED            1
+#ifdef VISUALSTUDIO
+ButtonsCommanderKeyboard push0;
+ButtonsCommanderKeyboard push1;
+ButtonsCommanderKeyboard push2;
+ButtonsCommanderKeyboard push3;
+ButtonsCommanderKeyboard pushDcDcc;
+ButtonsCommanderKeyboard pushEmergency;
+ButtonsCommanderKeyboard pushFunction1;
+ButtonsCommanderKeyboard pushFunction2;
+#else
+ButtonsCommanderPush buttonDir;
+ButtonsCommanderEncoder buttonEncoder;
+ButtonsCommanderPush buttonMode;
+ButtonsCommanderPush buttonPanic;
+ButtonsCommanderSwitch buttonDcDcc;
+ButtonsCommanderSwitch buttonF1;
+ButtonsCommanderSwitch buttonF2;
+#endif
+
+#define BUTTON_DIR          0
+#define BUTTON_SPEED        1
 #define BUTTON_MODE        	2
-#define BUTTON_PANIC        	3
-#define BUTTON_DCDCC        	4
+#define BUTTON_PANIC        3
+#define BUTTON_DCDCC        4
 #define BUTTON_F1        	5	// Also for slow mode in Dc .
 #define BUTTON_F2        	6
 
 void setup()
 {
-    Serial.begin(115200);
+	Serial.begin(115200);
 
-	DDC.StartSetup(11, 9);    // Dc: Pwm, Dir / Dcc : Pwm, unused
+	DcDccControler::begin(11, 9);    // Dc: Pwm, Dir / Dcc : Pwm, unused
 
-	buttons.Setup(7,
-		new ButtonsCommanderPush(),
-		new ButtonsCommanderEncoder(),
-		new ButtonsCommanderPush(),
-		new ButtonsCommanderPush(),
-		new ButtonsCommanderSwitch(),
-		new ButtonsCommanderSwitch(),
-		new ButtonsCommanderSwitch()
-		);
+#ifdef VISUALSTUDIO
+	push0.begin(LCD1_EVENT_SELECT, '*');
+	push1.begin(LCD1_EVENT_MORE, '+');
+	push2.begin(LCD1_EVENT_LESS, '-');
+	push3.begin(LCD1_EVENT_CANCEL, '/');
+	pushDcDcc.begin(EVENT_DCDCC, '.');
+	pushEmergency.begin(EVENT_EMERGENCY, '0');
+	pushFunction1.begin(LCD1_EVENT_FUNCTION1, '1');
+	pushFunction2.begin(LCD1_EVENT_FUNCTION2, '2');
+#else
+	DcDccControler::AddHandle(&handle);
+	buttonDir.begin(BUTTON_DIR, A0);
+	buttonEncoder.begin(BUTTON_SPEED, 8, 12);
+	buttonMode.begin(BUTTON_MODE, A3);
+	buttonPanic.begin(BUTTON_PANIC, A4);
+	buttonDcDcc.begin();
+	buttonF1.begin();
+	buttonF2.begin();
 
-        PUSH(buttons, BUTTON_DIR)->Setup(A0);
-        ENCODER(buttons, BUTTON_SPEED)->Setup(8, 12);
-        PUSH(buttons, BUTTON_MODE)->Setup(A3);
-        PUSH(buttons, BUTTON_PANIC)->Setup(A4);
-        SWITCH(buttons, BUTTON_DCDCC)->Setup(A5);
-        SWITCH(buttons, BUTTON_F1)->Setup(A1);
-        SWITCH(buttons, BUTTON_F2)->Setup(A2);
-        
-	handle.pSpeedEncoder = ENCODER(buttons, BUTTON_SPEED);
-	handle.pDirectionPush = PUSH(buttons, BUTTON_DIR);
-	handle.pCancelButton = PUSH(buttons, BUTTON_MODE);
+	buttonDcDcc.AddEvent(BUTTON_DCDCC, A5);
+	buttonF1.AddEvent(BUTTON_F1, A1);
+	buttonF2.AddEvent(BUTTON_F2, A2);
+#endif
+	handle.begin();
 
-    handle.Setup(2);	// Two function buttons
-    handle.AddFunction(new FunctionHandle(1, PUSH(buttons, BUTTON_F1)));
-    handle.AddFunction(new FunctionHandle(2, PUSH(buttons, BUTTON_F2)));
-      
-	Screen.Setup(16, 2, string_table, 7, -1, 6, 5, 4, 3, 2);
-	handle.GetUI()->Setup(&Screen);
+	screen.begin(20, 4, string_table, &lcd);
+	//screen.begin(16, 2, string_table, &lcd);
+	handle.GetUI()->begin(&screen);
 
-	DDC.AddHandle(&handle);
-	DDC.SetDcDccButton(SWITCH(buttons, BUTTON_DCDCC));
-	DDC.SetPanicButton(PUSH(buttons, BUTTON_PANIC));
-
-	DDC.EndSetup();
+	DcDccControler::AddHandle(&handle);       
 }
 
 void loop()
 {
-    buttons.Loop();
-    DDC.Loop();
+	unsigned long event = Commanders::loop();
+
+	// For LcdUi, UNDEFINED_ID of Commanders has no meaning. And because it is necessary 
+	// to execute lcdui.event() at each call of the main loop, 
+	// do it with an empty event : EVENT_NONE.
+
+	if (event == UNDEFINED_ID)
+		event = EVENT_NONE;
+
+	DcDccControler::loop(event);
 }
 

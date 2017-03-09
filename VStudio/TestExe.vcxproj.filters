@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Commanders Headers">
+      <UniqueIdentifier>{4619774b-f45e-400d-b1ac-32151745bbe6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Commanders Sources">
+      <UniqueIdentifier>{f070ab6d-7f77-4fdb-9a34-18e67c6e8aef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LcdUi">
+      <UniqueIdentifier>{c7247e2e-12ca-4d19-aefa-59adc7f292a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EEPROMextent">
+      <UniqueIdentifier>{95e505f3-17ea-4ad2-a8eb-f744069588fb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommander.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderAnalogPushes.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderAnalogPushesItem.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderButton.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderEncoder.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderPotentiometer.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderPush.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderSwitch.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\CANCommander.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\Commander.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\Commanders.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\DccCommander.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\I2CCommander.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\TextInterpreter.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\VStudio\ButtonsCommanderKeyboard.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\LcdScreen.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\LcdUi.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\Window.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowChoice.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowChoiceText.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowConfirm.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowInt.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowInterrupt.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowInterruptConfirm.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowSplash.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowText.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowYesNo.cpp">
+      <Filter>LcdUi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WindowLocoControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WindowFunction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WindowChooseLoco.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WindowChooseDcFreq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Locomotive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FunctionHandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DcDccControler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ControlerDcc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ControlerDc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Controler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InoProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EEPROMextent\VStudio\EEPROM.cpp">
+      <Filter>EEPROMextent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EEPROMextent\src\CircularBuffer.cpp">
+      <Filter>EEPROMextent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EEPROMextent\src\EEPROM_ItemList.cpp">
+      <Filter>EEPROMextent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EEPROMextent\src\EEPROMextent.cpp">
+      <Filter>EEPROMextent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DCCItemList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestExe.ino" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommander.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderAnalogPushes.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderAnalogPushesItem.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderButton.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderEncoder.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderPotentiometer.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderPush.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderSwitch.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\CANCommander.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\Commander.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\Commanders.h">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\Commanders.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\VStudio\DCC_Decoder.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\DccCommander.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\VStudio\mcp_can.h">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\VStudio\mcp_can_dfs.h">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\SerialCommander.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\TextInterpreter.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\Chain.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\I2CCommander.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\VStudio\ButtonsCommanderKeyboard.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\Events.h">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\LcdUi.h">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\Chain.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\LcdScreen.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\ScreenLiquid.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\ScreenLiquidNew.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\ScreenNokia5110.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\Window.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowChoice.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowChoiceText.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowConfirm.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowInt.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowInterrupt.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowInterruptConfirm.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowSplash.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowText.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowYesNo.hpp">
+      <Filter>LcdUi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WindowFunction.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WindowChooseLoco.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WindowChooseDcFreq.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Locomotive.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Handle.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\FunctionHandle.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Function.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\French16.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\English16.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ControlerDcc.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ControlerDc.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Controler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DcDccControler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EEPROMextent\VStudio\EEPROMextent.h">
+      <Filter>EEPROMextent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EEPROMextent\src\CircularBuffer.hpp">
+      <Filter>EEPROMextent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EEPROMextent\src\EEPROM_ItemList.hpp">
+      <Filter>EEPROMextent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DCCItemList.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WindowLocoControl.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\LcdEvents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\WhatsNew.TXT" />
+    <Text Include="..\..\Commanders\WhatsNew.TXT">
+      <Filter>Commanders Sources</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

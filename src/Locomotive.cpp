@@ -25,8 +25,7 @@ void Locomotive::CheckIndex(byte inIndex, const __FlashStringHelper *inFunc)
 #define CHECK(val, text)
 #endif
 
-Locomotive Locomotive::AnalogLocomotive(1, 0, "analog", 255);
-byte Locomotive::FunctionNumber = 255;
+Locomotive Locomotive::AnalogLocomotive(1, 0, "", 255);
 
 Locomotive::Locomotive()
 {

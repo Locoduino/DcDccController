@@ -32,7 +32,6 @@ private:
 public:
 	Function Functions[FUNCTION_NUMBER];
 	static Locomotive AnalogLocomotive;
-	static byte FunctionNumber;
 
 public:
 	Locomotive();

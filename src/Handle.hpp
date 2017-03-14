@@ -80,6 +80,7 @@ class Handle
 		WindowFunction winFunction6;
 		WindowFunction winFunction7;
 		WindowFunction winFunction8;
+
 		this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
 		this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
 		this->pUi->AddWindow(pWinLocoName, pChoiceLocoEdit, 1);
@@ -122,7 +123,6 @@ class Handle
 
 		Choice choiceMain;
 		Choice choiceConfig;
-		byte Freq;
 		Choice choiceConfigLoco;
 		Choice choiceSteps;
 		int addressFunction1;
@@ -168,7 +168,7 @@ class Handle
 		Handle();
 		
 		void begin(byte inHandleId = 0);
-		void EndSetup(bool inDcMode);
+		void EndSetup();
 		void StartUI();
 		void StartContent();
 		void Clear();
@@ -183,7 +183,6 @@ class Handle
 
 		inline bool IsLeftDir() const { return this->controled.GetDirectionToLeft(); }
 		inline bool IsRightDir() const { return !IsLeftDir(); }
-		inline bool IsPanicStopped() const { return this->pUi->GetWindowInterrupt() == &this->windowInterruptEmergency; }
 
 		void SetSpeed(int inNewSpeed);
 		void SetDirection(bool inToLeft);

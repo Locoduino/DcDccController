@@ -62,11 +62,10 @@ void DcDccControler::AddHandle(Handle *inpHandle)
 	DcDccControler::pHandleList = pNewList;
 }
 
-void DcDccControler::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin)
+void DcDccControler::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin, uint8_t inDcDccSelectPin)
 {
 	Serial.begin(115200);
 
-	DcDccControler::dcType = PanicStopped;
 	DcDccControler::pHandleList = 0;
 	DcDccControler::handleAddcounter = 0;
 	DcDccControler::pControler = 0;
@@ -91,6 +90,12 @@ void DcDccControler::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 	pinMode(inDcPWMpin, OUTPUT);
 	pinMode(inDcDirPin, OUTPUT);
 	analogWrite(inDcPWMpin, 0);
+
+	DcDccControler::dcType = Dcc;
+#ifndef VISUALSTUDIO
+	if (inDcDccSelectPin != 0 && digitalRead(inDcDccSelectPin))
+		DcDccControler::dcType = Dcc;
+#endif
 
 	DcDccControler::dcPWMpin = inDcPWMpin;
 	DcDccControler::dcDirPin = inDcDirPin;
@@ -136,20 +141,11 @@ void DcDccControler::beforeFirstLoop()
 	LcdScreen::YesMsg = STR_YES;
 	LcdScreen::NoMsg = STR_NO;
 
-#ifdef VISUALSTUDIO
-	bool IsDc = true;
-#else
-	bool IsDc = true;
-	if (this->pDcDccButton != 0)
-		IsDc = ((ButtonsCommanderSwitch *)this->pDcDccButton)->GetLastButtonState();
-#endif
-
-	if (IsDc)
+	if (DcDccControler::dcType == Dc)
 	{
 #ifdef DDC_DEBUG_MODE
 		Serial.println(F("Start in Dc mode"));
 #endif
-		DcDccControler::dcTypeAtStart = DcDcc::Dc;
 		DcDccControler::pControler = new ControlerDc();
 		// Force to use only the first handle...
 		DcDccControler::handleAddcounter = 1;
@@ -162,13 +158,8 @@ void DcDccControler::beforeFirstLoop()
 #ifdef DDC_DEBUG_MODE
 		Serial.println(F("Start in Dcc mode"));
 #endif
-		DcDccControler::dcTypeAtStart = DcDcc::Dcc;
 		DcDccControler::pControler = new ControlerDcc();
 	}
-
-	DcDccControler::dcType = DcDccControler::dcTypeAtStart;
-	if (DcDccControler::pControler == 0)
-		return;
 
 	ConfigLoad();
 
@@ -182,7 +173,7 @@ void DcDccControler::beforeFirstLoop()
 	}
 
 	for (int i = 0; i < DcDccControler::handleAddcounter; i++)
-		DcDccControler::pHandleList[i]->EndSetup(DcDccControler::dcType == Dc);
+		DcDccControler::pHandleList[i]->EndSetup();
 
 #ifdef DDC_DEBUG_MODE
 	Serial.print(F("*** Setup Finished."));
@@ -194,6 +185,7 @@ void DcDccControler::beforeFirstLoop()
 	Serial.print((int)(__brkval == 0 ? (int)&__heap_start : (int)__brkval) - (int)&__heap_start);
 	Serial.println(F(" bytes"));
 #endif
+	Serial.println("");
 #endif
 }
 
@@ -217,82 +209,6 @@ void DcDccControler::loop(unsigned long inEvent)
 	if (DcDccControler::pControler != 0)
 		DcDccControler::pControler->loop();
 
-	bool updateStatus = false;
-
-#if 0
-	if (this->dcType == PanicStopped)
-	{
-		// if panic stopped, just react to panic button !
-		/*if (this->pPanicButton != 0 && !this->pPanicButton->IsSelectedLastLoop())
-			return;*/
-
-		if (this->dcType == PanicStopped)
-		{
-#ifdef DDC_DEBUG_MODE
-			Serial.println(F("Panic canceled"));
-#endif
-			// return to starting normal mode.
-			this->dcType = this->dcTypeAtStart;
-			if (this->pControler != 0)
-				this->pControler->PanicStop(false);
-			for (int i = 0; i < this->handleAddcounter; i++)
-				this->pHandleList[i]->InterruptEnd();
-		}
-		else
-		{
-			this->dcType = PanicStopped;
-			if (this->pControler != 0)
-				this->pControler->PanicStop(true);
-			for (int i = 0; i < this->handleAddcounter; i++)
-				this->pHandleList[i]->Interrupt(EVENT_EMERGENCY);
-		}
-		/*if (this->pPanicButton != 0)
-			this->pPanicButton->UnselectLastLoop();*/
-		updateStatus = true;
-	}
-	else
-	{
-		if (this->pDcDccButton != 0/* && this->pDcDccButton->IsSelectedLastLoop()*/)	
-		{
-			if (this->dcType != PanicStopped)
-			{
-				if (this->dcType == DcChangeStopped)
-				{
-					this->dcType = this->dcTypeAtStart;
-					for (int i = 0; i < this->handleAddcounter; i++)
-						this->pHandleList[i]->InterruptEnd();
-				}
-				else
-				{
-#ifdef DDC_DEBUG_MODE
-					Serial.println(F("Dc mode change"));
-#endif
-					this->dcType = DcChangeStopped;
-					for (int i = 0; i < this->handleAddcounter; i++)
-						this->pHandleList[i]->Interrupt(EVENT_DCDCC);
-				}
-				updateStatus = true;
-			}
-
-			/*if (this->pDcDccButton != 0)
-				this->pDcDccButton->UnselectLastLoop();*/
-		}
-
-		if (this->pPanicButton != 0/* && this->pPanicButton->IsSelectedLastLoop()*/)
-		{
-#ifdef DDC_DEBUG_MODE
-			Serial.println(F("Panic stopped"));
-#endif
-			this->dcType = PanicStopped;
-			//this->pPanicButton->UnselectLastLoop();
-			if (this->pControler != 0)
-				this->pControler->PanicStop(true);
-			for (int i = 0; i < this->handleAddcounter; i++)
-				this->pHandleList[i]->Interrupt(EVENT_EMERGENCY);
-			updateStatus = true;
-		}
-	}
-#endif
 	for (int i = 0; i < DcDccControler::handleAddcounter; i++)
 	{
 		if (DcDccControler::pHandleList[i] != 0)
@@ -313,10 +229,10 @@ void DcDccControler::ConfigLoad()
 	{
 		if (DcDccControler::dcType == Dc)
 		{
-			uint16_t dCFrequencyDivisor;
-			EEPROMextent.readAnything(3, dCFrequencyDivisor);
+			uint16_t dCFrequencyDivisorIndex;
+			EEPROMextent.readAnything(3, dCFrequencyDivisorIndex);
 			// Set frequency, even if the pin is not correct at this moment !
-			((ControlerDc *)DcDccControler::pControler)->SetFrequencyDivisor(dCFrequencyDivisor);
+			((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex = dCFrequencyDivisorIndex;
 		}
 
 		// Must be done only when the good value is in Locomotive::FunctionNumber...
@@ -329,12 +245,12 @@ void DcDccControler::ConfigLoad()
 
 int DcDccControler::ConfigSave()
 {
-/*	EEPROMextent.write(0, 'D');
+	EEPROMextent.write(0, 'D');
 	EEPROMextent.write(1, 'D');
 	EEPROMextent.write(2, 'C');
 
 	if (DcDccControler::dcType == Dc)
-		EEPROMextent.writeAnything(3, ((ControlerDc *)DcDccControler::pControler)->GetFrequencyDivisor());*/
+		EEPROMextent.writeAnything(3, ((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
 	return 0;
 }
 

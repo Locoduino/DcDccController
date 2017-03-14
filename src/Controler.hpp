@@ -23,6 +23,7 @@ class Controler
 		inline virtual void loop() { }
 
 		inline byte GetMaxSpeed() { return this->maxSpeed; }
+		inline bool IsPanicStopped() { return this->panicStopped; }
 };
 
 //-------------------------------------------------------------------

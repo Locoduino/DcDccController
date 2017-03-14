@@ -7,7 +7,7 @@ description: <Class for a loco choice window>
 #include "DcDccControler.h"
 #include "WindowChooseDcFreq.hpp"
 
-const byte divisors_11_3_pow2[] { 10, 8, 7, 6, 5, 3, 0, 255 };
+const byte WindowChooseDcFreq::divisors_11_3_pow2[] { 10, 8, 7, 6, 5, 3, 0, 255 };
 
 #define BASE_PWM_FREQ_11_3	31250
 #define NB_PWM_FREQ_11_3	7
@@ -19,7 +19,7 @@ byte WindowChooseDcFreq::GetChoiceTextNumber() const
 
 char *WindowChooseDcFreq::GetChoiceTextValue(unsigned int indexValue) const
 {
-	this->BuildFreqString(indexValue);
+	this->BuildFreqIndexString(indexValue);
 
 	return LcdScreen::buffer;
 }
@@ -37,36 +37,29 @@ void WindowChooseDcFreq::BuildFreqString(unsigned int inDivisor)
 	LcdScreen::buffer[len] = 0;
 }
 
-void WindowChooseDcFreq::SetCurrentChoice(unsigned int inDivisor)
+/*void WindowChooseDcFreq::SetCurrentChoice(unsigned int inDivisor)
 {
 	BuildFreqString(inDivisor);
 	WindowChoiceText::SetCurrentChoice(LcdScreen::buffer, inDivisor);
-}
+} */
 
 void WindowChooseDcFreq::move(bool inMore)
 {
-	int i = 0;
-	for (; i < 100; i++)
+	int i = *(this->pValue);
+	if (inMore)
 	{
-		if (1 << divisors_11_3_pow2[i] == *(this->pValue))
-		{
-			if (inMore)
-			{
-				i++;
-				if (divisors_11_3_pow2[i] == 255)
-					i = NB_PWM_FREQ_11_3 - 1;
-				break;
-			}
-			else
-			{
-				if (i > 0)
-					i--;
-				break;
-			}
-		}
+		i++;
+		if (divisors_11_3_pow2[i] == 255)
+			i = NB_PWM_FREQ_11_3 - 1;
 	}
+	else
+	{
+		if (i > 0)
+			i--;
+	}
+
 	if (i >= 99)
 		i = 0;
-	SetCurrentChoice(1 << divisors_11_3_pow2[i]);
+	SetCurrentChoice(i);
 }
 

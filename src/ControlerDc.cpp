@@ -14,7 +14,7 @@ void ControlerDc::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 
 	analogWrite(this->dcPWMpin, 0);
 	//pinMode(this->dcDirPin, OUTPUT);
-	SetFrequencyDivisor(this->DCFrequencyDivisor);
+	SetFrequencyDivisorRaw(WindowChooseDcFreq::GetFrequencyDivisor(this->DCFrequencyDivisorIndex));
 
 #ifdef DDC_DEBUG_MODE
 	Serial.println(F("Dc mode."));
@@ -79,6 +79,9 @@ bool ControlerDc::SetDirection(bool inToLeft)
 
 void ControlerDc::PanicStop(bool inStop) 
 {
+	if (this->panicStopped == inStop)
+		return;
+
 	this->panicStopped = inStop;
 	if (inStop)
 	{
@@ -101,12 +104,12 @@ void ControlerDc::PanicStop(bool inStop)
 	}
 }
 
-void ControlerDc::SetFrequencyDivisor(unsigned int inDivisor)
+/*void ControlerDc::SetFrequencyDivisor(unsigned int inDivisor)
 {
 	this->DCFrequencyDivisor = inDivisor;
 
 	SetFrequencyDivisorRaw(inDivisor);
-}
+} */
 
 void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 {

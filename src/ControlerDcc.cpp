@@ -10,7 +10,6 @@ description: <Dcc Controler>
 void ControlerDcc::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin)
 { 
 	// Set the PWM pin, which is connected to the PWM of LM18200 at maximum !
-	//pinMode(inDcPWMpin, OUTPUT);
 	analogWrite(inDcPWMpin, 255);
 
 	this->dps.setup();

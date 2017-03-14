@@ -34,7 +34,7 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		if (DcDccControler::dcType == Dc)
 		{
 			inpLcd->GetScreen()->DisplayHeader(((ControlerDc *)DcDccControler::pControler)->IsSlowMode() ? STR_DCSLOW : this->dcMsg);
-			WindowChooseDcFreq::BuildFreqString(((ControlerDc *)DcDccControler::pControler)->GetFrequencyDivisor());
+			WindowChooseDcFreq::BuildFreqIndexString(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
 			byte len = LcdScreen::BuildStringLeft(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - 4, LcdScreen::buffer);
 			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - len, 0);
 		}

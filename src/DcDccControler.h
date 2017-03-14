@@ -33,12 +33,12 @@
 #endif
 
 #ifndef NANOCONTROLER
-	#ifndef __EEPROMextent_h__
+/*	#ifndef __EEPROMextent_h__
 		#include "../EEPROMextent/src/EEPROMextent.h"
-	#endif
-	#define FUNCTION_NUMBER		2
-#else
+	#endif*/
 	#define FUNCTION_NUMBER		8
+#else
+	#define FUNCTION_NUMBER		2
 #endif
 
 #ifdef DDC_DEBUG_MODE
@@ -239,7 +239,7 @@ private:
 
 public:
 
-	static void begin(uint8_t inDcPWMpin = 0, uint8_t inDcDirPin = 0);
+	static void begin(uint8_t inDcPWMpin = 0, uint8_t inDcDirPin = 0, uint8_t inDcDccSelectPin = 0);
 	static void AddHandle(Handle *pHandle);
 	static byte IndexOf(Handle *inpHandle);
 

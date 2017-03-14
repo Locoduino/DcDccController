@@ -12,3 +12,4 @@ VStudio/.vs
 *.*db
 VStudio/old
 VStudio/x64
+*.filters

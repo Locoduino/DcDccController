@@ -124,8 +124,8 @@ void Handle::StartUI()
 		6				ID				EditInt	1-127 or 1-10126
 		7				Address long	YesNo
 		8				Steps			Choice 14/28/128
-		9				Function n		EditInt	1-127 or 1-10126
-		10				Function n+1	EditInt	1-127 or 1-10126
+		9				Function 1		EditInt	1-127 or 1-10126
+		10				Function 2		EditInt	1-127 or 1-10126
 		11			LocoControl			WindowLocoControl
 		12	Dc-Dcc						Interrupt
 		13	Stop						Interrupt
@@ -137,7 +137,7 @@ void Handle::StartUI()
 		winChoiceConfig.begin(STR_MODECONFIG, &choiceConfig);
 		if (DcDccControler::dcType == Dc)
 		{
-			winFreq.begin(STR_PWMFREQCFG, &this->Freq);
+			winFreq.begin(STR_PWMFREQCFG, NULL);
 		}
 		else
 		{
@@ -188,6 +188,7 @@ void Handle::StartUI()
 		{
 			winChoiceConfig.AddChoice(STR_PWMFREQCFG);
 			winFreq.SetFather(&winChoiceConfig, STR_PWMFREQCFG);	// DC Freq
+			winFreq.SetValueAddress(&(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex));
 		}
 		else
 		{
@@ -223,13 +224,13 @@ void Handle::StartUI()
 	winProgramCV1.SetValueAddress(this->controled.GetDccIdAddress());
 }
 
-void Handle::EndSetup(bool inDcMode)
+void Handle::EndSetup()
 {
 	this->SetSpeed(0);
 	Window *pLoco = this->pUi->GetWindowById(1000);
 
 	// If Dc goto to control directly
-	if (inDcMode)
+	if (DcDccControler::dcType == Dc)
 	{
 		this->pUi->MoveToWindow(pLoco);
 	}
@@ -324,6 +325,21 @@ bool Handle::loop(unsigned long inEvent)
 		case STATE_INITIALIZE:
 			switch (pUi->GetWindowId())
 			{
+			case STR_STOP:
+				DcDccControler::dcTypeAtStart = DcDccControler::dcType;
+				DcDccControler::pControler->PanicStop(true);
+				break;
+			case STR_DCDCC:
+				if (DcDccControler::dcType == DcChangeStopped)
+					break;
+
+				DcDccControler::dcTypeAtStart = DcDccControler::dcType;
+				DcDccControler::dcType = DcChangeStopped;
+#ifdef DDC_DEBUG_MODE
+				Serial.println(F("Dc/Dcc mode change"));
+#endif
+				break;
+
 			case STR_PROGRAMCV1:
 				((ControlerDcc *)DcDccControler::pControler)->StartProgramMode();
 				break;
@@ -349,8 +365,18 @@ bool Handle::loop(unsigned long inEvent)
 		case STATE_CONFIRMED:
 			switch (pUi->GetWindowId())
 			{
+			case STR_STOP:
+				DcDccControler::pControler->PanicStop(false);
+				DcDccControler::dcType = DcDccControler::dcTypeAtStart;
+				break;
+			case STR_DCDCC:
+				DcDccControler::dcType = DcDccControler::dcTypeAtStart;
+#ifdef DDC_DEBUG_MODE
+				Serial.println(F("Dc/Dcc mode change canceled"));
+#endif
+				break;
 			case STR_PWMFREQCFG:
-				((ControlerDc *)DcDccControler::pControler)->SetFrequencyDivisor(((WindowChooseDcFreq *)pCurrent)->GetChoiceIntValue());
+//				((ControlerDc *)DcDccControler::pControler)->SetFrequencyDivisor(((WindowChooseDcFreq *)pCurrent)->GetChoiceIntValue());
 				DcDccControler::ConfigSave();
 				break;
 

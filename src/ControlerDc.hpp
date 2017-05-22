@@ -22,7 +22,8 @@ class ControlerDc : public Controler
 		inline ControlerDc() { this->dcPWMpin = 0; this->dcDirPin = 0; this->DCFrequencyDivisorIndex = 3; this->slowMode = false; this->maxSpeed = 255; }
 		
 	public:
-		void begin(uint8_t inDcPWMpin, uint8_t inDcDirPin);
+		void begin();
+		void beginMain(uint8_t DirectionMotor, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
 		bool SetSpeed(int inNewSpeed);
 		bool SetDirection(bool inToLeft);
 		void PanicStop(bool inStop);

@@ -7,9 +7,8 @@ description: <Base functions of the library>
 #include "DcDccControler.h"
 #include "WindowChooseLoco.hpp"
 #include "Locomotive.hpp"
+#include "EEPROM.h"		// only for EEPROM.length() !
 
-uint8_t  DcDccControler::dcPWMpin;
-uint8_t  DcDccControler::dcDirPin;
 DcDcc  DcDccControler::dcType;
 DcDcc  DcDccControler::dcTypeAtStart;
 Handle ** DcDccControler::pHandleList;
@@ -27,12 +26,12 @@ void DcDccControler::CheckIndex(unsigned char inIndex, const __FlashStringHelper
 	}
 }
 
-static void CheckPinNb(GPIO_pin_t inPin, const __FlashStringHelper *inFunc)
+void CheckPinNb(GPIO_pin_t inPin, const __FlashStringHelper *inFunc)
 {
 	return CheckPinNb(GPIO_to_Arduino_pin(inPin), inFunc);
 }
 
-void static CheckPinNb(int inPin, const __FlashStringHelper *inFunc)
+void CheckPinNb(int inPin, const __FlashStringHelper *inFunc)
 {
 	if (inPin <= 0 || inPin >= NUM_DIGITAL_PINS)
 	{
@@ -51,7 +50,7 @@ void DcDccControler::AddHandle(Handle *inpHandle)
 	Handle **pNewList = new Handle*[DcDccControler::handleAddcounter + 1];
 
 	int i = 0;
-	if (DcDccControler::pHandleList != 0)
+	if (DcDccControler::pHandleList != NULL)
 		for (; i < DcDccControler::handleAddcounter; i++)
 			pNewList[i] = DcDccControler::pHandleList[i];
 
@@ -62,47 +61,8 @@ void DcDccControler::AddHandle(Handle *inpHandle)
 	DcDccControler::pHandleList = pNewList;
 }
 
-void DcDccControler::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin, uint8_t inDcDccSelectPin)
+void DcDccControler::begin(uint8_t inDcDccSelectPin)
 {
-	Serial.begin(115200);
-
-	DcDccControler::pHandleList = 0;
-	DcDccControler::handleAddcounter = 0;
-	DcDccControler::pControler = 0;
-	DcDccControler::beginFinished = false;
-
-#ifdef DDC_DEBUG_MODE
-#ifdef NANOCONTROLER
-	Serial.println(F("Setup started (Nano version)..."));
-#else
-	Serial.println(F("Setup started..."));
-	if (inDcPWMpin != 3 && inDcPWMpin != 11)
-	{
-		Serial.println(F("ERROR: The PWM pin must be 3 or 11 for DC frequency adjustment !"));
-		Serial.println(F("Any other pin can dramaticaly change the meaning of all time related functions (delay, millis...)"));
-	}
-#endif
-#ifndef VISUALSTUDIO
-	//while (!Serial);
-#endif
-#endif
-
-	pinMode(inDcPWMpin, OUTPUT);
-	pinMode(inDcDirPin, OUTPUT);
-	analogWrite(inDcPWMpin, 0);
-
-	DcDccControler::dcType = Dcc;
-#ifndef VISUALSTUDIO
-	if (inDcDccSelectPin != 0 && digitalRead(inDcDccSelectPin))
-		DcDccControler::dcType = Dcc;
-#endif
-
-	DcDccControler::dcPWMpin = inDcPWMpin;
-	DcDccControler::dcDirPin = inDcDirPin;
-
-	// Just for let the time to the PIC to initialize internals...
-	delay(500);
-
 #ifdef DDC_DEBUG_MODE
 	Serial.println(F(""));
 	Serial.println(F("Dc/Dcc Controler"));
@@ -111,10 +71,68 @@ void DcDccControler::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin, uint8_t inDcD
 
 	Serial.println(F("*** Setup started."));
 #endif
+
+	DcDccControler::pHandleList = NULL;
+	DcDccControler::handleAddcounter = 0;
+	DcDccControler::pControler = NULL;
+	DcDccControler::beginFinished = false;
+
+#ifdef DDC_DEBUG_MODE
+#ifdef NANOCONTROLER
+	Serial.println(F("Setup started (Nano version)..."));
+#else
+	Serial.println(F("Setup started..."));
+	/*if (inDcPWMpin != 3 && inDcPWMpin != 11)
+	{
+		Serial.println(F("ERROR: The PWM pin must be 3 or 11 for DC frequency adjustment !"));
+		Serial.println(F("Any other pin can dramaticaly change the meaning of all time related functions (delay, millis...)"));
+	} */
+#endif
+#ifndef VISUALSTUDIO
+	//while (!Serial);
+#endif
+#endif
+
+	DcDccControler::dcType = Dc;
+	if (inDcDccSelectPin == 255 || (inDcDccSelectPin != 0 && digitalRead(inDcDccSelectPin)))
+		DcDccControler::dcType = Dcc;
+
+	// Just for let the time to the microC to initialize internals...
+	delay(500);
+
+	LcdScreen::YesMsg = STR_YES;
+	LcdScreen::NoMsg = STR_NO;
+
+	if (DcDccControler::dcType == Dc)
+	{
+#ifdef DDC_DEBUG_MODE
+		Serial.println(F("Start in Dc mode"));
+#endif
+		DcDccControler::pControler = new ControlerDc();
+	}
+	else
+	{
+#ifdef DDC_DEBUG_MODE
+		Serial.println(F("Start in Dcc mode"));
+#endif
+		DcDccControler::pControler = new ControlerDccpp();
+	}
+
+	DcDccControler::pControler->begin();
+}
+
+void DcDccControler::beginMain(uint8_t DirectionMotor, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor)
+{
+	DcDccControler::pControler->beginMain(DirectionMotor, SignalPin, SignalEnablePin, CurrentMonitor);
+}
+
+void DcDccControler::beginProg(uint8_t DirectionMotor, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor)
+{
+	DcDccControler::pControler->beginProg(DirectionMotor, SignalPin, SignalEnablePin, CurrentMonitor);
 }
 
 void DcDccControler::beforeFirstLoop()
-{	
+{
 	if (DcDccControler::handleAddcounter == 0)
 	{
 #ifdef DDC_DEBUG_MODE
@@ -128,42 +146,22 @@ void DcDccControler::beforeFirstLoop()
 	WindowChooseLoco::ClearChoices();
 #endif
 
-#ifdef VISUALSTUDIO
-	DCCItemList.Setup(EEPROM_DDC_CONFIG_SIZE + (EEPROM_DDC_HANDLE_CONFIG_SIZE * DcDccControler::handleAddcounter), 30, EEPROM.length());
-#else
-	DCCItemList.Setup(EEPROM_DDC_CONFIG_SIZE + (EEPROM_DDC_HANDLE_CONFIG_SIZE * this->handleAddcounter), 20, EEPROM_SIZE);
-#endif
+	DCCItemList.begin(EEPROM_DDC_CONFIG_SIZE + (EEPROM_DDC_HANDLE_CONFIG_SIZE * DcDccControler::handleAddcounter), 30, EEPROM.length());
 
 #ifndef NANOCONTROLER
 	WindowChooseLoco::RebuildChoices();
 #endif
 
-	LcdScreen::YesMsg = STR_YES;
-	LcdScreen::NoMsg = STR_NO;
-
 	if (DcDccControler::dcType == Dc)
 	{
-#ifdef DDC_DEBUG_MODE
-		Serial.println(F("Start in Dc mode"));
-#endif
-		DcDccControler::pControler = new ControlerDc();
 		// Force to use only the first handle...
 		DcDccControler::handleAddcounter = 1;
 		// Affect a special loco to this handle.
 		DcDccControler::pHandleList[0]->SetControledLocomotive(Locomotive::AnalogLocomotive);
 		DcDccControler::pHandleList[0]->MoreLessIncrement = 10;
 	}
-	else
-	{
-#ifdef DDC_DEBUG_MODE
-		Serial.println(F("Start in Dcc mode"));
-#endif
-		DcDccControler::pControler = new ControlerDcc();
-	}
 
 	ConfigLoad();
-
-	DcDccControler::pControler->begin(DcDccControler::dcPWMpin, DcDccControler::dcDirPin);
 
 	// Must be done only when the good value is in Locomotive::FunctionNumber...
 	for (int i = 0; i < DcDccControler::handleAddcounter; i++)
@@ -198,7 +196,7 @@ byte DcDccControler::IndexOf(Handle *inpHandle)
 	return 255;
 }
 
-void DcDccControler::loop(unsigned long inEvent)
+void DcDccControler::loop(unsigned long inEvent, int inData)
 {
 	if (!DcDccControler::beginFinished)
 	{
@@ -212,7 +210,7 @@ void DcDccControler::loop(unsigned long inEvent)
 	for (int i = 0; i < DcDccControler::handleAddcounter; i++)
 	{
 		if (DcDccControler::pHandleList[i] != 0)
-			DcDccControler::pHandleList[i]->loop(inEvent);
+			DcDccControler::pHandleList[i]->loop(inEvent, inData);
 	}
 }
 
@@ -232,7 +230,7 @@ void DcDccControler::ConfigLoad()
 			uint16_t dCFrequencyDivisorIndex;
 			EEPROMextent.readAnything(3, dCFrequencyDivisorIndex);
 			// Set frequency, even if the pin is not correct at this moment !
-			((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex = dCFrequencyDivisorIndex;
+			((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex = (byte) dCFrequencyDivisorIndex;
 		}
 
 		// Must be done only when the good value is in Locomotive::FunctionNumber...
@@ -256,6 +254,6 @@ int DcDccControler::ConfigSave()
 
 void DcDccControler::ConfigReset()
 {
-	for (int i = 0; i < EEPROM.length(); i++)
+	for (uint16_t i = 0; i < EEPROM.length(); i++)
 		EEPROMextent.update(i, 0);
 }

@@ -7,13 +7,18 @@ description: <Dc Controler>
 #include "DcDccControler.h"
 #include "ControlerDc.hpp"
 
-void ControlerDc::begin(uint8_t inDcPWMpin, uint8_t inDcDirPin)
+void ControlerDc::begin()
 { 
-	this->dcPWMpin = inDcPWMpin; 
-	this->dcDirPin = inDcDirPin; 
+}
 
+void ControlerDc::beginMain(uint8_t DirectionMotor, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor)
+{
+	this->dcPWMpin = SignalEnablePin;
+	this->dcDirPin = SignalPin;
+
+	pinMode(this->dcPWMpin, OUTPUT);
+	pinMode(this->dcDirPin, OUTPUT);
 	analogWrite(this->dcPWMpin, 0);
-	//pinMode(this->dcDirPin, OUTPUT);
 	SetFrequencyDivisorRaw(WindowChooseDcFreq::GetFrequencyDivisor(this->DCFrequencyDivisorIndex));
 
 #ifdef DDC_DEBUG_MODE
@@ -127,9 +132,9 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 			default: return;
 		}
 		if (this->dcPWMpin == 5 || this->dcPWMpin == 6)
-			TCCR0B = TCCR0B & 0b11111000 | mode;
+			TCCR0B = (TCCR0B & 0b11111000) | mode;
 		else
-			TCCR1B = TCCR1B & 0b11111000 | mode;
+			TCCR1B = (TCCR1B & 0b11111000) | mode;
 		return;
 	}
 */
@@ -151,7 +156,7 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 			case 1024: mode = 0x7; break;
 			default: return;
 		}
-		TCCR2B = TCCR2B & 0b11111000 | mode;
+		TCCR2B = (TCCR2B & 0b11111000) | mode;
 	}
 	
 #endif

@@ -1,35 +1,43 @@
 //-------------------------------------------------------------------
-#ifndef __controlerDcc_H__
-#define __controlerDcc_H__
+#ifndef __controlerDccpp_H__
+#define __controlerDccpp_H__
 //-------------------------------------------------------------------
 
 #include "Controler.hpp"
 
 #ifdef VISUALSTUDIO
-#include "../VStudio/cmdrarduino.hpp"
+#include "../VStudio/DCCpp.hpp"
 #else
-#include "DCCPacket.hpp"
-#include "DCCPacketQueue.hpp"
-#include "DCCPacketScheduler.hpp"
+#include "DCCpp/DCCpp_Uno.h"
+#include "DCCpp/PacketRegister.h"
+#include "DCCpp/CurrentMonitor.h"
+//#include "DCCpp/SerialCommand.h"
+#include "DCCpp/Config.h"
+//#include "DCCpp/Comm.h"
 #endif
 
 //-------------------------------------------------------------------
 
-class ControlerDcc : public Controler
+class ControlerDccpp : public Controler
 {
 	private:
-		DCCPacketScheduler dps;
 		bool programMode;
+
+		static CurrentMonitor *mMonitor;
 
 		void SetSpeedRaw();
 		void SetFunctionsRaw();
 		void SetCv1Raw(int inId);
 
 	public:
-		inline ControlerDcc() { this->programMode = false; this->maxSpeed = 127; }
+		static volatile RegisterList mainRegs, progRegs;
+
+		ControlerDccpp();
 		
 	public:
-		void begin(uint8_t inDcPWMpin, uint8_t inDcDirPin);
+		void begin();
+		void beginMain(uint8_t DirectionMotor, uint8_t DccSignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
+		void beginProg(uint8_t DirectionMotor, uint8_t DccSignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
 		bool SetSpeed(int inNewSpeed);
 		bool SetDirection(bool inToLeft);
 		void SetCv1(int inId);
@@ -38,6 +46,10 @@ class ControlerDcc : public Controler
 		void loop();
 		void StartProgramMode();
 		void EndProgramMode();
+
+#ifdef DDC_DEBUG_MODE
+		static void showConfiguration();
+#endif
 };
 
 //-------------------------------------------------------------------

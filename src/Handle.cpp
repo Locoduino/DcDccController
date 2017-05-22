@@ -17,6 +17,11 @@ Handle::Handle()
 	this->MoreLessIncrement = 10;
 	this->pUi = NULL;
 	this->DccIdNbDigits = 4;
+
+	this->addressFunction0 = 0;
+	this->addressFunction1 = 1;
+	this->cv1 = 3;
+	this->reset = false;
 }
 
 void Handle::begin(byte inHandleId)
@@ -28,6 +33,13 @@ void Handle::begin(byte inHandleId)
 
 void Handle::StartUI()
 {
+#ifndef VISUALSTUDIO
+	extern uint8_t *__brkval;
+	extern uint8_t *__heap_start;
+#endif
+
+	int v;
+
 	if (this->pUi != 0)
 #ifndef NANOCONTROLER
 	{
@@ -107,33 +119,34 @@ void Handle::StartUI()
 		/*
 		In Dc :
 		0	Splash
-		1		Mode Choice				Choice
-		2			Config DDC			Choice
-		3				PWM freq		WindowChooseDcFreq
-		4			LocoControl			WindowLocoControl
-		5	Dc-Dcc						Interrupt
+		1	Start : Confirm dc
+		2		Mode Choice				Choice
+		3			Config DDC			Choice
+		4				PWM freq		WindowChooseDcFreq
+		5			LocoControl			WindowLocoControl
 		6	Stop						Interrupt
-		
+
 		In Dcc :
 		0	Splash
-		1		Mode Choice				Choice
-		2			Config DDC			Choice
-		3				Nb digits		EditInt 2-4
-		4				Reset			Confirm
-		5			Loco Edit			Choice
-		6				ID				EditInt	1-127 or 1-10126
-		7				Address long	YesNo
-		8				Steps			Choice 14/28/128
-		9				Function 1		EditInt	1-127 or 1-10126
-		10				Function 2		EditInt	1-127 or 1-10126
-		11			LocoControl			WindowLocoControl
-		12	Dc-Dcc						Interrupt
+		1	Start : Confirm dcc
+		2		Mode Choice				Choice
+		3			Config DDC			Choice
+		4				Nb digits		EditInt 2-4
+		5				Reset			Confirm
+		6			Loco Edit			Choice
+		7				ID				EditInt	1-127 or 1-10126
+		8				Address long	YesNo
+		9				Steps			Choice 14/28/128
+		10				Function n		EditInt	1-127 or 1-10126
+		11				Function n+1	EditInt	1-127 or 1-10126
+		12			LocoControl			WindowLocoControl
 		13	Stop						Interrupt
 		*/
 
 		// BEGINS !
-		winSplash.begin(STR_TITLE, STR_COPYRIGHT);	// splash
-		winChoiceMain.begin(STR_MODEMODECHOICE, &choiceMain);	// menu dc
+		winSplash.begin(STR_TITLE, STR_COPYRIGHT);
+		winStart.begin(DcDccControler::dcType == Dc?STR_DC:STR_DCC, STR_CONFIRM, NULL);
+		winChoiceMain.begin(STR_MODEMODECHOICE, &choiceMain);	// menu
 		winChoiceConfig.begin(STR_MODECONFIG, &choiceConfig);
 		if (DcDccControler::dcType == Dc)
 		{
@@ -142,22 +155,22 @@ void Handle::StartUI()
 		else
 		{
 			winConfigDigit.begin(STR_HANDLECFGDIGITS, &(this->DccIdNbDigits), 2, 4);
-			winResetConfig.begin(STR_RESETCONFIG, STR_CONFIRM);
+			//winResetConfig.begin(STR_RESETCONFIG, STR_CONFIRM, &(this->reset));
 			winChoiceConfigLoco.begin(STR_LOCOEDIT, &choiceConfigLoco);
 			winLocoId.begin(STR_LOCOID, NULL, 1, 10026);
 			winLongAddress.begin(STR_LONGADDRESS, NULL);
 			winChoiceSteps.begin(STR_LOCOSTEPS, &choiceSteps);
-			winFunction1.begin(STR_FUNCTIONID1, &addressFunction1);
-			winFunction2.begin(STR_FUNCTIONID2, &addressFunction2);
-			winProgramCV1.begin(STR_PROGRAMCV1, NULL, 1, 10026);
+			winFunction1.begin(STR_FUNCTIONID1, &addressFunction0);
+			winFunction2.begin(STR_FUNCTIONID2, &addressFunction1);
+			winProgramCV1.begin(STR_PROGRAMCV1, &cv1, 1, 10026);
 		}
 
 		winLocoControl.begin(1000, this);
-		this->windowInterruptDcDcc.begin(STR_DCDCC, STR_DCDCC2, EVENT_DCDCC); // Dc/Dcc mode change
 		this->windowInterruptEmergency.begin(STR_STOP, STR_STOP2, EVENT_EMERGENCY); // Emergency stop
 
 		// WINDOWS in the list
 		this->pUi->AddWindow(&winSplash);
+		this->pUi->AddWindow(&winStart);
 		this->pUi->AddWindow(&winChoiceMain);
 		this->pUi->AddWindow(&winChoiceConfig);
 		if (DcDccControler::dcType == Dc)
@@ -167,7 +180,7 @@ void Handle::StartUI()
 		else
 		{
 			this->pUi->AddWindow(&winConfigDigit);
-			this->pUi->AddWindow(&winResetConfig);
+			//this->pUi->AddWindow(&winResetConfig);
 			this->pUi->AddWindow(&winChoiceConfigLoco);
 			this->pUi->AddWindow(&winLocoId);
 			this->pUi->AddWindow(&winLongAddress);
@@ -178,57 +191,50 @@ void Handle::StartUI()
 		}
 
 		this->pUi->AddWindow(&winLocoControl);
-		this->pUi->AddWindow(&this->windowInterruptDcDcc);
 		this->pUi->AddWindow(&this->windowInterruptEmergency);
 
 		// CHOICES
-		winChoiceMain.AddChoice(STR_MODECONFIG);
-		winChoiceConfig.SetFather(&winChoiceMain, STR_MODECONFIG);	// config DDC
+		winChoiceMain.AddChoice(STR_MODECONFIG, &winChoiceConfig);
 		if (DcDccControler::dcType == Dc)
 		{
-			winChoiceConfig.AddChoice(STR_PWMFREQCFG);
-			winFreq.SetFather(&winChoiceConfig, STR_PWMFREQCFG);	// DC Freq
+			winChoiceConfig.AddChoice(STR_PWMFREQCFG, &winFreq);	// DC Freq
 			winFreq.SetValueAddress(&(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex));
 		}
 		else
 		{
-			winChoiceConfig.AddChoice(STR_HANDLECFGDIGITS);
-				winConfigDigit.SetFather(&winChoiceConfig, STR_HANDLECFGDIGITS);
-			winChoiceConfig.AddChoice(STR_RESETCONFIG);
-				winResetConfig.SetFather(&winChoiceConfig, STR_RESETCONFIG);
-			winChoiceMain.AddChoice(STR_LOCOEDIT);
-				winChoiceConfigLoco.SetFather(&winChoiceMain, STR_LOCOEDIT);
-					winChoiceConfigLoco.AddChoice(STR_LOCOID);
-						winLocoId.SetFather(&winChoiceConfigLoco, STR_LOCOID);
-					winChoiceConfigLoco.AddChoice(STR_LONGADDRESS);
-						winLongAddress.SetFather(&winChoiceConfigLoco, STR_LONGADDRESS);
-					winChoiceConfigLoco.AddChoice(STR_LOCOSTEPS);
-						winChoiceSteps.SetFather(&winChoiceConfigLoco, STR_LOCOSTEPS);
-							winChoiceSteps.AddChoice(STR_LOCOSTEPS14);
-							winChoiceSteps.AddChoice(STR_LOCOSTEPS28);
-							winChoiceSteps.AddChoice(STR_LOCOSTEPS128);
-					winChoiceConfigLoco.AddChoice(STR_FUNCTIONID1);
-						winFunction1.SetFather(&winChoiceConfigLoco, STR_FUNCTIONID1);
-					winChoiceConfigLoco.AddChoice(STR_FUNCTIONID2);
-						winFunction2.SetFather(&winChoiceConfigLoco, STR_FUNCTIONID2);
-			winChoiceMain.AddChoice(STR_PROGRAMCV1);
-				winProgramCV1.SetFather(&winChoiceMain, STR_PROGRAMCV1);
+			winChoiceConfig.AddChoice(STR_HANDLECFGDIGITS, &winConfigDigit);
+			winChoiceMain.AddChoice(STR_LOCOEDIT, &winChoiceConfigLoco);
+				winChoiceConfigLoco.AddChoice(STR_LOCOID, &winLocoId);
+				winChoiceConfigLoco.AddChoice(STR_LONGADDRESS, &winLongAddress);
+				winChoiceConfigLoco.AddChoice(STR_LOCOSTEPS, &winChoiceSteps);
+					winChoiceSteps.AddChoice(STR_LOCOSTEPS14);
+					winChoiceSteps.AddChoice(STR_LOCOSTEPS28);
+					winChoiceSteps.AddChoice(STR_LOCOSTEPS128);
+				winChoiceConfigLoco.AddChoice(STR_FUNCTIONID);
+
+					winFunction1.SetFather(&winChoiceConfigLoco, STR_FUNCTIONID);
+					winFunction2.SetFather(&winChoiceConfigLoco, STR_FUNCTIONID);
+			winChoiceMain.AddChoice(STR_PROGRAMCV1, &winProgramCV1);
 		}
-		winChoiceMain.AddChoice(STR_MODELOCOCTRL);
-			winLocoControl.SetFather(&winChoiceMain, STR_MODELOCOCTRL); // run
+		winChoiceMain.AddChoice(STR_MODELOCOCTRL, &winLocoControl); // run
 	}
 #endif
 
 	winLocoId.SetValueAddress(this->controled.GetDccIdAddress());
 	winLongAddress.SetValueAddress(this->controled.GetDccIdAddressKindAddress());
 	winProgramCV1.SetValueAddress(this->controled.GetDccIdAddress());
+
+//	Serial.print((int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval));
+//	Serial.println(F(" bytes"));
+
+	//PRINT_WINDOWS(this->pUi);
 }
 
 void Handle::EndSetup()
 {
 	this->SetSpeed(0);
-	Window *pLoco = this->pUi->GetWindowById(1000);
-
+	/*Window *pLoco = &winLocoControl;
+	
 	// If Dc goto to control directly
 	if (DcDccControler::dcType == Dc)
 	{
@@ -241,6 +247,7 @@ void Handle::EndSetup()
 		if (this->controled.GetSlotNumber() != 255)
 			this->pUi->MoveToWindow(pLoco);
 	}
+	*/
 }
 
 void Handle::StartContent()
@@ -263,18 +270,26 @@ void Handle::SetControledLocomotive(Locomotive &inLocomotive)
 	this->controled.Copy(inLocomotive);
 }
 
-bool Handle::loop(unsigned long inEvent)
+bool Handle::loop(unsigned long inEvent, int inData)
 {
 	bool changed = false;
 
 	int event;
 
-	if (inEvent <= LAST_HANDLE_EVENT)
+	if (inEvent <= LAST_HANDLED_EVENT)
 	{	// Five handles events
 		if (inEvent / 50 != this->id)
 			return false;
 
 		event = inEvent % 50;
+
+		if (event == LCD1_EVENT_ENCODER)
+		{
+			if (inData == +1)
+				event = EVENT_MORE;
+			if (inData == -1)
+				event = EVENT_LESS;
+		}
 
 		// Handle Function events
 		if (event >= LCD1_EVENT_FUNCTION1)
@@ -312,7 +327,9 @@ bool Handle::loop(unsigned long inEvent)
 
 	if (pUi->loop(event))
 	{
+#ifndef NANOCONTROLER
 		Window *pCurrent = pUi->GetGlobalCurrentWindow();
+#endif
 		Locomotive &loco = this->edited;
 
 #ifdef DDC_DEBUG_MODE
@@ -341,7 +358,7 @@ bool Handle::loop(unsigned long inEvent)
 				break;
 
 			case STR_PROGRAMCV1:
-				((ControlerDcc *)DcDccControler::pControler)->StartProgramMode();
+				((ControlerDccpp *)DcDccControler::pControler)->StartProgramMode();
 				break;
 #ifndef NANOCONTROLER
 			case STR_LOCONAME:
@@ -357,7 +374,7 @@ bool Handle::loop(unsigned long inEvent)
 				default: val = STR_LOCOSTEPS128; break;
 				}
 
-				winChoiceSteps.SetCurrentChoiceById(choiceSteps.id);
+				winChoiceSteps.SetCurrentChoiceById(val);
 				break;
 			}
 			break;
@@ -437,7 +454,7 @@ bool Handle::loop(unsigned long inEvent)
 
 			case STR_PROGRAMCV1:
 				{
-					((ControlerDcc *)DcDccControler::pControler)->SetCv1(this->cv1);
+					((ControlerDccpp *)DcDccControler::pControler)->SetCv1(this->cv1);
 					loco.SetDccId(this->cv1);
 					this->SetSpeed(0);
 #ifdef NANOCONTROLER
@@ -445,7 +462,7 @@ bool Handle::loop(unsigned long inEvent)
 #endif
 				}
 
-				((ControlerDcc *)DcDccControler::pControler)->EndProgramMode();
+				((ControlerDccpp *)DcDccControler::pControler)->EndProgramMode();
 				break;
 #ifndef NANOCONTROLER
 			case STR_LOCONAME:
@@ -466,14 +483,14 @@ bool Handle::loop(unsigned long inEvent)
 #endif
 				break;
 			case STR_FUNCTIONID1:
-				loco.Functions[0].SetDccId(addressFunction1);
+				loco.Functions[0].SetDccId(addressFunction0);
 #ifdef NANOCONTROLER
 				this->ConfigSave();
 #endif
 				break;
 
 			case STR_FUNCTIONID2:
-				loco.Functions[1].SetDccId(addressFunction2);
+				loco.Functions[1].SetDccId(addressFunction1);
 #ifdef NANOCONTROLER
 				this->ConfigSave();
 #endif

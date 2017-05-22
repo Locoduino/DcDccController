@@ -13,3 +13,11 @@ VStudio/.vs
 VStudio/old
 VStudio/x64
 *.filters
+src/CmdrArduino
+Test.bat
+MakeLibrary.bat
+src/ControlerDcc.*
+VStudio/*.user
+VStudio/*.filters
+VStudio/TestExe.vcxproj.filters
+VStudio/TestExe.vcxproj.*

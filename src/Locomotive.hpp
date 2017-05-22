@@ -35,10 +35,10 @@ public:
 
 public:
 	Locomotive();
-	Locomotive(uint16_t inDccId, uint8_t adressKind, char *inName, uint8_t inSteps = 0);
+	Locomotive(int inDccId, uint8_t adressKind, char *inName, uint8_t inSteps = 128);
 
 	void ClearFunctions();
-	byte GetFunctionIndex(const uint16_t inDccId) const;
+	byte GetFunctionIndex(const int inDccId) const;
 	void Copy(Locomotive &inLocomotive);
 #ifndef NANOCONTROLER
 	inline const char *GetName() const { return this->Name; }

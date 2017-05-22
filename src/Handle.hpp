@@ -16,9 +16,11 @@
 class Handle;
 
 #include "WindowChooseDcFreq.hpp"
-#include "WindowChooseLoco.hpp"
-#include "WindowFunction.hpp"
 #include "WindowLocoControl.hpp"
+#include "WindowFunction.hpp"
+#ifndef NANOCONTROLER
+#include "WindowChooseLoco.hpp"
+#endif
 //-------------------------------------------------------------------
 
 #define EEPROM_DDC_HANDLE_CONFIG_SIZE	16
@@ -72,6 +74,7 @@ class Handle
 		WindowYesNo winLocoEdit;
 		WindowText winLocoName;
 		WindowChoice *winChoiceSteps;
+		WindowFunction winFunction0;
 		WindowFunction winFunction1;
 		WindowFunction winFunction2;
 		WindowFunction winFunction3;
@@ -79,7 +82,6 @@ class Handle
 		WindowFunction winFunction5;
 		WindowFunction winFunction6;
 		WindowFunction winFunction7;
-		WindowFunction winFunction8;
 
 		this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
 		this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
@@ -97,27 +99,27 @@ class Handle
 		/*
 		In Dc :
 		0	Splash
-		1		Mode Choice				Choice
-		2			Config DDC			Choice
-		3				PWM freq		WindowChooseDcFreq
-		4			LocoControl			WindowLocoControl
-		5	Dc-Dcc						Interrupt
+		1	Start : Confirm dc
+		2		Mode Choice				Choice
+		3			Config DDC			Choice
+		4				PWM freq		WindowChooseDcFreq
+		5			LocoControl			WindowLocoControl
 		6	Stop						Interrupt
 
 		In Dcc :
 		0	Splash
-		1		Mode Choice				Choice
-		2			Config DDC			Choice
-		3				Nb digits		EditInt 2-4
-		4				Reset			Confirm
-		5			Loco Edit			Choice
-		6				ID				EditInt	1-127 or 1-10126
-		7				Address long	YesNo
-		8				Steps			Choice 14/28/128
-		9				Function n		EditInt	1-127 or 1-10126
-		10				Function n+1	EditInt	1-127 or 1-10126
-		11			LocoControl			WindowLocoControl
-		12	Dc-Dcc						Interrupt
+		1	Start : Confirm dcc
+		2		Mode Choice				Choice
+		3			Config DDC			Choice
+		4				Nb digits		EditInt 2-4
+		5				Reset			Confirm
+		6			Loco Edit			Choice
+		7				ID				EditInt	1-127 or 1-10126
+		8				Address long	YesNo
+		9				Steps			Choice 14/28/128
+		10				Function n		EditInt	1-127 or 1-10126
+		11				Function n+1	EditInt	1-127 or 1-10126
+		12			LocoControl			WindowLocoControl
 		13	Stop						Interrupt
 		*/
 
@@ -125,16 +127,14 @@ class Handle
 		Choice choiceConfig;
 		Choice choiceConfigLoco;
 		Choice choiceSteps;
-		int addressFunction1;
-		int addressFunction2;
-		int cv1;
 
 		WindowSplash winSplash;
+		WindowConfirm winStart;
 		WindowChoice winChoiceMain;
 		WindowChoice winChoiceConfig;
 		WindowChooseDcFreq winFreq;
 		WindowInt winConfigDigit;
-		WindowConfirm winResetConfig;
+		//WindowConfirm winResetConfig;
 		WindowChoice winChoiceConfigLoco;
 		WindowInt winLocoId;
 		WindowYesNo winLongAddress;
@@ -144,7 +144,6 @@ class Handle
 		WindowInt winProgramCV1;
 		WindowLocoControl winLocoControl;
 
-		WindowInterrupt windowInterruptDcDcc;
 		WindowInterrupt windowInterruptEmergency;
 #endif
 	
@@ -153,6 +152,10 @@ class Handle
 		// Handle configuration
 		int MoreLessIncrement;
 		int DccIdNbDigits;	// Only an int because the WindowInt cannot edit a byte !
+		int addressFunction0;
+		int addressFunction1;
+		int cv1;
+		bool reset;
 
 	private:
 		// Handle interactive situation
@@ -162,7 +165,7 @@ class Handle
 #else
 		Locomotive edited;
 #endif
-		FunctionHandle FunctionHandleList[2];
+		//FunctionHandle FunctionHandleList[2];
 
 	public:
 		Handle();
@@ -188,7 +191,7 @@ class Handle
 		void SetDirection(bool inToLeft);
 		void ToggleFunction(byte inFunctionNumber);
 
-		bool loop(unsigned long inEvent);
+		bool loop(unsigned long inEvent, int inData);
 
 		void ConfigLoad();
 		void ConfigSave();

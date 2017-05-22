@@ -5,6 +5,7 @@ description: <Tiny Dc/Dcc controler sample>
 *************************************************************/
 
 #include "French16.hpp"
+#include "LcdUi.h"
 
 //#include <NewLiquidCrystal_I2C.h>
 //#include <NewLiquidCrystal.h>
@@ -23,12 +24,11 @@ ScreenLiquid screen;
 
 Handle handle;
 
-#ifdef VISUALSTUDIO
+#ifdef VISUALSTUDIO1
 ButtonsCommanderKeyboard push0;
 ButtonsCommanderKeyboard push1;
 ButtonsCommanderKeyboard push2;
 ButtonsCommanderKeyboard push3;
-ButtonsCommanderKeyboard pushDcDcc;
 ButtonsCommanderKeyboard pushEmergency;
 ButtonsCommanderKeyboard pushFunction1;
 ButtonsCommanderKeyboard pushFunction2;
@@ -37,55 +37,52 @@ ButtonsCommanderPush buttonDir;
 ButtonsCommanderEncoder buttonEncoder;
 ButtonsCommanderPush buttonMode;
 ButtonsCommanderPush buttonPanic;
-ButtonsCommanderSwitch buttonDcDcc;
-ButtonsCommanderSwitch buttonF1;
-ButtonsCommanderSwitch buttonF2;
+ButtonsCommanderSwitchOnePin buttonF0;
+ButtonsCommanderSwitchOnePin buttonF1;
 #endif
-
-#define BUTTON_DIR          0
-#define BUTTON_SPEED        1
-#define BUTTON_MODE        	2
-#define BUTTON_PANIC        3
-#define BUTTON_DCDCC        4
-#define BUTTON_F1        	5	// Also for slow mode in Dc .
-#define BUTTON_F2        	6
 
 void setup()
 {
 	Serial.begin(115200);
 
-	DcDccControler::begin(11, 9);    // Dc: Pwm, Dir / Dcc : Pwm, unused
-
-#ifdef VISUALSTUDIO
+#ifdef VISUALSTUDIO1
 	push0.begin(LCD1_EVENT_SELECT, '*');
 	push1.begin(LCD1_EVENT_MORE, '+');
 	push2.begin(LCD1_EVENT_LESS, '-');
 	push3.begin(LCD1_EVENT_CANCEL, '/');
-	pushDcDcc.begin(EVENT_DCDCC, '.');
 	pushEmergency.begin(EVENT_EMERGENCY, '0');
-	pushFunction1.begin(LCD1_EVENT_FUNCTION1, '1');
-	pushFunction2.begin(LCD1_EVENT_FUNCTION2, '2');
+	pushFunction1.begin(LCD1_EVENT_FUNCTION0, '1');
+	pushFunction2.begin(LCD1_EVENT_FUNCTION1, '2');
+	DcDccControler::begin(255);
+	DcDccControler::beginMain(255, 9, 11, 255);
 #else
-	DcDccControler::AddHandle(&handle);
-	buttonDir.begin(BUTTON_DIR, A0);
-	buttonEncoder.begin(BUTTON_SPEED, 8, 12);
-	buttonMode.begin(BUTTON_MODE, A3);
-	buttonPanic.begin(BUTTON_PANIC, A4);
-	buttonDcDcc.begin();
-	buttonF1.begin();
-	buttonF2.begin();
+	buttonDir.begin(LCD1_EVENT_SELECT, A0);
+	buttonEncoder.begin(LCD1_EVENT_ENCODER, 12, 8, 2);
+	buttonMode.begin(LCD1_EVENT_CANCEL, A3);
+	buttonPanic.begin(EVENT_EMERGENCY, A4);
+	buttonF0.begin(LCD1_EVENT_FUNCTION0, A1);
+	buttonF1.begin(LCD1_EVENT_FUNCTION1, A2);
 
-	buttonDcDcc.AddEvent(BUTTON_DCDCC, A5);
-	buttonF1.AddEvent(BUTTON_F1, A1);
-	buttonF2.AddEvent(BUTTON_F2, A2);
+#ifdef VISUALSTUDIO
+	pinName(A0, "OK");
+	pinName(A1, "F0");
+	pinName(A2, "F1");
+	pinName(A3, "CANC");
+	pinName(A4, "STOP");
 #endif
+
+	// if dcdcc pin equals to 255, dcc mode is forced.
+	// if dcdcc pin equals to 0, dc mode is forced.
+	// otherwise, pin state give dc or dcc.
+	DcDccControler::begin(255);
+	DcDccControler::beginMain(255, DCC_SIGNAL_PIN_MAIN, 11, 255);    // Dc: Dir, Pwm, current sensor
+#endif
+
 	handle.begin();
-
-	screen.begin(20, 4, string_table, &lcd);
-	//screen.begin(16, 2, string_table, &lcd);
+	//screen.begin(20, 4, string_table, &lcd);
+	screen.begin(16, 2, string_table, &lcd);
 	handle.GetUI()->begin(&screen);
-
-	DcDccControler::AddHandle(&handle);       
+	DcDccControler::AddHandle(&handle);
 }
 
 void loop()
@@ -99,6 +96,6 @@ void loop()
 	if (event == UNDEFINED_ID)
 		event = EVENT_NONE;
 
-	DcDccControler::loop(event);
+	DcDccControler::loop(event, Commanders::GetLastEventData());
 }
 

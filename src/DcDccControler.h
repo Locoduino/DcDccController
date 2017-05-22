@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////
 // Add a '//' at the beginning of the line to be in 
 // release mode.
-//#define DDC_DEBUG_MODE
+#define DDC_DEBUG_MODE
 
 ///////////////////////////////////////////////////////
 // Verbose mode lets you see all actions done by the 
@@ -14,19 +14,20 @@
 // Has no effect if DEBUG_MODE is not activated.
 //#define DEBUG_VERBOSE_MODE
 
-#ifdef __AVR_ATmega328P__
-#define NANOCONTROLER
-#endif
-
 #define GPIO2_PREFER_SPEED    1
 
 #ifdef VISUALSTUDIO
 #define DDC_DEBUG_MODE
-#define NANOCONTROLER		// for test only
+#define ARDUINO_AVR_NANO	// for test
 #include "../../DIO2/VStudio/DIO2.h"
 #else
 #include "DIO2.h"
 #endif
+
+#if defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_UNO)
+//#define NANOCONTROLER
+#endif
+#define NANOCONTROLER
 
 #ifndef __LcdUi_H__
 #include "LcdUi.h"
@@ -98,19 +99,11 @@ const char * const string_table[] PROGMEM
 	str_locoSteps28,
 	str_locoSteps128,
 	str_handleCfgDigits,
+	str_functionId,
+	str_function,
 	str_saveLoco,
 	str_dcslow,
 	str_programcv1,
-	str_functionId,
-	str_functionId,
-#ifndef NANOCONTROLER
-	str_functionId,
-	str_functionId,
-	str_functionId,
-	str_functionId,
-	str_functionId,
-	str_functionId,
-#endif
 	str_special_rst
 };
 
@@ -152,17 +145,22 @@ const char * const DDC_config_table[] PROGMEM =
 #define STR_LOCOSTEPS28		27
 #define STR_LOCOSTEPS128	28
 #define STR_HANDLECFGDIGITS	29
-#define STR_SAVELOCO		30
-#define STR_DCSLOW			31
-#define STR_PROGRAMCV1		32
-#define STR_FUNCTIONID1		33
-#define STR_FUNCTIONID2		34
-#define STR_FUNCTIONID3		35
-#define STR_FUNCTIONID4		36
-#define STR_FUNCTIONID5		37
-#define STR_FUNCTIONID6		38
-#define STR_FUNCTIONID7		39
-#define STR_FUNCTIONID8		40
+#define STR_FUNCTIONID		30
+#define STR_FUNCTION		31
+#define STR_SAVELOCO		32
+#define STR_DCSLOW			33
+#define STR_PROGRAMCV1		34
+
+// IDs for function windows not related to strings.
+
+#define STR_FUNCTIONID0		40
+#define STR_FUNCTIONID1		41
+#define STR_FUNCTIONID2		42
+#define STR_FUNCTIONID3		43
+#define STR_FUNCTIONID4		44
+#define STR_FUNCTIONID5		45
+#define STR_FUNCTIONID6		46
+#define STR_FUNCTIONID7		47
 
 //////////////////////////////////////////
 //  Exclusion area
@@ -204,7 +202,7 @@ enum DcDcc
 #endif
 
 #include "ControlerDc.hpp"
-#include "ControlerDcc.hpp"
+#include "ControlerDccpp.hpp"
 #include "DCCItemList.hpp"
 
 // Copy from cmdrarduino ...
@@ -221,8 +219,17 @@ enum DcDcc
 class DcDccControler
 {
 protected:
-	static uint8_t dcPWMpin;	// To be able to change Dc frequency, the pin used must be 9 or 10 !
-	static uint8_t dcDirPin;
+	// Main
+	static uint8_t DcDccSignalPinMain;	// To be able to change Dc frequency, the pin used must be 9 or 10 !
+	static uint8_t SignalEnablePinMain;
+	static uint8_t DirectionMotorA;
+	static uint8_t CurrentMonitorMain;
+
+	// all at 255 if prog track not used.
+	static uint8_t DccSignalPinProg;
+	static uint8_t SignalEnablePinProg;
+	static uint8_t DirectionMotorB;
+	static uint8_t CurrentMonitorProg;
 
 public:
 	static DcDcc dcType;
@@ -239,11 +246,13 @@ private:
 
 public:
 
-	static void begin(uint8_t inDcPWMpin = 0, uint8_t inDcDirPin = 0, uint8_t inDcDccSelectPin = 0);
+	static void begin(uint8_t inDcDccSelectPin = 255);
+	static void beginMain(uint8_t DirectionMotor, uint8_t DccSignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
+	static void beginProg(uint8_t DirectionMotor, uint8_t DccSignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
 	static void AddHandle(Handle *pHandle);
 	static byte IndexOf(Handle *inpHandle);
 
-	static void loop(unsigned long inEvent);
+	static void loop(unsigned long inEvent, int inData);
 
 	static void ConfigLoad();
 	static int ConfigSave();

@@ -6,6 +6,7 @@ description: <Class for a full list of DCC items>
 
 #include "DcDccControler.h"
 #include "arduino.h"
+#include "EEPROM.h"
 
 /*
 Each item is defined by a byte giving a type 'L', 'F' or 'A', followed by the owner of the item or 255. 
@@ -148,25 +149,25 @@ void DCCItemListClass::printList(byte inNumberMax)
 
 		Serial.print(GetSlotFromPos(pos));
 		byte type = EEPROMextent.read(pos);
-		Serial.print(" :  type=");
+		Serial.print(F(" :  type="));
 		Serial.print(type);
 		if (type == 0)
 		{
-			Serial.println("  free slot");
+			Serial.println(F("  free slot"));
 			continue;
 		}
 		byte owner = EEPROMextent.read(pos + 1);
-		Serial.print(" Owner=");
+		Serial.print(F(" Owner="));
 		Serial.print(owner);
 		int dccId;
 		int size = EEPROMextent.readAnything(pos+2, dccId);
-		Serial.print(" DccId=");
+		Serial.print(F(" DccId="));
 		Serial.print(dccId);
 		char name[12];
 		EEPROMextent.readString(pos+2+size, name, 12);
-		Serial.print(" Name='");
+		Serial.print(F(" Name='"));
 		Serial.print(name);
-		Serial.println("'");
+		Serial.println(F("'"));
 	}
 }
 #endif

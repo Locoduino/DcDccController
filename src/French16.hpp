@@ -9,8 +9,8 @@
 
 #define SHORTLENGTH_MSG	
 										  // 0123456789012345
-const char  str_dc[] PROGMEM=				"Dc";
-const char  str_dcc[] PROGMEM=				"Dcc";
+const char  str_dc[] PROGMEM=				"Mode Dc";
+const char  str_dcc[] PROGMEM=				"Mode Dcc";
 const char  str_stop[] PROGMEM =			"Arret general";
 const char  str_stop2[] PROGMEM =			"Appuyer annul";
 const char  str_dcdcc[] PROGMEM =			"Change DC/DCC";
@@ -37,7 +37,8 @@ const char  str_locoSteps14[] PROGMEM =		"14";
 const char  str_locoSteps28[] PROGMEM =		"28";
 const char  str_locoSteps128[] PROGMEM =	"128";
 const char  str_handleCfgDigits[] PROGMEM = "digits adresse";
-const char  str_functionId[] PROGMEM =		"Adresse F";
+const char  str_functionId[] PROGMEM =		"Fonctions";
+const char  str_function[] PROGMEM =		"Fonction";
 const char	str_saveLoco[] PROGMEM =		"Sauver la loco ?";
 const char  str_dcslow[] PROGMEM =			"Dc lent";
 const char  str_programcv1[] PROGMEM =		"Programmer Cv1";

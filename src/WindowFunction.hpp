@@ -14,14 +14,18 @@
 
 class WindowFunction : public WindowInt
 {
-private:
-	int intValue;
-																			   public:
-	inline WindowFunction() {}
-	inline void begin(byte inFirstLine, int *inpValue) { this->WindowInt::begin(inFirstLine, inpValue, FUNCTION_MIN, FUNCTION_MAX);	}
+public:
+	int toto;
+public:
+	inline WindowFunction() { toto = 0; }
+	void begin(byte inFirstLine, int *inpValue);
 
-	inline byte GetType() const { return WINDOWTYPE_FUNCTION; }
+	byte GetType() const { return WINDOWTYPE_FUNCTION; }
 	void Event(byte inEventType, LcdUi *inpLcd);
-};																														 
+
+#ifdef LCDUI_PRINT_WINDOWS
+	void printWindow();
+#endif
+};
 #endif
 //-------------------------------------------------------------------

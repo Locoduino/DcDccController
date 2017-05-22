@@ -25,14 +25,14 @@ void Locomotive::CheckIndex(byte inIndex, const __FlashStringHelper *inFunc)
 #define CHECK(val, text)
 #endif
 
-Locomotive Locomotive::AnalogLocomotive(1, 0, "", 255);
+Locomotive Locomotive::AnalogLocomotive(1, 0, (char *)"", 128);
 
 Locomotive::Locomotive()
 {
 	Clear();
 }
 
-Locomotive::Locomotive(uint16_t inDccId, uint8_t inAdressKind, char *inName, uint8_t inSteps) : Locomotive()
+Locomotive::Locomotive(int inDccId, uint8_t inAdressKind, char *inName, uint8_t inSteps) : Locomotive()
 {
 	this->SlotNumber = 255;
 	this->DccId = inDccId;
@@ -52,7 +52,7 @@ void Locomotive::ClearFunctions()
 	}
 }
 
-byte Locomotive::GetFunctionIndex(const uint16_t inDccId) const
+byte Locomotive::GetFunctionIndex(const int inDccId) const
 {
 	for (int i = 0; i < FUNCTION_NUMBER; i++)
 	{
@@ -86,6 +86,9 @@ void Locomotive::Load(int inStartPos)
 #endif
 	this->addressKind = EEPROMextent.read(inStartPos++);
 	this->steps = EEPROMextent.read(inStartPos++);
+
+	if (this->DccId == 0)
+		this->Clear();
 }
 
 #ifndef NANOCONTROLER

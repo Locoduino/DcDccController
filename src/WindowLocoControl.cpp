@@ -35,13 +35,13 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		{
 			inpLcd->GetScreen()->DisplayHeader(((ControlerDc *)DcDccControler::pControler)->IsSlowMode() ? STR_DCSLOW : this->dcMsg);
 			WindowChooseDcFreq::BuildFreqIndexString(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
-			byte len = LcdScreen::BuildStringLeft(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - 4, LcdScreen::buffer);
+			byte len = LcdScreen::BuildString(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - 4, LcdScreen::buffer);
 			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - len, 0);
 		}
 		else
 		{
 			inpLcd->GetScreen()->DisplayHeader(this->dccMsg);
-			inpLcd->GetScreen()->DisplayText(" ", 3, 0);
+			inpLcd->GetScreen()->DisplayText((char *)" ", 3, 0);
 			LcdScreen::BuildString(this->pHandle->GetControledLocomotive().GetDccId(), LcdScreen::buffer, this->pHandle->DccIdNbDigits);
 			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, 4, 0);
 #ifndef NANOCONTROLER

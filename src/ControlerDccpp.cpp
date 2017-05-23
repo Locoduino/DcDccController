@@ -206,8 +206,8 @@ ControlerDccpp::ControlerDccpp()
 	DccppConfig::DirectionMotorA = 255;
 	DccppConfig::DirectionMotorB = 255;
 
-	DccppConfig::SignalPinMain = 255;
-	DccppConfig::SignalPinProg = 255;
+	mainMonitor.begin(255, "");
+	progMonitor.begin(255, "");
 }
 	
 static bool first = true;
@@ -261,19 +261,17 @@ void ControlerDccpp::loop()
 // beginMain(255, DCC_SIGNAL_PIN_MAIN, 3, A0);
 // beginProg(255, DCC_SIGNAL_PIN_PROG, 11, A1);
 
-void ControlerDccpp::beginMain(uint8_t inDirectionMotor, uint8_t inSignalPin, uint8_t inSignalEnable, uint8_t inCurrentMonitor)
+void ControlerDccpp::beginMain(uint8_t inDirectionMotor, uint8_t Dummy, uint8_t inSignalEnable, uint8_t inCurrentMonitor)
 {
 	DccppConfig::DirectionMotorA = inDirectionMotor;
-	DccppConfig::SignalPinMain = DCC_SIGNAL_PIN_MAIN;	// DIR
 	DccppConfig::SignalEnablePinMain = inSignalEnable;	// PWM
 	DccppConfig::CurrentMonitorMain = inCurrentMonitor;
 
 	// If no main line, exit.
-	if (DccppConfig::SignalPinMain == 255)
+	if (DccppConfig::SignalEnablePinMain == 255)
 		return;
 
-	if (DccppConfig::CurrentMonitorMain != 255)
-		mainMonitor.begin(DccppConfig::CurrentMonitorMain, (char *) "<p2>");
+	mainMonitor.begin(DccppConfig::CurrentMonitorMain, (char *) "<p2>");
 
 	// CONFIGURE TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC1B INTERRUPT PINS
 
@@ -293,7 +291,7 @@ void ControlerDccpp::beginMain(uint8_t inDirectionMotor, uint8_t inSignalPin, ui
 		digitalWrite(DccppConfig::DirectionMotorA, LOW);
 	}
 
-	pinMode(DccppConfig::SignalPinMain, OUTPUT);      // THIS ARDUINO OUPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-A OF MOTOR CHANNEL-A
+	pinMode(DCC_SIGNAL_PIN_MAIN, OUTPUT);      // THIS ARDUINO OUPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-A OF MOTOR CHANNEL-A
 
 	bitSet(TCCR1A, WGM10);     // set Timer 1 to FAST PWM, with TOP=OCR1A
 	bitSet(TCCR1A, WGM11);
@@ -321,16 +319,14 @@ void ControlerDccpp::beginMain(uint8_t inDirectionMotor, uint8_t inSignalPin, ui
 void ControlerDccpp::beginProg(uint8_t inDirectionMotor, uint8_t inSignalPin, uint8_t inSignalEnable, uint8_t inCurrentMonitor)
 {
 	DccppConfig::DirectionMotorB = inDirectionMotor;
-	DccppConfig::SignalPinProg = DCC_SIGNAL_PIN_PROG;
 	DccppConfig::SignalEnablePinProg = inSignalEnable;
 	DccppConfig::CurrentMonitorProg = inCurrentMonitor;
 
 	// If no prog line, exit.
-	if (DccppConfig::SignalPinProg == 255)
+	if (DccppConfig::SignalEnablePinProg == 255)
 		return;
 
-	if (DccppConfig::CurrentMonitorProg != 255)
-		progMonitor.begin(DccppConfig::CurrentMonitorProg, (char *) "<p3>");
+	progMonitor.begin(DccppConfig::CurrentMonitorProg, (char *) "<p3>");
 
 	// CONFIGURE EITHER TIMER_0 (UNO) OR TIMER_3 (MEGA) TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B (UNO) OR OC3B (MEGA) INTERRUPT PINS
 
@@ -353,7 +349,7 @@ void ControlerDccpp::beginProg(uint8_t inDirectionMotor, uint8_t inSignalPin, ui
 		digitalWrite(DccppConfig::DirectionMotorB, LOW);
 	}
 
-	pinMode(DccppConfig::SignalPinProg, OUTPUT);      // THIS ARDUINO OUTPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-B OF MOTOR CHANNEL-B
+	pinMode(DCC_SIGNAL_PIN_PROG, OUTPUT);      // THIS ARDUINO OUTPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-B OF MOTOR CHANNEL-B
 
 	bitSet(TCCR0A, WGM00);     // set Timer 0 to FAST PWM, with TOP=OCR0A
 	bitSet(TCCR0A, WGM01);
@@ -391,7 +387,7 @@ void ControlerDccpp::beginProg(uint8_t inDirectionMotor, uint8_t inSignalPin, ui
 	pinMode(DccppConfig::DirectionMotorB, INPUT);      // ensure this pin is not active! Direction will be controlled by DCC SIGNAL instead (below)
 	digitalWrite(DccppConfig::DirectionMotorB, LOW);
 
-	pinMode(DccppConfig::SignalPinProg, OUTPUT);      // THIS ARDUINO OUTPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-B OF MOTOR CHANNEL-B
+	pinMode(DCC_SIGNAL_PIN_PROG, OUTPUT);      // THIS ARDUINO OUTPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-B OF MOTOR CHANNEL-B
 
 	bitSet(TCCR3A, WGM30);     // set Timer 3 to FAST PWM, with TOP=OCR3A
 	bitSet(TCCR3A, WGM31);
@@ -468,6 +464,7 @@ void ControlerDccpp::begin()
 */
 #ifdef DDC_DEBUG_MODE
 	Serial.println(F("Dcc++ mode."));
+	pinMode(LED_BUILTIN, OUTPUT);
 #endif
 
 } // begin
@@ -580,34 +577,28 @@ void ControlerDccpp::showConfiguration()
 	//Serial.print(F("\n\nMOTOR SHIELD: "));
 	//Serial.print(MOTOR_SHIELD_NAME);
 
-	if (DccppConfig::SignalPinMain != 255)
+	if (DccppConfig::SignalEnablePinMain!= 255)
 	{
-		Serial.print(F("\n\nDCC SIG MAIN: "));
-		Serial.print(DccppConfig::SignalPinMain);
+		Serial.print(F("\n\nDCC SIG MAIN(DIR): "));
+		Serial.print(DCC_SIGNAL_PIN_MAIN);
 		Serial.print(F("\n   DIRECTION: "));
 		Serial.print(DccppConfig::DirectionMotorA);
-		Serial.print(F("\n      ENABLE: "));
+		Serial.print(F("\n      ENABLE(PWM): "));
 		Serial.print(DccppConfig::SignalEnablePinMain);
-		if (DccppConfig::CurrentMonitorMain != 255)
-		{
-			Serial.print(F("\n     CURRENT: "));
-			Serial.print(DccppConfig::CurrentMonitorMain);
-		}
+		Serial.print(F("\n     CURRENT: "));
+		Serial.print(DccppConfig::CurrentMonitorMain);
 	}
 
-	if (DccppConfig::SignalPinProg != 255)
+	if (DccppConfig::SignalEnablePinProg!= 255)
 	{
-		Serial.print(F("\n\nDCC SIG PROG: "));
-		Serial.print(DccppConfig::SignalPinProg);
+		Serial.print(F("\n\nDCC SIG PROG(DIR): "));
+		Serial.print(DCC_SIGNAL_PIN_PROG);
 		Serial.print(F("\n   DIRECTION: "));
 		Serial.print(DccppConfig::DirectionMotorB);
-		Serial.print(F("\n      ENABLE: "));
+		Serial.print(F("\n      ENABLE(PWM): "));
 		Serial.print(DccppConfig::SignalEnablePinProg);
-		if (DccppConfig::CurrentMonitorProg != 255)
-		{
-			Serial.print(F("\n     CURRENT: "));
-			Serial.print(DccppConfig::CurrentMonitorProg);
-		}
+		Serial.print(F("\n     CURRENT: "));
+		Serial.print(DccppConfig::CurrentMonitorProg);
 	}
 #if 0
 	Serial.print(F("\n\nNUM TURNOUTS: "));
@@ -661,13 +652,17 @@ void ControlerDccpp::SetSpeedRaw()
 {
 	if (this->panicStopped)
 	{
-		digitalWrite(DccppConfig::SignalEnablePinMain, LOW);
-		digitalWrite(DccppConfig::SignalEnablePinProg, LOW);
+		if (DccppConfig::SignalEnablePinMain != 255)
+			digitalWrite(DccppConfig::SignalEnablePinMain, LOW);
+		if (DccppConfig::SignalEnablePinProg != 255)
+			digitalWrite(DccppConfig::SignalEnablePinProg, LOW);
 	}
 	else
 	{
-		digitalWrite(DccppConfig::SignalEnablePinMain, HIGH);
-		digitalWrite(DccppConfig::SignalEnablePinProg, HIGH);
+		if (DccppConfig::SignalEnablePinMain != 255)
+			digitalWrite(DccppConfig::SignalEnablePinMain, HIGH);
+		if (DccppConfig::SignalEnablePinProg != 255)
+			digitalWrite(DccppConfig::SignalEnablePinProg, HIGH);
 	}
 #ifndef VISUALSTUDIO
 	if (this->panicStopped)

@@ -12,8 +12,9 @@
 class ControlerDc : public Controler
 {
 	private:
-		uint8_t dcPWMpin;
-		uint8_t dcDirPin;
+		uint8_t dcPWMpin;	// SignalEnable
+		uint8_t dcDirPin;	// Signal
+		uint8_t dcCurrentMonitor;
 		bool slowMode;
 
 	public:
@@ -23,7 +24,7 @@ class ControlerDc : public Controler
 		
 	public:
 		void begin();
-		void beginMain(uint8_t DirectionMotor, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
+		void beginMain(uint8_t inDummy1, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
 		bool SetSpeed(int inNewSpeed);
 		bool SetDirection(bool inToLeft);
 		void PanicStop(bool inStop);

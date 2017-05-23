@@ -100,11 +100,9 @@ Part of DCC++ BASE STATION for the Arduino
 
 struct DccppConfig
 {
-	static byte SignalPinMain;		// DIR : DCC_SIGNAL_PIN_MAIN
 	static byte SignalEnablePinMain;// PWM : *_SIGNAL_ENABLE_PIN_MAIN
 	static byte CurrentMonitorMain;	// Current sensor : *_CURRENT_MONITOR_PIN_MAIN
 
-	static byte SignalPinProg;
 	static byte SignalEnablePinProg;
 	static byte CurrentMonitorProg;
 

@@ -24,7 +24,7 @@ ScreenLiquid screen;
 
 Handle handle;
 
-#ifdef VISUALSTUDIO1
+#ifdef VISUALSTUDIO
 ButtonsCommanderKeyboard push0;
 ButtonsCommanderKeyboard push1;
 ButtonsCommanderKeyboard push2;
@@ -45,7 +45,7 @@ void setup()
 {
 	Serial.begin(115200);
 
-#ifdef VISUALSTUDIO1
+#ifdef VISUALSTUDIO
 	push0.begin(LCD1_EVENT_SELECT, '*');
 	push1.begin(LCD1_EVENT_MORE, '+');
 	push2.begin(LCD1_EVENT_LESS, '-');
@@ -54,7 +54,7 @@ void setup()
 	pushFunction1.begin(LCD1_EVENT_FUNCTION0, '1');
 	pushFunction2.begin(LCD1_EVENT_FUNCTION1, '2');
 	DcDccControler::begin(255);
-	DcDccControler::beginMain(255, 9, 11, 255);
+	DcDccControler::beginMain(255, 255, 11, 255);
 #else
 	buttonDir.begin(LCD1_EVENT_SELECT, A0);
 	buttonEncoder.begin(LCD1_EVENT_ENCODER, 12, 8, 2);
@@ -75,7 +75,7 @@ void setup()
 	// if dcdcc pin equals to 0, dc mode is forced.
 	// otherwise, pin state give dc or dcc.
 	DcDccControler::begin(255);
-	DcDccControler::beginMain(255, DCC_SIGNAL_PIN_MAIN, 11, 255);    // Dc: Dir, Pwm, current sensor
+	DcDccControler::beginMain(255, 255, 11, 255);    // Dc: Dir, Pwm, current sensor
 #endif
 
 	handle.begin();

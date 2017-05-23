@@ -165,7 +165,7 @@ void Handle::StartUI()
 			winProgramCV1.begin(STR_PROGRAMCV1, &cv1, 1, 10026);
 		}
 
-		winLocoControl.begin(1000, this);
+		winLocoControl.begin(254, this);
 		this->windowInterruptEmergency.begin(STR_STOP, STR_STOP2, EVENT_EMERGENCY); // Emergency stop
 
 		// WINDOWS in the list
@@ -211,9 +211,8 @@ void Handle::StartUI()
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS28);
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS128);
 				winChoiceConfigLoco.AddChoice(STR_FUNCTIONID);
-
-					winFunction1.SetFather(&winChoiceConfigLoco, STR_FUNCTIONID);
-					winFunction2.SetFather(&winChoiceConfigLoco, STR_FUNCTIONID);
+					winFunction1.SetFather(winChoiceConfigLoco.GetFirstLine(), STR_FUNCTIONID);
+					winFunction2.SetFather(winChoiceConfigLoco.GetFirstLine(), STR_FUNCTIONID);
 			winChoiceMain.AddChoice(STR_PROGRAMCV1, &winProgramCV1);
 		}
 		winChoiceMain.AddChoice(STR_MODELOCOCTRL, &winLocoControl); // run
@@ -227,7 +226,7 @@ void Handle::StartUI()
 //	Serial.print((int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval));
 //	Serial.println(F(" bytes"));
 
-	//PRINT_WINDOWS(this->pUi);
+//	PRINT_WINDOWS(this->pUi);
 }
 
 void Handle::EndSetup()

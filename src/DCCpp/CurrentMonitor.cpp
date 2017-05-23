@@ -17,7 +17,7 @@ void CurrentMonitor::begin(int pin, char *msg)
 	this->pin = pin;
 	this->msg = msg;
 	this->current = 0;
-} // CurrentMonitor::CurrentMonitor
+} // CurrentMonitor::begin
   
 boolean CurrentMonitor::checkTime()
 {
@@ -29,6 +29,8 @@ boolean CurrentMonitor::checkTime()
   
 void CurrentMonitor::check()
 {
+	if (this->pin == 255)
+		return;
 	this->current = (float) (analogRead(this->pin) * CURRENT_SAMPLE_SMOOTHING + this->current * (1.0-CURRENT_SAMPLE_SMOOTHING));      // compute new exponentially-smoothed current
 	int signalPin = DccppConfig::SignalEnablePinProg;
 	if (signalPin == 255)

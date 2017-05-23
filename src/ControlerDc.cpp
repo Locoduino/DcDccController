@@ -11,13 +11,16 @@ void ControlerDc::begin()
 { 
 }
 
-void ControlerDc::beginMain(uint8_t DirectionMotor, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor)
+void ControlerDc::beginMain(uint8_t inDummy, uint8_t SignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor)
 {
 	this->dcPWMpin = SignalEnablePin;
 	this->dcDirPin = SignalPin;
+	this->dcCurrentMonitor = CurrentMonitor;
 
 	pinMode(this->dcPWMpin, OUTPUT);
 	pinMode(this->dcDirPin, OUTPUT);
+	if (CurrentMonitor != 255)
+		pinMode(this->dcCurrentMonitor, INPUT);
 	analogWrite(this->dcPWMpin, 0);
 	SetFrequencyDivisorRaw(WindowChooseDcFreq::GetFrequencyDivisor(this->DCFrequencyDivisorIndex));
 

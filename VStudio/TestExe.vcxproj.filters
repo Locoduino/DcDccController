@@ -25,6 +25,9 @@
     <Filter Include="EEPROMextent">
       <UniqueIdentifier>{95e505f3-17ea-4ad2-a8eb-f744069588fb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DCCpp">
+      <UniqueIdentifier>{9aa09751-db43-404f-b3c3-5c029c3c3c83}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Commanders\src\ButtonsCommander.cpp">
@@ -135,9 +138,6 @@
     <ClCompile Include="..\src\DcDccControler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ControlerDcc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ControlerDc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -161,6 +161,24 @@
     </ClCompile>
     <ClCompile Include="..\src\DCCItemList.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\EventStack.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ControlerDccpp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DCCpp\CurrentMonitor.cpp">
+      <Filter>DCCpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DCCpp\PacketRegister.cpp">
+      <Filter>DCCpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderSwitchOnePin.cpp">
+      <Filter>Commanders Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Commanders\src\ButtonsCommanderSwitchTwoPins.cpp">
+      <Filter>Commanders Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -308,9 +326,6 @@
     <ClInclude Include="..\src\English16.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ControlerDcc.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\ControlerDc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -338,11 +353,38 @@
     <ClInclude Include="..\src\LcdEvents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\EventStack.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ControlerDccpp.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DCCpp\Config.h">
+      <Filter>DCCpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DCCpp\CurrentMonitor.h">
+      <Filter>DCCpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DCCpp\PacketRegister.h">
+      <Filter>DCCpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\DCCpp\DCCpp_Uno.h">
+      <Filter>DCCpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderSwitchOnePin.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Commanders\src\ButtonsCommanderSwitchTwoPins.hpp">
+      <Filter>Commanders Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\WhatsNew.TXT" />
     <Text Include="..\..\Commanders\WhatsNew.TXT">
       <Filter>Commanders Sources</Filter>
+    </Text>
+    <Text Include="..\..\LcdUi\WhatsNew.TXT">
+      <Filter>LcdUi</Filter>
     </Text>
   </ItemGroup>
 </Project>

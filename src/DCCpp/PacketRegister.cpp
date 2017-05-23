@@ -13,11 +13,9 @@ Part of DCC++ BASE STATION for the Arduino
 //#include "PacketRegister.h"
 //#include "Comm.h"
 
-byte DccppConfig::SignalPinMain = 255;
 byte DccppConfig::SignalEnablePinMain = 255;
 byte DccppConfig::CurrentMonitorMain = 255;
 					
-byte DccppConfig::SignalPinProg = 255;
 byte DccppConfig::SignalEnablePinProg = 255;
 byte DccppConfig::CurrentMonitorProg = 255;
 					

@@ -189,7 +189,7 @@ class Handle
 
 		void SetSpeed(int inNewSpeed);
 		void SetDirection(bool inToLeft);
-		void ToggleFunction(byte inFunctionNumber);
+		void SetFunction(byte inFunctionNumber, bool inActivate);
 
 		bool loop(unsigned long inEvent, int inData);
 

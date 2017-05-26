@@ -54,9 +54,14 @@ struct RegisterList{
   void setFunction(char *) volatile;
   void setAccessory(char *) volatile;
   void writeTextPacket(char *) volatile;
+
+  int readCVraw(int cv, int callBack, int callBackSub, bool FromProg) volatile;
+
   void readCV(char *) volatile;
   void writeCVByte(char *) volatile;
   void writeCVBit(char *) volatile;
+
+  int readCVmain(char *) volatile;
   void writeCVByteMain(char *) volatile;
   void writeCVBitMain(char *s) volatile;
 
@@ -65,6 +70,7 @@ struct RegisterList{
   void setAccessory(int aAdd, int aNum, int activate) volatile;
   void writeTextPacket(int nReg, byte *b, int nBytes) volatile;
   void readCV(int cv, int callBack, int callBackSub) volatile;
+  int readCVmain(int cv, int callBack, int callBackSub) volatile;
   void writeCVByte(int cv, int bValue, int callBack, int callBackSub) volatile;
   void writeCVBit(int cv, int bNum, int bValue, int callBack, int callBackSub) volatile;
   void writeCVByteMain(int cab, int cv, int bvalue) volatile;

@@ -221,7 +221,7 @@ void Handle::StartUI()
 
 	winLocoId.SetValueAddress(this->controled.GetDccIdAddress());
 	winLongAddress.SetValueAddress(this->controled.GetDccIdAddressKindAddress());
-	winProgramCV1.SetValueAddress(this->controled.GetDccIdAddress());
+	winProgramCV1.SetValueAddress(&this->cv1);
 
 //	Serial.print((int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval));
 //	Serial.println(F(" bytes"));
@@ -291,17 +291,18 @@ bool Handle::loop(unsigned long inEvent, int inData)
 		}
 
 		// Handle Function events
-		if (event >= LCD1_EVENT_FUNCTION1)
+		if (event >= LCD1_EVENT_FUNCTION0)
 		{
-			byte function = event - LCD1_EVENT_FUNCTION1;
+			byte function = event - LCD1_EVENT_FUNCTION0;
 
 			if (DcDccControler::dcType == Dcc)
 			{
-				this->ToggleFunction(function);
+				bool activate = inData == COMMANDERS_MOVE_ON;
+				this->SetFunction(function, activate);
 #ifdef DDC_DEBUG_MODE
-				Serial.print(F("Function button "));
-				Serial.print(function + 1);
-				Serial.println(F(" pressed"));
+				Serial.print(F("Function F"));
+				Serial.print(function);
+				Serial.println(activate ? F(" On") : F(" Off"));
 #endif
 			}
 			else
@@ -358,6 +359,11 @@ bool Handle::loop(unsigned long inEvent, int inData)
 
 			case STR_PROGRAMCV1:
 				((ControlerDccpp *)DcDccControler::pControler)->StartProgramMode();
+				this->cv1 = ((ControlerDccpp *)DcDccControler::pControler)->ReadCv(this->cv1, 1);				
+				break;
+			case STR_LOCOID:
+				this->cv1 = ((ControlerDccpp *)DcDccControler::pControler)->ReadCv(this->cv1, 1);
+				this->controled.SetDccId(this->cv1);
 				break;
 #ifndef NANOCONTROLER
 			case STR_LOCONAME:
@@ -446,6 +452,9 @@ bool Handle::loop(unsigned long inEvent, int inData)
 
 #ifdef NANOCONTROLER
 			case STR_LONGADDRESS:
+				this->ConfigSave();
+				break;
+
 			case STR_LOCOID:
 				this->ConfigSave();
 				break;
@@ -453,7 +462,7 @@ bool Handle::loop(unsigned long inEvent, int inData)
 
 			case STR_PROGRAMCV1:
 				{
-					((ControlerDccpp *)DcDccControler::pControler)->SetCv1(this->cv1);
+					((ControlerDccpp *)DcDccControler::pControler)->WriteCv(this->cv1, 1);
 					loco.SetDccId(this->cv1);
 					this->SetSpeed(0);
 #ifdef NANOCONTROLER
@@ -526,10 +535,10 @@ void Handle::SetDirection(bool inToLeft)
 	DcDccControler::pControler->SetDirection(inToLeft);
 }
 
-void Handle::ToggleFunction(byte inFunctionNumber)
+void Handle::SetFunction(byte inFunctionNumber, bool inActivate)
 {
 	DcDccControler::pControler->SetControled(&this->controled);
-	DcDccControler::pControler->ToggleFunction(inFunctionNumber);
+	DcDccControler::pControler->SetFunction(inFunctionNumber, inActivate);
 }
 
 void Handle::ConfigLoad()

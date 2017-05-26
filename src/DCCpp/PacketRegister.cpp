@@ -54,6 +54,9 @@ RegisterList::RegisterList(int maxNumRegs){
 
 void RegisterList::loadPacket(int nReg, byte *b, int nBytes, int nRepeat, int printFlag) volatile 
 {  
+#ifdef VISUALSTUDIO
+  return;
+#endif
   nReg=nReg%((maxNumRegs+1));          // force nReg to be between 0 and maxNumRegs, inclusive
 
   while(nextReg!=NULL);              // pause while there is a Register already waiting to be updated -- nextReg will be reset to NULL by interrupt when prior Register updated fully processed
@@ -159,7 +162,7 @@ void RegisterList::setThrottle(char *s) volatile
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void RegisterList::setFunction(int cab, int fByte, int eByte) volatile 
+void RegisterList::setFunction(int cab, int fByte, int eByte) volatile
 {
 	byte b[5];                      // save space for checksum byte
 	byte nB = 0;
@@ -253,15 +256,19 @@ void RegisterList::writeTextPacket(char *s) volatile
 
   ///////////////////////////////////////////////////////////////////////////////
 
-void RegisterList::readCV(int cv, int callBack, int callBackSub) volatile 
+int RegisterList::readCVraw(int cv, int callBack, int callBackSub, bool FromProg) volatile
 {
 	byte bRead[4];
 	int bValue;
 	int c, d, base;
 	cv--;                              // actual CV addresses are cv-1 (0-1023)
 
-	if (DccppConfig::CurrentMonitorProg == 255)
-		return;
+	byte MonitorPin = DccppConfig::CurrentMonitorProg;
+	if (!FromProg)
+		MonitorPin = DccppConfig::CurrentMonitorMain;
+
+	if (MonitorPin == 255)
+		return -1;
 
 	bRead[0] = 0x78 + (highByte(cv) & 0x03);   // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
 	bRead[1] = lowByte(cv);
@@ -274,8 +281,11 @@ void RegisterList::readCV(int cv, int callBack, int callBackSub) volatile
 		d = 0;
 		base = 0;
 
-		for (int j = 0; j<ACK_BASE_COUNT; j++)
-			base += (int)analogRead(DccppConfig::CurrentMonitorProg);
+		for (int j = 0; j < ACK_BASE_COUNT; j++)
+		{
+			int val = (int)analogRead(MonitorPin);
+			base += val;
+		}
 		base /= ACK_BASE_COUNT;
 
 		bRead[2] = 0xE8 + i;
@@ -284,8 +294,10 @@ void RegisterList::readCV(int cv, int callBack, int callBackSub) volatile
 		loadPacket(0, bRead, 3, 5);                // NMRA recommends 5 verfy packets
 		loadPacket(0, resetPacket, 2, 1);          // forces code to wait until all repeats of bRead are completed (and decoder begins to respond)
 
-		for (int j = 0; j<ACK_SAMPLE_COUNT; j++) {
-			c = (int)((analogRead(DccppConfig::CurrentMonitorProg) - base)*ACK_SAMPLE_SMOOTHING + c*(1.0 - ACK_SAMPLE_SMOOTHING));
+		for (int j = 0; j<ACK_SAMPLE_COUNT; j++)
+		{
+			int val = (int)analogRead(MonitorPin);
+			c = (int)((val - base)*ACK_SAMPLE_SMOOTHING + c*(1.0 - ACK_SAMPLE_SMOOTHING));
 			if (c>ACK_SAMPLE_THRESHOLD)
 				d = 1;
 		}
@@ -298,7 +310,7 @@ void RegisterList::readCV(int cv, int callBack, int callBackSub) volatile
 	base = 0;
 
 	for (int j = 0; j<ACK_BASE_COUNT; j++)
-		base += analogRead(DccppConfig::CurrentMonitorProg);
+		base += analogRead(MonitorPin);
 	base /= ACK_BASE_COUNT;
 
 	bRead[0] = 0x74 + (highByte(cv) & 0x03);   // set-up to re-verify entire byte
@@ -309,7 +321,7 @@ void RegisterList::readCV(int cv, int callBack, int callBackSub) volatile
 	loadPacket(0, resetPacket, 2, 1);          // forces code to wait until all repeats of bRead are completed (and decoder begins to respond)
 
 	for (int j = 0; j<ACK_SAMPLE_COUNT; j++) {
-		c = (int)((analogRead(DccppConfig::CurrentMonitorProg) - base)*ACK_SAMPLE_SMOOTHING + c*(1.0 - ACK_SAMPLE_SMOOTHING));
+		c = (int)((analogRead(MonitorPin) - base)*ACK_SAMPLE_SMOOTHING + c*(1.0 - ACK_SAMPLE_SMOOTHING));
 		if (c>ACK_SAMPLE_THRESHOLD)
 			d = 1;
 	}
@@ -328,6 +340,14 @@ void RegisterList::readCV(int cv, int callBack, int callBackSub) volatile
 	INTERFACE.print(bValue);
 	INTERFACE.print(">");
 #endif
+
+	return bValue;
+}
+
+void RegisterList::readCV(int cv, int callBack, int callBackSub) volatile 
+{
+	int bValue = RegisterList::readCVraw(cv, callBack, callBackSub, true);
+
 } // RegisterList::readCV(ints)
 
 void RegisterList::readCV(char *s) volatile 
@@ -339,6 +359,22 @@ void RegisterList::readCV(char *s) volatile
 
 	this->readCV(cv, callBack, callBackSub);
 } // RegisterList::readCV(string)
+
+int RegisterList::readCVmain(int cv, int callBack, int callBackSub) volatile
+{
+	return RegisterList::readCVraw(cv, callBack, callBackSub, false);
+
+} // RegisterList::readCV_Main()
+
+int RegisterList::readCVmain(char *s) volatile
+{
+	int cv, callBack, callBackSub;
+
+	if (sscanf(s, "%d %d %d", &cv, &callBack, &callBackSub) != 3)          // cv = 1-1024
+		return -1;
+   
+	return this->readCVmain(cv, callBack, callBackSub);
+} // RegisterList::readCVmain(string)
 
 ///////////////////////////////////////////////////////////////////////////////
 

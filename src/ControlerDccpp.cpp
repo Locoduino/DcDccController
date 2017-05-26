@@ -650,40 +650,28 @@ void ControlerDccpp::showConfiguration()
 
 void ControlerDccpp::SetSpeedRaw()
 {
+	byte state = HIGH;
+
 	if (this->panicStopped)
 	{
-		if (DccppConfig::SignalEnablePinMain != 255)
-			digitalWrite(DccppConfig::SignalEnablePinMain, LOW);
-		if (DccppConfig::SignalEnablePinProg != 255)
-			digitalWrite(DccppConfig::SignalEnablePinProg, LOW);
+		this->mainRegs.setThrottle(1, this->pControled->GetDccId(), 1, this->pControled->GetDirectionToLeft());
+		state = LOW;
 	}
 	else
-	{
-		if (DccppConfig::SignalEnablePinMain != 255)
-			digitalWrite(DccppConfig::SignalEnablePinMain, HIGH);
-		if (DccppConfig::SignalEnablePinProg != 255)
-			digitalWrite(DccppConfig::SignalEnablePinProg, HIGH);
-	}
-#ifndef VISUALSTUDIO
-	if (this->panicStopped)
-		this->mainRegs.setThrottle(0, this->pControled->GetDccId(), 0, this->pControled->GetDirectionToLeft());
-	else
-		this->mainRegs.setThrottle(0, this->pControled->GetDccId(), this->pControled->GetMappedSpeed(), this->pControled->GetDirectionToLeft());
-#endif
+		this->mainRegs.setThrottle(1, this->pControled->GetDccId(), this->pControled->GetMappedSpeed(), this->pControled->GetDirectionToLeft());
+
+	if (DccppConfig::SignalEnablePinMain != 255)
+		digitalWrite(DccppConfig::SignalEnablePinMain, state);
+	if (DccppConfig::SignalEnablePinProg != 255)
+		digitalWrite(DccppConfig::SignalEnablePinProg, state);
 }
 
 bool ControlerDccpp::SetSpeed(int inNewSpeed)
 {
-	// a value of 0 = estop
-	// a value of 1/-1 = stop
-	// a value >1 (or <-1) means go.
-	// valid non-estop speeds are in the range [1,127] / [-127,-1] with 1 = stop
-	int val = map(inNewSpeed, 0, this->pControled->GetSteps(), 0, 127);
-
-	if (val == 0)
-		val = 1;
-
-	//val = val * (!this->pControled->GetDirectionToLeft() ? -1 : 1);
+	int val = 0;
+	
+	if (inNewSpeed > 0)
+		val = map(inNewSpeed, 0, this->pControled->GetSteps(), 2, 127);
 
 	if (this->pControled->GetMappedSpeed() == val)
 		return false;
@@ -721,23 +709,105 @@ bool ControlerDccpp::SetDirection(bool inToLeft)
 
 void ControlerDccpp::SetFunctionsRaw()
 {
-	uint16_t fcts = 0;
+	byte flags = 0;
+
+	byte oneByte1 = 128;	// Group one functions F0-F4
+	byte twoByte1 = 176;	// Group two F5-F8
+	byte threeByte1 = 160;	// Group three F9-F12
+	byte fourByte2 = 0;		// Group four F13-F20
+	byte fiveByte2 = 0;		// Group five F21-F28
 
 	for (int i = 0; i < FUNCTION_NUMBER; i++)
 	{
-		if (this->pControled->Functions[i].IsActivated())
-			fcts ^= 1 << (this->pControled->Functions[i].DccIdFunction);
+		byte func = this->pControled->Functions[i].DccIdFunction;
+		if (func <= 4)
+		{
+			/*
+			*	To set functions F0 - F4 on(= 1) or off(= 0) :
+			*
+			*    BYTE1 : 128 + F1 * 1 + F2 * 2 + F3 * 4 + F4 * 8 + F0 * 16
+			* BYTE2 : omitted
+			*/
+
+			flags |= 1;
+			if (this->pControled->Functions[i].IsActivated())
+			{
+				if (func == 0)
+					oneByte1 += 16;
+				else
+					oneByte1 += (1 << (func - 1));
+			}
+		}
+		else if (func <= 8)
+		{
+			/*
+			*	To set functions F5 - F8 on(= 1) or off(= 0) :
+			*
+			*    BYTE1 : 176 + F5 * 1 + F6 * 2 + F7 * 4 + F8 * 8
+			* BYTE2 : omitted
+			*/
+
+			flags |= 2;
+			if (this->pControled->Functions[i].IsActivated())
+				twoByte1 += (1 << (func - 5));
+		}
+		else if (func <= 12)
+		{
+			/*
+			*    To set functions F9 - F12 on(= 1) or off(= 0) :
+			*
+			*    BYTE1 : 160 + F9 * 1 + F10 * 2 + F11 * 4 + F12 * 8
+			* BYTE2 : omitted
+			*/
+
+			flags |= 4;
+			if (this->pControled->Functions[i].IsActivated())
+				threeByte1 += (1 << (func - 9));
+		}
+		else if (func <= 20)
+		{
+			/*
+			*    To set functions F13 - F20 on(= 1) or off(= 0) :
+			*
+			*    BYTE1 : 222
+			* BYTE2 : F13 * 1 + F14 * 2 + F15 * 4 + F16 * 8 + F17 * 16 + F18 * 32 + F19 * 64 + F20 * 128
+			*/
+
+			flags |= 8;
+			if (this->pControled->Functions[i].IsActivated())
+				fourByte2 += (1 << (func - 13));
+		}
+		else if (func <= 28)
+		{
+			/*
+			*    To set functions F21 - F28 on(= 1) of off(= 0) :
+			*
+			*    BYTE1 : 223
+			* BYTE2 : F21 * 1 + F22 * 2 + F23 * 4 + F24 * 8 + F25 * 16 + F26 * 32 + F27 * 64 + F28 * 128
+			*/
+
+			flags |= 16;
+			if (this->pControled->Functions[i].IsActivated())
+				fiveByte2 += (1 << (func - 21));
+		}
 	}
 
-#ifndef VISUALSTUDIO
-	this->mainRegs.setFunction(this->pControled->GetDccId(), fcts, -1);
-#endif
+	if (flags & 1)
+		this->mainRegs.setFunction(this->pControled->GetDccId(), oneByte1, -1);
+	if (flags & 2)
+		this->mainRegs.setFunction(this->pControled->GetDccId(), twoByte1, -1);
+	if (flags & 4)
+		this->mainRegs.setFunction(this->pControled->GetDccId(), threeByte1, -1);
+	if (flags & 8)
+		this->mainRegs.setFunction(this->pControled->GetDccId(), 222, fourByte2);
+	if (flags & 16)
+		this->mainRegs.setFunction(this->pControled->GetDccId(), 223, fiveByte2);
 }
 
-void ControlerDccpp::ToggleFunction(byte inFunctionNumber)
+void ControlerDccpp::SetFunction(byte inFunctionNumber, bool inActivate)
 {
 	Function &f = this->pControled->Functions[inFunctionNumber];
-	f.Toggle();
+	f.SetActivated(inActivate);
 
 #ifdef DDC_DEBUG_MODE
 	Serial.print(F("ControlerDccpp SetFunction "));
@@ -770,7 +840,7 @@ void ControlerDccpp::EndProgramMode()
 	this->programMode = false;
 }
 
-void ControlerDccpp::SetCv1Raw(int inId)
+void ControlerDccpp::WriteCv(int inId, byte inCv)
 {
 	this->mainRegs.writeCVByte(1, inId, 100, 101);
 
@@ -780,8 +850,8 @@ void ControlerDccpp::SetCv1Raw(int inId)
 #endif
 }
 
-void ControlerDccpp::SetCv1(int inId)
+int ControlerDccpp::ReadCv(int inId, byte inCv)
 {
-	this->SetCv1Raw(inId);
+	return this->mainRegs.readCVmain(1, 100+inCv, 100+inCv);
 }
 

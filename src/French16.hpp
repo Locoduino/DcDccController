@@ -9,8 +9,8 @@
 
 #define SHORTLENGTH_MSG	
 										  // 0123456789012345
-const char  str_dc[] PROGMEM=				"Mode Dc";
-const char  str_dcc[] PROGMEM=				"Mode Dcc";
+const char  str_dc[] PROGMEM=				"Dc";
+const char  str_dcc[] PROGMEM=				"Dcc";
 const char  str_stop[] PROGMEM =			"Arret general";
 const char  str_stop2[] PROGMEM =			"Appuyer annul";
 const char  str_dcdcc[] PROGMEM =			"Change DC/DCC";

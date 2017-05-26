@@ -32,14 +32,13 @@ ButtonsCommanderKeyboard push3;
 ButtonsCommanderKeyboard pushEmergency;
 ButtonsCommanderKeyboard pushFunction1;
 ButtonsCommanderKeyboard pushFunction2;
-#else
+#endif
 ButtonsCommanderPush buttonDir;
 ButtonsCommanderEncoder buttonEncoder;
 ButtonsCommanderPush buttonMode;
 ButtonsCommanderPush buttonPanic;
 ButtonsCommanderSwitchOnePin buttonF0;
 ButtonsCommanderSwitchOnePin buttonF1;
-#endif
 
 void setup()
 {
@@ -51,11 +50,13 @@ void setup()
 	push2.begin(LCD1_EVENT_LESS, '-');
 	push3.begin(LCD1_EVENT_CANCEL, '/');
 	pushEmergency.begin(EVENT_EMERGENCY, '0');
-	pushFunction1.begin(LCD1_EVENT_FUNCTION0, '1');
-	pushFunction2.begin(LCD1_EVENT_FUNCTION1, '2');
+	pushFunction1.begin(LCD1_EVENT_FUNCTION0, '1', COMMANDERS_EVENT_MOVE, COMMANDERS_MOVE_ON);
+	pushFunction1.AddEvent(LCD1_EVENT_FUNCTION0, COMMANDERS_EVENT_MOVE, COMMANDERS_MOVE_OFF);
+	pushFunction2.begin(LCD1_EVENT_FUNCTION1, '2', COMMANDERS_EVENT_MOVE, COMMANDERS_MOVE_ON);
+	pushFunction2.AddEvent(LCD1_EVENT_FUNCTION1, COMMANDERS_EVENT_MOVE, COMMANDERS_MOVE_OFF);
 	DcDccControler::begin(255);
 	DcDccControler::beginMain(255, 255, 11, 255);
-#else
+#endif
 	buttonDir.begin(LCD1_EVENT_SELECT, A0);
 	buttonEncoder.begin(LCD1_EVENT_ENCODER, 12, 8, 2);
 	buttonMode.begin(LCD1_EVENT_CANCEL, A3);
@@ -75,8 +76,7 @@ void setup()
 	// if dcdcc pin equals to 0, dc mode is forced.
 	// otherwise, pin state give dc or dcc.
 	DcDccControler::begin(255);
-	DcDccControler::beginMain(255, 255, 11, 255);    // Dc: Dir, Pwm, current sensor
-#endif
+	DcDccControler::beginMain(255, 255, 11, A6);    // Dc: Dir, Pwm, current sensor
 
 	handle.begin();
 	//screen.begin(20, 4, string_table, &lcd);
@@ -87,15 +87,15 @@ void setup()
 
 void loop()
 {
-	unsigned long event = Commanders::loop();
+	unsigned long eventId = Commanders::loop();
 
 	// For LcdUi, UNDEFINED_ID of Commanders has no meaning. And because it is necessary 
 	// to execute lcdui.event() at each call of the main loop, 
 	// do it with an empty event : EVENT_NONE.
 
-	if (event == UNDEFINED_ID)
-		event = EVENT_NONE;
+	if (eventId == UNDEFINED_ID)
+		eventId = EVENT_NONE;
 
-	DcDccControler::loop(event, Commanders::GetLastEventData());
+	DcDccControler::loop(eventId, Commanders::GetLastEventData());
 }
 

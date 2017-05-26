@@ -142,6 +142,13 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 #endif
 			this->state = STATE_ABORTED;
 			break;
+
+#ifdef NANOCONTROLER
+		case LCD1_EVENT_FUNCTION0:
+		case LCD1_EVENT_FUNCTION1:
+			showValue = true;
+			break;
+#endif
 	}
 
 	if (showValue)
@@ -156,6 +163,13 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		LcdScreen::BuildProgress(speed, DcDccControler::pControler->GetMaxSpeed(),
 			this->pHandle->GetControledLocomotive().GetDirectionToLeft(), inpLcd->GetScreen()->GetSizeX(), LcdScreen::buffer);
 		inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, 0, 1);
+#ifdef NANOCONTROLER
+		LcdScreen::buffer[0] = this->pHandle->GetControledLocomotive().Functions[0].IsActivated() ? '*' : '.';
+		LcdScreen::buffer[1] = this->pHandle->GetControledLocomotive().Functions[1].IsActivated() ? '*' : '.';
+		LcdScreen::buffer[2] = 0;
+
+		inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - 2, 0);
+#endif
 	}
 }
 

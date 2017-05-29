@@ -313,7 +313,7 @@ void ControlerDccpp::beginMain(uint8_t inDirectionMotor, uint8_t Dummy, uint8_t 
 	mainRegs.loadPacket(1, RegisterList::idlePacket, 2, 0);    // load idle packet into register 1    
 
 	bitSet(TIMSK1, OCIE1B);    // enable interrupt vector for Timer 1 Output Compare B Match (OCR1B)    
-	digitalWrite(DccppConfig::SignalEnablePinMain, HIGH);
+	digitalWrite(DccppConfig::SignalEnablePinMain, LOW);
 }
 
 void ControlerDccpp::beginProg(uint8_t inDirectionMotor, uint8_t inSignalPin, uint8_t inSignalEnable, uint8_t inCurrentMonitor)
@@ -411,7 +411,7 @@ void ControlerDccpp::beginProg(uint8_t inDirectionMotor, uint8_t inSignalPin, ui
 	bitSet(TIMSK3, OCIE3B);    // enable interrupt vector for Timer 3 Output Compare B Match (OCR3B)    
 
 #endif
-	digitalWrite(DccppConfig::SignalEnablePinProg, HIGH);
+	digitalWrite(DccppConfig::SignalEnablePinProg, LOW);
 }
 
 void ControlerDccpp::begin()
@@ -423,23 +423,6 @@ void ControlerDccpp::begin()
 
 	//EEStore::init();                                          // initialize and load Turnout and Sensor definitions stored in EEPROM
 
-#ifdef DDC_DEBUG_MODE
-/*	showConfiguration();
-
-	Serial.print(F("<iDCC++ BASE STATION FOR ARDUINO "));      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configuration 
-	//Serial.print(ARDUINO_TYPE);
-	//Serial.print(" / ");
-	//Serial.print(MOTOR_SHIELD_NAME);
-	Serial.print(F(": V-"));
-	Serial.print(VERSION);
-	Serial.print(F(" / "));
-	Serial.print(__DATE__);
-	Serial.print(F(" "));
-	Serial.print(__TIME__);
-	Serial.println(F(">"));
-	*/
-#endif
-
 #if COMM_TYPE == 1
 #ifdef IP_ADDRESS
 	Ethernet.begin(mac, IP_ADDRESS);           // Start networking using STATIC IP Address
@@ -449,19 +432,6 @@ void ControlerDccpp::begin()
 	INTERFACE.begin();
 #endif
 
-	/*SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
-
-	Serial.print(F("<N"));
-	Serial.print(COMM_TYPE);
-	Serial.print(F(": "));
-
-#if COMM_TYPE == 0
-	Serial.print(F("SERIAL>"));
-#elif COMM_TYPE == 1
-	Serial.print(Ethernet.localIP());
-	Serial.print(F(">"));
-#endif
-*/
 #ifdef DDC_DEBUG_MODE
 	Serial.println(F("Dcc++ mode."));
 	pinMode(LED_BUILTIN, OUTPUT);
@@ -828,6 +798,8 @@ void ControlerDccpp::PanicStop(bool inStop)
 #endif
 
 	this->SetSpeedRaw();
+	if (!inStop)
+		this->SetFunctionsRaw();
 }
 
 void ControlerDccpp::StartProgramMode()
@@ -840,17 +812,19 @@ void ControlerDccpp::EndProgramMode()
 	this->programMode = false;
 }
 
-void ControlerDccpp::WriteCv(int inId, byte inCv)
+void ControlerDccpp::WriteCv(int inCv, byte inValue)
 {
-	this->mainRegs.writeCVByte(1, inId, 100, 101);
+	this->mainRegs.writeCVByte(inCv, inValue, 100, 101);
 
 #ifdef DDC_DEBUG_MODE
-	Serial.print(F("ControlerDccpp SetCv 1 : "));
-	Serial.println(inId);
+	Serial.print(F("ControlerDccpp WriteCv "));
+	Serial.print(inCv);
+	Serial.print(F(" : "));
+	Serial.println(inValue);
 #endif
 }
 
-int ControlerDccpp::ReadCv(int inId, byte inCv)
+int ControlerDccpp::ReadCv(byte inCv)
 {
 	return this->mainRegs.readCVmain(1, 100+inCv, 100+inCv);
 }

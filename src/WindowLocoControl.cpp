@@ -34,7 +34,7 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		if (DcDccControler::dcType == Dc)
 		{
 			inpLcd->GetScreen()->DisplayHeader(((ControlerDc *)DcDccControler::pControler)->IsSlowMode() ? STR_DCSLOW : this->dcMsg);
-			WindowChooseDcFreq::BuildFreqIndexString(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
+			ControlerDc::BuildFreqIndexString(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
 			byte len = LcdScreen::BuildString(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - 4, LcdScreen::buffer);
 			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - len, 0);
 		}
@@ -42,7 +42,7 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 		{
 			inpLcd->GetScreen()->DisplayHeader(this->dccMsg);
 			inpLcd->GetScreen()->DisplayText((char *)" ", 3, 0);
-			LcdScreen::BuildString(this->pHandle->GetControledLocomotive().GetDccId(), LcdScreen::buffer, this->pHandle->DccIdNbDigits);
+			LcdScreen::BuildString(this->pHandle->GetControledLocomotive().GetDccId(), LcdScreen::buffer, 5);
 			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, 4, 0);
 #ifndef NANOCONTROLER
 			inpLcd->GetScreen()->setCursor(4 + this->pHandle->DccIdNbDigits, 0);
@@ -71,8 +71,8 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 	}
 	else
 	{
-		inc = this->pHandle->MoreLessIncrement;
 		steps = ((ControlerDc *)DcDccControler::pControler)->GetMaxSpeed();
+		inc = steps / (inpLcd->GetScreen()->GetSizeX()-2);
 	}
 
 	switch (inEventType)
@@ -154,8 +154,13 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 	if (showValue)
 	{
 		//   01234567879012345
-		// 0 Dcc 003 nomloco11
-		// 1 +>>>>>			 -
+		// 0 Dcc 003 nomloc **
+		// 1 ->>>>>			 +
+		//   01234567879012345
+
+		//   01234567879012345
+		// 0 Dc	lent  31250 Hz
+		// 1 ->>>>>			 +
 		//   01234567879012345
 		int speed = abs(this->pHandle->GetControledLocomotive().GetMappedSpeed());
 		if (speed == 1)
@@ -164,11 +169,14 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 			this->pHandle->GetControledLocomotive().GetDirectionToLeft(), inpLcd->GetScreen()->GetSizeX(), LcdScreen::buffer);
 		inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, 0, 1);
 #ifdef NANOCONTROLER
-		LcdScreen::buffer[0] = this->pHandle->GetControledLocomotive().Functions[0].IsActivated() ? '*' : '.';
-		LcdScreen::buffer[1] = this->pHandle->GetControledLocomotive().Functions[1].IsActivated() ? '*' : '.';
-		LcdScreen::buffer[2] = 0;
+		if (DcDccControler::dcType == Dcc)
+		{
+			LcdScreen::buffer[0] = this->pHandle->GetControledLocomotive().Functions[0].IsActivated() ? '*' : '.';
+			LcdScreen::buffer[1] = this->pHandle->GetControledLocomotive().Functions[1].IsActivated() ? '*' : '.';
+			LcdScreen::buffer[2] = 0;
 
-		inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - 2, 0);
+			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - 2, 0);
+		}
 #endif
 	}
 }

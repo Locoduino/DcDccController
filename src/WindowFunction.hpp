@@ -15,9 +15,7 @@
 class WindowFunction : public WindowInt
 {
 public:
-	int toto;
-public:
-	inline WindowFunction() { toto = 0; }
+	inline WindowFunction() {}
 	void begin(byte inFirstLine, int *inpValue);
 
 	byte GetType() const { return WINDOWTYPE_FUNCTION; }

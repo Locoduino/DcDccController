@@ -27,7 +27,6 @@ class ControlerDccpp : public Controler
 
 		void SetSpeedRaw();
 		void SetFunctionsRaw();
-		void SetCv1Raw(int inId);
 
 	public:
 		static volatile RegisterList mainRegs, progRegs;
@@ -40,7 +39,7 @@ class ControlerDccpp : public Controler
 		void beginProg(uint8_t OptionalDirectionMotor, uint8_t Dummy, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
 		bool SetSpeed(int inNewSpeed);
 		bool SetDirection(bool inToLeft);
-		int ReadCv(int inId, byte inCv);
+		int ReadCv(byte inCv);
 		void WriteCv(int inId, byte inCv);
 		void SetFunction(byte inFunctionNumber, bool inActivate);
 		void PanicStop(bool inStop);

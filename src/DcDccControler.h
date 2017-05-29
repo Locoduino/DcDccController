@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////
 // Add a '//' at the beginning of the line to be in 
 // release mode.
-#define DDC_DEBUG_MODE
+//#define DDC_DEBUG_MODE
 
 ///////////////////////////////////////////////////////
 // Verbose mode lets you see all actions done by the 
@@ -25,9 +25,8 @@
 #endif
 
 #if defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_UNO)
-//#define NANOCONTROLER
-#endif
 #define NANOCONTROLER
+#endif
 
 #ifndef __LcdUi_H__
 #include "LcdUi.h"
@@ -51,19 +50,16 @@ static void CheckPinNb(int inPin, const __FlashStringHelper *inFunc);
 #define CHECKPIN(val, text)
 #endif
 
-//extern const char str_special_rst[] PROGMEM;
 extern const char * const DDC_config_table[] PROGMEM;
 extern const char * const string_table[] PROGMEM;
 
 #if defined(__DDCLanguage_H__)
 
-// Unlocalized special strings
-const char str_special_rst[] PROGMEM = "$rst";
 #ifdef SHORTLENGTH_MSG
-const char str_title[] PROGMEM = "Dc/Dcc Cont V0.6";
+const char str_title[] PROGMEM = "Dc/Dcc Cont V0.7";
 const char str_copyright[] PROGMEM = "By Thierry Paris";
 #else
-const char str_title[] PROGMEM = "Dc/Dcc Controler V0.6";
+const char str_title[] PROGMEM = "Dc/Dcc Controler V0.7";
 const char str_copyright[] PROGMEM = "By Thierry Paris";
 #endif
 
@@ -75,22 +71,14 @@ const char * const string_table[] PROGMEM
 	str_dcc,
 	str_stop,
 	str_stop2,
-	str_dcdcc,
-	str_dcdcc2,
 	str_modemodechoice,
 	str_modelococtrl,
-	str_modelocoedit,
 	str_modeconfig,
-	str_locoselect,
-	str_resetconfig,
 	str_yes,
 	str_no,
 	str_confirm,
 	str_pwmfreqency,
-	str_loconew,
-	str_locodel,
 	str_locoedit,
-	str_locochange,
 	str_longaddress,
 	str_locoId,
 	str_locoName,
@@ -98,58 +86,56 @@ const char * const string_table[] PROGMEM
 	str_locoSteps14,
 	str_locoSteps28,
 	str_locoSteps128,
-	str_handleCfgDigits,
 	str_functionId,
 	str_function,
-	str_saveLoco,
 	str_dcslow,
-	str_programcv1,
-	str_special_rst
-};
+	str_programcv,
 
-// List of available main config options
-
-const char * const DDC_config_table[] PROGMEM =
-{
-	str_special_rst	// option to fully reset the configuration.
+#if !defined(ARDUINO_AVR_NANO) && !defined(ARDUINO_AVR_UNO)
+	str_saveLoco,
+	str_modelocoedit,
+	str_loconew,
+	str_locodel,
+	str_locochange,
+	str_locoselect,
+	str_resetconfig
+#endif
 };
 #endif
 
-#define STR_TITLE		0
-#define STR_COPYRIGHT	1
-#define STR_DC			2
-#define STR_DCC			3
-#define STR_STOP		4
-#define STR_STOP2		5
-#define STR_DCDCC		6
-#define STR_DCDCC2		7
-#define STR_MODEMODECHOICE	8
-#define STR_MODELOCOCTRL	9
-#define STR_MODELOCOEDIT	10
-#define STR_MODECONFIG		11
-#define STR_LOCOSELECT		12
-#define STR_RESETCONFIG		13
-#define STR_YES				14
-#define STR_NO				15
-#define STR_CONFIRM			16
-#define STR_PWMFREQCFG		17
-#define STR_LOCONEW			18
-#define STR_LOCOREMOVE		19
-#define STR_LOCOEDIT		20
-#define STR_MODELOCOCHANGE	21
-#define STR_LONGADDRESS		22
-#define STR_LOCOID			23
-#define STR_LOCONAME		24
-#define STR_LOCOSTEPS		25
-#define STR_LOCOSTEPS14		26
-#define STR_LOCOSTEPS28		27
-#define STR_LOCOSTEPS128	28
-#define STR_HANDLECFGDIGITS	29
-#define STR_FUNCTIONID		30
-#define STR_FUNCTION		31
-#define STR_SAVELOCO		32
-#define STR_DCSLOW			33
-#define STR_PROGRAMCV1		34
+#define STR_TITLE			0
+#define STR_COPYRIGHT		1
+#define STR_DC				2
+#define STR_DCC				3
+#define STR_STOP			4
+#define STR_STOP2			5
+#define STR_MODEMODECHOICE	6
+#define STR_MODELOCOCTRL	7
+#define STR_MODECONFIG		8
+#define STR_YES				9
+#define STR_NO				10
+#define STR_CONFIRM			11
+#define STR_PWMFREQCFG		12
+#define STR_LOCOEDIT		13
+#define STR_LONGADDRESS		14
+#define STR_LOCOID			15
+#define STR_LOCONAME		16
+#define STR_LOCOSTEPS		17
+#define STR_LOCOSTEPS14		18
+#define STR_LOCOSTEPS28		19
+#define STR_LOCOSTEPS128	20
+#define STR_FUNCTIONID		21
+#define STR_FUNCTION		22
+#define STR_DCSLOW			23
+#define STR_MODIFYCV		24
+
+#define STR_SAVELOCO		25
+#define STR_MODELOCOEDIT	26
+#define STR_LOCONEW			27
+#define STR_LOCOREMOVE		28
+#define STR_LOCOCHANGE		29
+#define STR_LOCOSELECT		30
+#define STR_RESETCONFIG		31
 
 // IDs for function windows not related to strings.
 
@@ -183,8 +169,6 @@ const char * const DDC_config_table[] PROGMEM =
 //#define NO_LOCOMOTIVE
 //#define NO_SCREEN
 
-//#define NO_COMMANDER
-
 /////////////////////////////////////
 
 enum DcDcc
@@ -196,14 +180,13 @@ enum DcDcc
 	Dcc
 };
 
-#include "Handle.hpp"
-#ifndef NO_COMMANDER
-#include "Commanders.h"
-#endif
+#include "Locomotive.hpp"
 
 #include "ControlerDc.hpp"
 #include "ControlerDccpp.hpp"
 #include "DCCItemList.hpp"
+
+#include "Handle.hpp"
 
 // Copy from cmdrarduino ...
 #define DCC_SHORT_ADDRESS           0x00

@@ -190,6 +190,7 @@
     <ClCompile Include="..\src\Locomotive.cpp" />
     <ClCompile Include="..\src\WindowChooseDcFreq.cpp" />
     <ClCompile Include="..\src\WindowChooseLoco.cpp" />
+    <ClCompile Include="..\src\WindowCv.cpp" />
     <ClCompile Include="..\src\WindowFunction.cpp" />
     <ClCompile Include="..\src\WindowLocoControl.cpp" />
     <ClCompile Include="InoProject.cpp" />
@@ -260,6 +261,7 @@
     <ClInclude Include="..\src\Locomotive.hpp" />
     <ClInclude Include="..\src\WindowChooseDcFreq.hpp" />
     <ClInclude Include="..\src\WindowChooseLoco.hpp" />
+    <ClInclude Include="..\src\WindowCv.hpp" />
     <ClInclude Include="..\src\WindowFunction.hpp" />
     <ClInclude Include="..\src\WindowLocoControl.hpp" />
   </ItemGroup>

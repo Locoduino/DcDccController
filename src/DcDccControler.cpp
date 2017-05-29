@@ -94,8 +94,14 @@ void DcDccControler::begin(uint8_t inDcDccSelectPin)
 #endif
 
 	DcDccControler::dcType = Dc;
-	if (inDcDccSelectPin == 255 || (inDcDccSelectPin != 0 && digitalRead(inDcDccSelectPin)))
+	if (inDcDccSelectPin == 255)
 		DcDccControler::dcType = Dcc;
+	if (inDcDccSelectPin > 0 && inDcDccSelectPin < 255)
+	{
+		pinMode(inDcDccSelectPin, INPUT_PULLUP);
+		if (digitalRead(inDcDccSelectPin) == HIGH)
+			DcDccControler::dcType = Dcc;
+	}
 
 	// Just for let the time to the microC to initialize internals...
 	delay(500);
@@ -227,10 +233,11 @@ void DcDccControler::ConfigLoad()
 	{
 		if (DcDccControler::dcType == Dc)
 		{
-			uint16_t dCFrequencyDivisorIndex;
-			EEPROMextent.readAnything(3, dCFrequencyDivisorIndex);
-			// Set frequency, even if the pin is not correct at this moment !
-			((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex = (byte) dCFrequencyDivisorIndex;
+			byte dCFrequencyDivisorIndex = EEPROMextent.read(3);
+
+			if (dCFrequencyDivisorIndex < NB_PWM_FREQ_11_3)
+				// Set frequency, even if the pin is not correct at this moment !
+				((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex = dCFrequencyDivisorIndex;
 		}
 
 		// Must be done only when the good value is in Locomotive::FunctionNumber...
@@ -248,7 +255,7 @@ int DcDccControler::ConfigSave()
 	EEPROMextent.write(2, 'C');
 
 	if (DcDccControler::dcType == Dc)
-		EEPROMextent.writeAnything(3, ((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
+		EEPROMextent.write(3, ((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
 	return 0;
 }
 

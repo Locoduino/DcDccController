@@ -18,6 +18,7 @@ class Handle;
 #include "WindowChooseDcFreq.hpp"
 #include "WindowLocoControl.hpp"
 #include "WindowFunction.hpp"
+#include "WindowCv.hpp"
 #ifndef NANOCONTROLER
 #include "WindowChooseLoco.hpp"
 #endif
@@ -119,8 +120,9 @@ class Handle
 		9				Steps			Choice 14/28/128
 		10				Function n		EditInt	1-127 or 1-10126
 		11				Function n+1	EditInt	1-127 or 1-10126
-		12			LocoControl			WindowLocoControl
-		13	Stop						Interrupt
+		12				Modify Cv		WindowCv
+		13			LocoControl			WindowLocoControl
+		14	Stop						Interrupt
 		*/
 
 		Choice choiceMain;
@@ -131,17 +133,14 @@ class Handle
 		WindowSplash winSplash;
 		WindowConfirm winStart;
 		WindowChoice winChoiceMain;
-		WindowChoice winChoiceConfig;
+		WindowChoice winChoiceConfigDDC;
 		WindowChooseDcFreq winFreq;
-		WindowInt winConfigDigit;
-		//WindowConfirm winResetConfig;
-		WindowChoice winChoiceConfigLoco;
 		WindowInt winLocoId;
 		WindowYesNo winLongAddress;
 		WindowChoice winChoiceSteps;
 		WindowFunction winFunction1;
 		WindowFunction winFunction2;
-		WindowInt winProgramCV1;
+		WindowCv winProgramCV;
 		WindowLocoControl winLocoControl;
 
 		WindowInterrupt windowInterruptEmergency;
@@ -151,11 +150,8 @@ class Handle
 
 		// Handle configuration
 		int MoreLessIncrement;
-		int DccIdNbDigits;	// Only an int because the WindowInt cannot edit a byte !
 		int addressFunction0;
 		int addressFunction1;
-		int cv1;
-		bool reset;
 
 	private:
 		// Handle interactive situation

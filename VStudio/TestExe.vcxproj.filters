@@ -180,6 +180,9 @@
     <ClCompile Include="..\..\Commanders\src\ButtonsCommanderSwitchTwoPins.cpp">
       <Filter>Commanders Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\WindowCv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TestExe.ino" />
@@ -376,6 +379,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Commanders\src\ButtonsCommanderSwitchTwoPins.hpp">
       <Filter>Commanders Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WindowCv.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

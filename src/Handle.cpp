@@ -16,12 +16,9 @@ Handle::Handle()
 	this->id = 0;
 	this->MoreLessIncrement = 10;
 	this->pUi = NULL;
-	this->DccIdNbDigits = 4;
 
 	this->addressFunction0 = 0;
 	this->addressFunction1 = 1;
-	this->cv1 = 3;
-	this->reset = false;
 }
 
 void Handle::begin(byte inHandleId)
@@ -129,40 +126,35 @@ void Handle::StartUI()
 		In Dcc :
 		0	Splash
 		1	Start : Confirm dcc
-		2		Mode Choice				Choice
+		2		DDC menu				Choice
 		3			Config DDC			Choice
-		4				Nb digits		EditInt 2-4
-		5				Reset			Confirm
-		6			Loco Edit			Choice
-		7				ID				EditInt	1-127 or 1-10126
-		8				Address long	YesNo
-		9				Steps			Choice 14/28/128
-		10				Function n		EditInt	1-127 or 1-10126
-		11				Function n+1	EditInt	1-127 or 1-10126
-		12			LocoControl			WindowLocoControl
-		13	Stop						Interrupt
+		4				ID				EditInt	1-127 or 1-10126
+		5				Address long	YesNo
+		6				Steps			Choice 14/28/128
+		7				Modify Cv		WindowCv
+		8				Function n		EditInt	1-127 or 1-10126
+		9				Function n+1	EditInt	1-127 or 1-10126
+		10			LocoControl			WindowLocoControl
+		11	Stop						Interrupt
 		*/
 
 		// BEGINS !
 		winSplash.begin(STR_TITLE, STR_COPYRIGHT);
 		winStart.begin(DcDccControler::dcType == Dc?STR_DC:STR_DCC, STR_CONFIRM, NULL);
 		winChoiceMain.begin(STR_MODEMODECHOICE, &choiceMain);	// menu
-		winChoiceConfig.begin(STR_MODECONFIG, &choiceConfig);
+		winChoiceConfigDDC.begin(STR_MODECONFIG, &choiceConfig);
 		if (DcDccControler::dcType == Dc)
 		{
 			winFreq.begin(STR_PWMFREQCFG, NULL);
 		}
 		else
 		{
-			winConfigDigit.begin(STR_HANDLECFGDIGITS, &(this->DccIdNbDigits), 2, 4);
-			//winResetConfig.begin(STR_RESETCONFIG, STR_CONFIRM, &(this->reset));
-			winChoiceConfigLoco.begin(STR_LOCOEDIT, &choiceConfigLoco);
 			winLocoId.begin(STR_LOCOID, NULL, 1, 10026);
 			winLongAddress.begin(STR_LONGADDRESS, NULL);
 			winChoiceSteps.begin(STR_LOCOSTEPS, &choiceSteps);
 			winFunction1.begin(STR_FUNCTIONID1, &addressFunction0);
 			winFunction2.begin(STR_FUNCTIONID2, &addressFunction1);
-			winProgramCV1.begin(STR_PROGRAMCV1, &cv1, 1, 10026);
+			winProgramCV.begin(STR_MODIFYCV);
 		}
 
 		winLocoControl.begin(254, this);
@@ -172,48 +164,43 @@ void Handle::StartUI()
 		this->pUi->AddWindow(&winSplash);
 		this->pUi->AddWindow(&winStart);
 		this->pUi->AddWindow(&winChoiceMain);
-		this->pUi->AddWindow(&winChoiceConfig);
+		this->pUi->AddWindow(&winChoiceConfigDDC);
 		if (DcDccControler::dcType == Dc)
 		{
 			this->pUi->AddWindow(&winFreq);
 		}
 		else
 		{
-			this->pUi->AddWindow(&winConfigDigit);
-			//this->pUi->AddWindow(&winResetConfig);
-			this->pUi->AddWindow(&winChoiceConfigLoco);
 			this->pUi->AddWindow(&winLocoId);
 			this->pUi->AddWindow(&winLongAddress);
 			this->pUi->AddWindow(&winChoiceSteps);
 			this->pUi->AddWindow(&winFunction1);
 			this->pUi->AddWindow(&winFunction2);
-			this->pUi->AddWindow(&winProgramCV1);
+			this->pUi->AddWindow(&winProgramCV);
 		}
 
 		this->pUi->AddWindow(&winLocoControl);
 		this->pUi->AddWindow(&this->windowInterruptEmergency);
 
 		// CHOICES
-		winChoiceMain.AddChoice(STR_MODECONFIG, &winChoiceConfig);
+		winChoiceMain.AddChoice(STR_MODECONFIG, &winChoiceConfigDDC);
 		if (DcDccControler::dcType == Dc)
 		{
-			winChoiceConfig.AddChoice(STR_PWMFREQCFG, &winFreq);	// DC Freq
+			winChoiceConfigDDC.AddChoice(STR_PWMFREQCFG, &winFreq);	// DC Freq
 			winFreq.SetValueAddress(&(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex));
 		}
 		else
 		{
-			winChoiceConfig.AddChoice(STR_HANDLECFGDIGITS, &winConfigDigit);
-			winChoiceMain.AddChoice(STR_LOCOEDIT, &winChoiceConfigLoco);
-				winChoiceConfigLoco.AddChoice(STR_LOCOID, &winLocoId);
-				winChoiceConfigLoco.AddChoice(STR_LONGADDRESS, &winLongAddress);
-				winChoiceConfigLoco.AddChoice(STR_LOCOSTEPS, &winChoiceSteps);
+				winChoiceConfigDDC.AddChoice(STR_LOCOID, &winLocoId);
+				winChoiceConfigDDC.AddChoice(STR_LONGADDRESS, &winLongAddress);
+				winChoiceConfigDDC.AddChoice(STR_LOCOSTEPS, &winChoiceSteps);
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS14);
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS28);
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS128);
-				winChoiceConfigLoco.AddChoice(STR_FUNCTIONID);
-					winFunction1.SetFather(winChoiceConfigLoco.GetFirstLine(), STR_FUNCTIONID);
-					winFunction2.SetFather(winChoiceConfigLoco.GetFirstLine(), STR_FUNCTIONID);
-			winChoiceMain.AddChoice(STR_PROGRAMCV1, &winProgramCV1);
+				winChoiceConfigDDC.AddChoice(STR_FUNCTIONID);
+					winFunction1.SetFather(winChoiceConfigDDC.GetFirstLine(), STR_FUNCTIONID);
+					winFunction2.SetFather(winChoiceConfigDDC.GetFirstLine(), STR_FUNCTIONID);
+				winChoiceConfigDDC.AddChoice(STR_MODIFYCV, &winProgramCV);
 		}
 		winChoiceMain.AddChoice(STR_MODELOCOCTRL, &winLocoControl); // run
 	}
@@ -221,7 +208,6 @@ void Handle::StartUI()
 
 	winLocoId.SetValueAddress(this->controled.GetDccIdAddress());
 	winLongAddress.SetValueAddress(this->controled.GetDccIdAddressKindAddress());
-	winProgramCV1.SetValueAddress(&this->cv1);
 
 //	Serial.print((int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval));
 //	Serial.println(F(" bytes"));
@@ -256,7 +242,6 @@ void Handle::StartContent()
 void Handle::Clear()
 {
 	this->MoreLessIncrement = 10;
-	this->DccIdNbDigits = 4;
 }
 
 //#define DDC_DEBUG_MODE
@@ -271,7 +256,7 @@ void Handle::SetControledLocomotive(Locomotive &inLocomotive)
 
 bool Handle::loop(unsigned long inEvent, int inData)
 {
-	bool changed = false;
+	bool saveConfig = false;
 
 	int event;
 
@@ -294,10 +279,10 @@ bool Handle::loop(unsigned long inEvent, int inData)
 		if (event >= LCD1_EVENT_FUNCTION0)
 		{
 			byte function = event - LCD1_EVENT_FUNCTION0;
+			bool activate = inData == COMMANDERS_MOVE_ON;
 
 			if (DcDccControler::dcType == Dcc)
 			{
-				bool activate = inData == COMMANDERS_MOVE_ON;
 				this->SetFunction(function, activate);
 #ifdef DDC_DEBUG_MODE
 				Serial.print(F("Function F"));
@@ -310,11 +295,9 @@ bool Handle::loop(unsigned long inEvent, int inData)
 				if (function == 0)
 				{
 					Window *pCurrent = pUi->GetGlobalCurrentWindow();
-					((ControlerDc *)DcDccControler::pControler)->SetSlowMode(!((ControlerDc *)DcDccControler::pControler)->IsSlowMode());
-					if (((ControlerDc *)DcDccControler::pControler)->IsSlowMode())
-						this->MoreLessIncrement = 5;
-					else
-						this->MoreLessIncrement = 10;
+					((ControlerDc *)DcDccControler::pControler)->SetSlowMode(activate);
+					int steps = ((ControlerDc *)DcDccControler::pControler)->GetMaxSpeed();
+					this->MoreLessIncrement = steps / (pUi->GetScreen()->GetSizeX() - 2);
 					pCurrent->SetState(STATE_START);
 				}
 			}
@@ -327,9 +310,7 @@ bool Handle::loop(unsigned long inEvent, int inData)
 
 	if (pUi->loop(event))
 	{
-#ifndef NANOCONTROLER
 		Window *pCurrent = pUi->GetGlobalCurrentWindow();
-#endif
 		Locomotive &loco = this->edited;
 
 #ifdef DDC_DEBUG_MODE
@@ -340,38 +321,22 @@ bool Handle::loop(unsigned long inEvent, int inData)
 		switch (pUi->GetState())
 		{
 		case STATE_INITIALIZE:
+			int val;
 			switch (pUi->GetWindowId())
 			{
 			case STR_STOP:
 				DcDccControler::dcTypeAtStart = DcDccControler::dcType;
 				DcDccControler::pControler->PanicStop(true);
 				break;
-			case STR_DCDCC:
-				if (DcDccControler::dcType == DcChangeStopped)
-					break;
-
-				DcDccControler::dcTypeAtStart = DcDccControler::dcType;
-				DcDccControler::dcType = DcChangeStopped;
-#ifdef DDC_DEBUG_MODE
-				Serial.println(F("Dc/Dcc mode change"));
-#endif
-				break;
-
-			case STR_PROGRAMCV1:
-				((ControlerDccpp *)DcDccControler::pControler)->StartProgramMode();
-				this->cv1 = ((ControlerDccpp *)DcDccControler::pControler)->ReadCv(this->cv1, 1);				
-				break;
 			case STR_LOCOID:
-				this->cv1 = ((ControlerDccpp *)DcDccControler::pControler)->ReadCv(this->cv1, 1);
-				this->controled.SetDccId(this->cv1);
+				// Gets the current id of the loco...
+				val = ((ControlerDccpp *)DcDccControler::pControler)->ReadCv(1);
+
+				if (val < 0)
+					val = 3;
+				this->controled.SetDccId(val);
 				break;
-#ifndef NANOCONTROLER
-			case STR_LOCONAME:
-				strncpy(this->name, loco.GetName(), 20);
-				break;
-#endif
 			case STR_LOCOSTEPS:
-				int val;
 				switch (loco.GetSteps())
 				{
 				case 14: val = STR_LOCOSTEPS14; break;
@@ -381,45 +346,62 @@ bool Handle::loop(unsigned long inEvent, int inData)
 
 				winChoiceSteps.SetCurrentChoiceById(val);
 				break;
+#ifndef NANOCONTROLER
+			case STR_LOCONAME:
+				strncpy(this->name, loco.GetName(), 20);
+				break;
+#endif
 			}
 			break;
 
 		case STATE_CONFIRMED:
 			switch (pUi->GetWindowId())
 			{
+			case STR_DC:
+			case STR_DCC:
+				DcDccControler::pControler->PanicStop(false);
+				pCurrent->SetActive(false);
+				break;
 			case STR_STOP:
 				DcDccControler::pControler->PanicStop(false);
 				DcDccControler::dcType = DcDccControler::dcTypeAtStart;
 				break;
-			case STR_DCDCC:
-				DcDccControler::dcType = DcDccControler::dcTypeAtStart;
-#ifdef DDC_DEBUG_MODE
-				Serial.println(F("Dc/Dcc mode change canceled"));
-#endif
-				break;
 			case STR_PWMFREQCFG:
-//				((ControlerDc *)DcDccControler::pControler)->SetFrequencyDivisor(((WindowChooseDcFreq *)pCurrent)->GetChoiceIntValue());
-				DcDccControler::ConfigSave();
+				{
+					WindowChooseDcFreq *pWinFreq = (WindowChooseDcFreq *)pCurrent;
+					((ControlerDc *)DcDccControler::pControler)->SetFrequencyDivisorIndex(pWinFreq->GetChoiceValue());
+					DcDccControler::ConfigSave();
+				}
+				break;
+			case STR_LOCOSTEPS:
+				int val;
+				switch (this->choiceSteps.id)
+				{
+				case STR_LOCOSTEPS14: val = 14; this->MoreLessIncrement = 1; break;
+				case STR_LOCOSTEPS28: val = 28; this->MoreLessIncrement = 1; break;
+				default: val = 128; this->MoreLessIncrement = 10; break;
+				}
+				loco.SetSteps(val);
+				saveConfig = true;
+				break;
+			case STR_FUNCTIONID1:
+				loco.Functions[0].SetDccId(addressFunction0);
+				saveConfig = true;
 				break;
 
-			case STR_HANDLECFGDIGITS:
-				this->ConfigSave();
+			case STR_FUNCTIONID2:
+				loco.Functions[1].SetDccId(addressFunction1);
+				saveConfig = true;
 				break;
-
-			case STR_RESETCONFIG:
-				DcDccControler::ConfigReset();
-				this->Clear();
-				break;
-
 #ifndef NANOCONTROLER
 			case STR_MODELOCOCHANGE:
 				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->controled);
-				this->ConfigSave();
+				saveConfig = true;
 				break;
 
 			case STR_LOCOSELECT:
 				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
-				this->ConfigSave();
+				saveConfig = true;
 				break;
 
 			case STR_MODELOCOEDIT:
@@ -448,63 +430,9 @@ bool Handle::loop(unsigned long inEvent, int inData)
 
 				}
 				break;
-#endif
-
-#ifdef NANOCONTROLER
-			case STR_LONGADDRESS:
-				this->ConfigSave();
-				break;
-
-			case STR_LOCOID:
-				this->ConfigSave();
-				break;
-#endif
-
-			case STR_PROGRAMCV1:
-				{
-					((ControlerDccpp *)DcDccControler::pControler)->WriteCv(this->cv1, 1);
-					loco.SetDccId(this->cv1);
-					this->SetSpeed(0);
-#ifdef NANOCONTROLER
-					this->ConfigSave();
-#endif
-				}
-
-				((ControlerDccpp *)DcDccControler::pControler)->EndProgramMode();
-				break;
-#ifndef NANOCONTROLER
 			case STR_LOCONAME:
-				loco.SetName(((WindowText*) pCurrent)->GetTextValue());
+				loco.SetName(((WindowText*)pCurrent)->GetTextValue());
 				break;
-#endif
-			case STR_LOCOSTEPS:
-				int val;
-				switch (this->choiceSteps.id)
-				{
-					case STR_LOCOSTEPS14: val = 14; this->MoreLessIncrement = 1; break;
-					case STR_LOCOSTEPS28: val = 28; this->MoreLessIncrement = 1; break;
-					default: val = 128; this->MoreLessIncrement = 10; break;
-				}
-				loco.SetSteps(val);
-#ifdef NANOCONTROLER
-				this->ConfigSave();
-#endif
-				break;
-			case STR_FUNCTIONID1:
-				loco.Functions[0].SetDccId(addressFunction0);
-#ifdef NANOCONTROLER
-				this->ConfigSave();
-#endif
-				break;
-
-			case STR_FUNCTIONID2:
-				loco.Functions[1].SetDccId(addressFunction1);
-#ifdef NANOCONTROLER
-				this->ConfigSave();
-#endif
-				break;
-
-#ifndef NANOCONTROLER
 			case STR_SAVELOCO:
 				if (pCurrent->GetChoiceValue() == STR_YES)
 				{
@@ -512,15 +440,30 @@ bool Handle::loop(unsigned long inEvent, int inData)
 					WindowChooseLoco::RebuildChoices();
 				}
 				break;
+
+			case STR_RESETCONFIG:
+				DcDccControler::ConfigReset();
+				this->Clear();
+				break;
+#else
+			case STR_LONGADDRESS:
+				saveConfig = true;
+				break;
+
+			case STR_LOCOID:
+				saveConfig = true;
+				break;
 #endif
 			}
 			pUi->SetState(STATE_POSTCONFIRMED);
 			break;
-
 		}
+
+		if (saveConfig)
+			this->ConfigSave();
 	}
 
-	return changed;
+	return saveConfig;
 }
 
 void Handle::SetSpeed(int inNewSpeed)
@@ -548,8 +491,7 @@ void Handle::ConfigLoad()
 
 	if (DcDccControler::dcType == Dcc)
 	{
-		this->DccIdNbDigits = EEPROMextent.read(pos + 1);
-		this->MoreLessIncrement = EEPROMextent.read(pos + 2);
+		this->MoreLessIncrement = EEPROMextent.read(pos + 1);
 
 		// Add here a new config
 		byte controledSlot = 0;
@@ -573,9 +515,8 @@ void Handle::ConfigSave()
 
 	if (DcDccControler::dcType == Dcc)
 	{
-		EEPROMextent.write(pos, 0);
-		EEPROMextent.write(pos + 1, this->DccIdNbDigits);
-		EEPROMextent.write(pos + 2, this->MoreLessIncrement);
+		EEPROMextent.write(pos, 0);		// Data version
+		EEPROMextent.write(pos+1, this->MoreLessIncrement);		// Data version
 #ifdef NANOCONTROLER
 		// Save/load only the current loco.
 		DCCItemList.UpdateLoco(&this->controled);

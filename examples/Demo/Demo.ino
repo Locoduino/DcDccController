@@ -8,19 +8,19 @@ description: <Tiny Dc/Dcc controler sample>
 #include "LcdUi.h"
 
 //#include <NewLiquidCrystal_I2C.h>
-//#include <NewLiquidCrystal.h>
-#include <LiquidCrystal.h>
-//#include "ScreenLiquidNew.hpp"
-#include "ScreenLiquid.hpp"
+#include <NewLiquidCrystal.h>
+//#include <LiquidCrystal.h>
+#include "ScreenLiquidNew.hpp"
+//#include "ScreenLiquid.hpp"
 #include "EEPROMextent.h"
 #include "DcDccControler.h"
 
 //NewLiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
-//NewLiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+NewLiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+//LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
-//ScreenLiquidNew screen;
-ScreenLiquid screen;
+ScreenLiquidNew screen;
+//ScreenLiquid screen;
 
 Handle handle;
 
@@ -54,8 +54,6 @@ void setup()
 	pushFunction1.AddEvent(LCD1_EVENT_FUNCTION0, COMMANDERS_EVENT_MOVE, COMMANDERS_MOVE_OFF);
 	pushFunction2.begin(LCD1_EVENT_FUNCTION1, '2', COMMANDERS_EVENT_MOVE, COMMANDERS_MOVE_ON);
 	pushFunction2.AddEvent(LCD1_EVENT_FUNCTION1, COMMANDERS_EVENT_MOVE, COMMANDERS_MOVE_OFF);
-	DcDccControler::begin(255);
-	DcDccControler::beginMain(255, 255, 11, 255);
 #endif
 	buttonDir.begin(LCD1_EVENT_SELECT, A0);
 	buttonEncoder.begin(LCD1_EVENT_ENCODER, 12, 8, 2);
@@ -70,17 +68,18 @@ void setup()
 	pinName(A2, "F1");
 	pinName(A3, "CANC");
 	pinName(A4, "STOP");
+	pinName(A5, "DCC");
 #endif
 
 	// if dcdcc pin equals to 255, dcc mode is forced.
 	// if dcdcc pin equals to 0, dc mode is forced.
 	// otherwise, pin state give dc or dcc.
-	DcDccControler::begin(255);
-	DcDccControler::beginMain(255, 255, 11, A6);    // Dc: Dir, Pwm, current sensor
+	DcDccControler::begin(A5);
+	DcDccControler::beginMain(255, DCC_SIGNAL_PIN_MAIN, 11, A6);    // Dc: Dir, Pwm, current sensor
 
 	handle.begin();
-	//screen.begin(20, 4, string_table, &lcd);
-	screen.begin(16, 2, string_table, &lcd);
+	screen.begin(20, 4, string_table, &lcd);
+	//screen.begin(16, 2, string_table, &lcd);
 	handle.GetUI()->begin(&screen);
 	DcDccControler::AddHandle(&handle);
 }

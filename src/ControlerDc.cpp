@@ -7,6 +7,9 @@ description: <Dc Controler>
 #include "DcDccControler.h"
 #include "ControlerDc.hpp"
 
+//													1024 256 128 64	32	8  1  ---
+const byte ControlerDc::divisors_11_3_pow2[]{ 10,  8,  7, 6, 5, 3, 0, 255 };
+
 void ControlerDc::begin()
 { 
 }
@@ -22,7 +25,7 @@ void ControlerDc::beginMain(uint8_t inDummy, uint8_t SignalPin, uint8_t SignalEn
 	if (CurrentMonitor != 255)
 		pinMode(this->dcCurrentMonitor, INPUT);
 	analogWrite(this->dcPWMpin, 0);
-	SetFrequencyDivisorRaw(WindowChooseDcFreq::GetFrequencyDivisor(this->DCFrequencyDivisorIndex));
+	SetFrequencyDivisorRaw(ControlerDc::GetFrequencyDivisor(this->DCFrequencyDivisorIndex));
 
 #ifdef DDC_DEBUG_MODE
 	Serial.println(F("Dc mode."));
@@ -112,18 +115,30 @@ void ControlerDc::PanicStop(bool inStop)
 	}
 }
 
-/*void ControlerDc::SetFrequencyDivisor(unsigned int inDivisor)
+void ControlerDc::BuildFreqString(unsigned int inDivisor)
 {
-	this->DCFrequencyDivisor = inDivisor;
+	unsigned int val = BASE_PWM_FREQ_11_3 / inDivisor;
 
-	SetFrequencyDivisorRaw(inDivisor);
-} */
+	LcdScreen::BuildString(val, LcdScreen::buffer);
+
+	int len = strlen(LcdScreen::buffer);
+	LcdScreen::buffer[len++] = ' ';
+	LcdScreen::buffer[len++] = 'H';
+	LcdScreen::buffer[len++] = 'z';
+	LcdScreen::buffer[len] = 0;
+}
+
+void ControlerDc::SetFrequencyDivisorIndex(byte inDivisorIndex)
+{
+	this->DCFrequencyDivisorIndex = inDivisorIndex;
+
+	this->SetFrequencyDivisorRaw(1 << ControlerDc::divisors_11_3_pow2[inDivisorIndex]);
+}
 
 void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 {
-#ifndef VISUALSTUDIO
 	byte mode;
-/*	if (this->dcPWMpin == 5 || this->dcPWMpin == 6 || this->dcPWMpin == 9 || this->dcPWMpin == 10) 
+	if (this->dcPWMpin == 5 || this->dcPWMpin == 6 || this->dcPWMpin == 9 || this->dcPWMpin == 10) 
 	{
 		switch (inDivisor) 
 		{
@@ -140,7 +155,7 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 			TCCR1B = (TCCR1B & 0b11111000) | mode;
 		return;
 	}
-*/
+
 	// Only pin 3 or 11 are allowed for PWM pin.
 	if (this->dcPWMpin == 3 || this->dcPWMpin == 11) 
 	{
@@ -161,8 +176,6 @@ void ControlerDc::SetFrequencyDivisorRaw(unsigned int inDivisor)
 		}
 		TCCR2B = (TCCR2B & 0b11111000) | mode;
 	}
-	
-#endif
 }
 
 

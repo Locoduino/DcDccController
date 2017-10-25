@@ -1,10 +1,10 @@
-= LcdUi extension Library for Arduino =
+= Dc Dcc controller Library for Arduino =
 
-This library is made to build sophisticated User Interface on Arduino for text Lcds .
+This library is made to build a Dc / Dcc controller on Arduino.
 
 For more information about this library please visit us at
 http://www.locoduino.org/spip.php?article141 in french or
-http://git.framasoft.org/locoduino.org/LcdUi/wikis/home for both french and english.
+http://git.framasoft.org/locoduino.org/DcDccController/wikis/home for both french and english.
 
 == License ==
 

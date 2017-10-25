@@ -33,11 +33,11 @@ void Function::Load(int inStartPos)
 	int pos = inStartPos, size = 0;
 	size = EEPROMextent.readAnything(pos, this->DccIdFunction);
 	pos += size;
-	this->activated = EEPROMextent.read(pos++)!=0;
+	this->activated = EEPROMextent.readByte(pos++)!=0;
 }
 
 void Function::Save(int inStartPos)
 {
 	inStartPos += EEPROMextent.updateAnything(inStartPos, this->DccIdFunction);
-	EEPROMextent.update(inStartPos++, this->activated);
+	EEPROMextent.updateByte(inStartPos++, this->activated);
 }

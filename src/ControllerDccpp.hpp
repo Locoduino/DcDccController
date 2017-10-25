@@ -47,6 +47,9 @@ class ControlerDccpp : public Controler
 		void StartProgramMode();
 		void EndProgramMode();
 
+		inline byte GetFunctionAddress(byte inFunctionNumber) const { return this->pControled->Functions[inFunctionNumber].DccIdFunction; }
+		inline void SetFunctionAddress(byte inFunctionNumber, byte inDccAddress) { this->pControled->Functions[inFunctionNumber].DccIdFunction = inDccAddress; }
+
 #ifdef DDC_DEBUG_MODE
 		static void showConfiguration();
 #endif

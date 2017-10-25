@@ -1,29 +1,28 @@
 /*************************************************************
 project: <Dc/Dcc Controler>
 author: <Thierry PARIS>
-description: <Class for a loco choice window>
+description: <Class for a slot choice window>
 *************************************************************/
 
 #ifndef NANOCONTROLER
 #include "DcDccControler.h"
-#include "WindowChooseLoco.hpp"
+#include "WindowChooseSlot.hpp"
 
-byte WindowChooseLoco::GetChoiceTextNumber() const
+char *WindowChooseSlot::GetChoiceTextValue(byte indexValue, LcdScreen *apScreen) const
 {
-	byte slot = 0;
+	if (RollingStock::rollingStock[indexValue] == 255)
+	{											 
+		strcpy(EngineShed::name, apScreen->GetString(STR_EMPTY));
+		sprintf(LcdScreen::buffer, " %d", indexValue);
+		strcat(EngineShed::name, LcdScreen::buffer);
+	}
+	else
+		EngineShed::GetName(RollingStock::rollingStock[indexValue]);
 
-	while (EngineShed::LocoSlots[slot] != 255)
-		slot++;
-
-	return slot;
+	return EngineShed::name;
 }
 
-char *WindowChooseLoco::GetChoiceTextValue(byte indexValue, LcdScreen *apScreen) const
-{
-	return EngineShed::GetName(indexValue);
-}
-
-void WindowChooseLoco::Event(byte inEventType, LcdUi *inpLcd)
+void WindowChooseSlot::Event(byte inEventType, LcdUi *inpLcd)
 {
 	unsigned int lastSelected = *this->pValue;
 
@@ -41,14 +40,14 @@ void WindowChooseLoco::Event(byte inEventType, LcdUi *inpLcd)
 			redo = false;
 			switch (this->canSelect)
 			{
-			case AllLocos:
+			case AllStock:
 				return;
-			case InRollingStock:
-				if (!RollingStock::IsInStock(*this->pValue))
+			case FreeRollingStockSlot:
+				if (RollingStock::rollingStock[*this->pValue] != 255)
 					redo = true;
 				break;
-			case NotInRollingStock:
-				if (RollingStock::IsInStock(*this->pValue))
+			case UsedRollingStockSlot:
+				if (RollingStock::rollingStock[*this->pValue] == 255)
 					redo = true;
 				break;
 			}
@@ -57,7 +56,6 @@ void WindowChooseLoco::Event(byte inEventType, LcdUi *inpLcd)
 				redone = true;
 				WindowChoiceText::Event(inEventType, inpLcd);
 			}
-
 		} while (redo && lastSelected != *this->pValue);
 
 		this->lockScreen = false;
@@ -68,4 +66,6 @@ void WindowChooseLoco::Event(byte inEventType, LcdUi *inpLcd)
 		}
 	}
 }
+
+
 #endif

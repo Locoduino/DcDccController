@@ -13,6 +13,8 @@
 #define DCC_SHORT_ADDRESS           0x00
 #define DCC_LONG_ADDRESS            0x01
 
+#define DCC_LOCONAME_LENGTH			12
+
 #define LOCOMOTIVE_TYPE				'L'
 
 class Locomotive
@@ -20,9 +22,8 @@ class Locomotive
 private:
 	byte SlotNumber;	// Slot number in the EEPROM list, 255 (EEPROMLIST_EMPTY_SLOT) if not saved.
 	int DccId;
-	bool addressKind;
 #ifndef NANOCONTROLER
-	char Name[12];
+	char Name[DCC_LOCONAME_LENGTH];
 #endif
 	byte steps;
 
@@ -49,10 +50,6 @@ public:
 	inline void SetDccId(int inDccId) { this->DccId = inDccId; }
 	inline int *GetDccIdAddress() { return &(this->DccId); }
 
-	inline bool GetDccAddressKind() const { return this->addressKind; }
-	inline void SetDccAddressKind(bool inAddressKind) { this->addressKind = inAddressKind; }
-	inline bool *GetDccIdAddressKindAddress() { return &(this->addressKind); }
-
 	inline byte GetSteps() const { return this->steps; }
 	inline void SetSteps(byte inSteps) { this->steps = inSteps; }
 	inline byte *GetStepsAddress() { return &(this->steps); }
@@ -73,6 +70,7 @@ public:
 
 #ifdef DDC_DEBUG_MODE
 	void CheckIndex(byte inIndex, const __FlashStringHelper *inFunc);
+	void print();
 #endif
 };
 

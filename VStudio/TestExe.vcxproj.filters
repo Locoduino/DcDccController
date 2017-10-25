@@ -22,9 +22,6 @@
     <Filter Include="LcdUi">
       <UniqueIdentifier>{c7247e2e-12ca-4d19-aefa-59adc7f292a5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="EEPROMextent">
-      <UniqueIdentifier>{95e505f3-17ea-4ad2-a8eb-f744069588fb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DCCpp">
       <UniqueIdentifier>{9aa09751-db43-404f-b3c3-5c029c3c3c83}</UniqueIdentifier>
     </Filter>
@@ -147,18 +144,6 @@
     <ClCompile Include="InoProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\EEPROMextent\VStudio\EEPROM.cpp">
-      <Filter>EEPROMextent</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\EEPROMextent\src\CircularBuffer.cpp">
-      <Filter>EEPROMextent</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\EEPROMextent\src\EEPROM_ItemList.cpp">
-      <Filter>EEPROMextent</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\EEPROMextent\src\EEPROMextent.cpp">
-      <Filter>EEPROMextent</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\DCCItemList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -182,6 +167,21 @@
     </ClCompile>
     <ClCompile Include="..\src\WindowCv.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WindowFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\WindowChooseSlot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\EngineShed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\RollingStock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\LcdUi\src\WindowSequence.cpp">
+      <Filter>LcdUi</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -338,15 +338,6 @@
     <ClInclude Include="..\src\DcDccControler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\EEPROMextent\VStudio\EEPROMextent.h">
-      <Filter>EEPROMextent</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\EEPROMextent\src\CircularBuffer.hpp">
-      <Filter>EEPROMextent</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\EEPROMextent\src\EEPROM_ItemList.hpp">
-      <Filter>EEPROMextent</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\DCCItemList.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -382,6 +373,21 @@
     </ClInclude>
     <ClInclude Include="..\src\WindowCv.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WindowFunctions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\WindowChooseSlot.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\EngineShed.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\RollingStock.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LcdUi\src\WindowSequence.hpp">
+      <Filter>LcdUi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

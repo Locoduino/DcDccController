@@ -45,11 +45,9 @@ void WindowLocoControl::Event(byte inEventType, LcdUi *inpLcd)
 			LcdScreen::BuildString(this->pHandle->GetControledLocomotive().GetDccId(), LcdScreen::buffer, 5);
 			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, 4, 0);
 #ifndef NANOCONTROLER
-			inpLcd->GetScreen()->setCursor(4 + this->pHandle->DccIdNbDigits, 0);
-			inpLcd->GetScreen()->write(32);
-			byte len = Screen::BuildStringLeft(this->pHandle->GetControledLocomotive().GetName(), inpLcd->GetScreen()->GetSizeX() - (4 + this->pHandle->DccIdNbDigits + 1), Screen::buffer);
-			inpLcd->GetScreen()->setCursor(inpLcd->GetScreen()->GetSizeX() - len, 0);
-			inpLcd->GetScreen()->print(Screen::buffer);
+			inpLcd->GetScreen()->DisplayChar(32, 4 + 5, 0);
+			byte len = LcdScreen::BuildString(this->pHandle->GetControledLocomotive().GetName(), inpLcd->GetScreen()->GetSizeX() - (4 + 5 + 1), LcdScreen::buffer);
+			inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, inpLcd->GetScreen()->GetSizeX() - len, 0);
 #endif
 		}
 

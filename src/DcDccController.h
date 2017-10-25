@@ -18,7 +18,7 @@
 
 #ifdef VISUALSTUDIO
 #define DDC_DEBUG_MODE
-#define ARDUINO_AVR_NANO	// for test
+#define ARDUINO_AVR_MEGA	// for test
 #include "../../DIO2/VStudio/DIO2.h"
 #else
 #include "DIO2.h"
@@ -33,10 +33,9 @@
 #endif
 
 #ifndef NANOCONTROLER
-/*	#ifndef __EEPROMextent_h__
-		#include "../EEPROMextent/src/EEPROMextent.h"
-	#endif*/
-	#define FUNCTION_NUMBER		8
+	#define FUNCTION_NUMBER			8
+	#define ROLLINGSTOCK_NUMBER		10
+	#define LOCO_MAXNUMBER			254
 #else
 	#define FUNCTION_NUMBER		2
 #endif
@@ -79,26 +78,39 @@ const char * const string_table[] PROGMEM
 	str_confirm,
 	str_pwmfreqency,
 	str_locoedit,
-	str_longaddress,
 	str_locoId,
 	str_locoName,
 	str_locoSteps,
 	str_locoSteps14,
 	str_locoSteps28,
 	str_locoSteps128,
-	str_functionId,
-	str_function,
+	str_functions,
 	str_dcslow,
 	str_programcv,
 
-#if !defined(ARDUINO_AVR_NANO) && !defined(ARDUINO_AVR_UNO)
-	str_saveLoco,
-	str_modelocoedit,
-	str_loconew,
-	str_locodel,
-	str_locochange,
-	str_locoselect,
-	str_resetconfig
+#if !defined(NANOCONTROLER)
+	str_resetconfig,
+	str_engineShed,
+	str_rollingStock,
+	str_slotAdd,
+	str_slotRemove,
+	str_slotRemoveConfirm,
+	str_slotMaintain,
+	str_locoAdd,
+	str_locoRemove,
+	str_locoRemoveConfirm,
+	str_back,
+	str_empty,
+	// Copies of already present strings, only to be able to build other
+	// input windows with the same text, but a different id.
+	str_locoId,
+	str_locoName,
+	str_locoSteps,
+	str_functions,
+	str_workshop,
+	str_workshopMove,
+	str_workshopBack,
+	str_workshopRepair,
 #endif
 };
 #endif
@@ -117,36 +129,48 @@ const char * const string_table[] PROGMEM
 #define STR_CONFIRM			11
 #define STR_PWMFREQCFG		12
 #define STR_LOCOEDIT		13
-#define STR_LONGADDRESS		14
-#define STR_LOCOID			15
-#define STR_LOCONAME		16
-#define STR_LOCOSTEPS		17
-#define STR_LOCOSTEPS14		18
-#define STR_LOCOSTEPS28		19
-#define STR_LOCOSTEPS128	20
-#define STR_FUNCTIONID		21
-#define STR_FUNCTION		22
-#define STR_DCSLOW			23
-#define STR_MODIFYCV		24
+#define STR_LOCOID			14
+#define STR_LOCONAME		15
+#define STR_LOCOSTEPS		16
+#define STR_LOCOSTEPS14		17
+#define STR_LOCOSTEPS28		18
+#define STR_LOCOSTEPS128	19
+#define STR_FUNCTIONS		20
+#define STR_DCSLOW			21
+#define STR_MODIFYCV		22
 
-#define STR_SAVELOCO		25
-#define STR_MODELOCOEDIT	26
-#define STR_LOCONEW			27
-#define STR_LOCOREMOVE		28
-#define STR_LOCOCHANGE		29
-#define STR_LOCOSELECT		30
-#define STR_RESETCONFIG		31
+#define STR_RESETCONFIG		23
+#define STR_ENGINESHED		24
+#define STR_ROLLINGSTOCK	25
+#define STR_SLOTADD			26
+#define STR_SLOTREMOVE		27
+#define STR_SLOTREMOVECONFIRM	28
+#define STR_SLOTMAINTAIN	29
+#define STR_LOCOADD			30
+#define STR_LOCOREMOVE		31
+#define STR_LOCOREMOVECONFIRM	32
+#define STR_BACK			33
+#define STR_EMPTY			34
+
+#define STR_SLOTLOCOID		35
+#define STR_SLOTLOCONAME	36
+#define STR_SLOTLOCOSTEPS	37
+#define STR_SLOTFUNCTIONS	38
+#define STR_WORKSHOP		39
+#define STR_WORKSHOPMOVE	40
+#define STR_WORKSHOPBACK	41
+#define STR_WORKSHOPREPAIR	42
 
 // IDs for function windows not related to strings.
 
-#define STR_FUNCTIONID0		40
-#define STR_FUNCTIONID1		41
-#define STR_FUNCTIONID2		42
-#define STR_FUNCTIONID3		43
-#define STR_FUNCTIONID4		44
-#define STR_FUNCTIONID5		45
-#define STR_FUNCTIONID6		46
-#define STR_FUNCTIONID7		47
+#define STR_FUNCTIONID0		50
+#define STR_FUNCTIONID1		51
+#define STR_FUNCTIONID2		52
+#define STR_FUNCTIONID3		53
+#define STR_FUNCTIONID4		54
+#define STR_FUNCTIONID5		55
+#define STR_FUNCTIONID6		56
+#define STR_FUNCTIONID7		57
 
 //////////////////////////////////////////
 //  Exclusion area
@@ -185,6 +209,8 @@ enum DcDcc
 #include "ControlerDc.hpp"
 #include "ControlerDccpp.hpp"
 #include "DCCItemList.hpp"
+#include "EngineShed.hpp"
+#include "RollingStock.hpp"
 
 #include "Handle.hpp"
 
@@ -201,19 +227,6 @@ enum DcDcc
 
 class DcDccControler
 {
-protected:
-	// Main
-	static uint8_t DcDccSignalPinMain;	// To be able to change Dc frequency, the pin used must be 9 or 10 !
-	static uint8_t SignalEnablePinMain;
-	static uint8_t DirectionMotorA;
-	static uint8_t CurrentMonitorMain;
-
-	// all at 255 if prog track not used.
-	static uint8_t DccSignalPinProg;
-	static uint8_t SignalEnablePinProg;
-	static uint8_t DirectionMotorB;
-	static uint8_t CurrentMonitorProg;
-
 public:
 	static DcDcc dcType;
 	static DcDcc dcTypeAtStart;
@@ -228,7 +241,6 @@ private:
 	static void beforeFirstLoop();
 
 public:
-
 	static void begin(uint8_t inDcDccSelectPin = 255);
 	static void beginMain(uint8_t DirectionMotor, uint8_t DccSignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);
 	static void beginProg(uint8_t DirectionMotor, uint8_t DccSignalPin, uint8_t SignalEnablePin, uint8_t CurrentMonitor);

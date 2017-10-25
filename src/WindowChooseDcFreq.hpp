@@ -20,7 +20,7 @@ public:
 	void begin(int inFirstLine, byte *inpFreq) { WindowChoiceText::begin(inFirstLine, inpFreq); }
 
 	byte GetChoiceTextNumber() const;
-	char *GetChoiceTextValue(byte indexValue) const;
+	char *GetChoiceTextValue(byte indexValue, LcdScreen *apScreen) const;
 
 	inline void BuildFreqString() { return ControlerDc::BuildFreqIndexString(*(this->pValue)); }
 	inline byte GetType() const { return WINDOWTYPE_FREQCHOICE; }

@@ -17,8 +17,8 @@ Handle::Handle()
 	this->MoreLessIncrement = 10;
 	this->pUi = NULL;
 
-	this->addressFunction0 = 0;
-	this->addressFunction1 = 1;
+	for (int i = 0; i < FUNCTION_NUMBER; i++)
+		this->addressFunction[i] = 0;
 }
 
 void Handle::begin(byte inHandleId)
@@ -40,76 +40,259 @@ void Handle::StartUI()
 	if (this->pUi != 0)
 #ifndef NANOCONTROLER
 	{
-		this->pUi->SetWindowsNumber(24 + (2 * Locomotive::FunctionNumber));
 		/*
-			Splash
-			Config							Choice
-				Nb digits					EditInt 2-4
-				Back light					YesNo
-				Reset						YesNo
-			LocoControl						WindowLocoControl
-			LocoChange						Choose loco (current is selected)
-			LocoEdit						Choice
-				Edit						Choose loco (current is selected)
-						ID					EditInt	1-127 or 1-10126
-						Address long		YesNo
-						Name				EditText
-						Steps				Choice 14/28/128
-						Function n			Int
-						Function n+1        Int
-				Add
-						ID					EditInt	1-127 or 1-10126
-						Address long		YesNo
-						Name				EditText
-						Steps				Choose 14/28/128
-						Function n			Int
-						Function n+1        Int
-				Remove						Choose loco (current is selected)
-						Confirm				Confirm
+		In Dc :
+		0	Splash
+		1	Start : Confirm dc
+		2		DDC menu				Choice
+		3			Config DDC			Choice
+		4				PWM freq		WindowChooseDcFreq
+		5			LocoControl			WindowLocoControl
+		6	Stop						Interrupt
+
+		In Dcc :
+		0	Splash
+		1	Start : Confirm dcc
+		2		DDC menu				Choice
+		3			Config DDC			Choice
+		4				Reset			Confirm
+		5			LocoControl			WindowLocoControl
+		6			RollingStock		winChoiceRollingStock
+						PowerUp
+		7					winChooseLoco
+						Garage
+		8					winChooseSlotRemove
+		9					winRemoveSlot	Confirm
+		Maintenance	(if only one loco in the stock, and no prog track)
+		10					winChooseSlotMaintain
+		11					winSlotLocoId		EditInt	1-10126
+		12					winSlotLocoName		EditText
+		13					winSlotChoiceSteps	Choice 14/28/128
+		14					winSlotFunctions	EditInt	0-28
+		15					winSlotCV			WindowCv
+		16			EngineShed			winChoiceEngineShed
+						Delivery
+		17					winLocoAddId			EditInt	1-10126
+		18					winLocoAddName			EditText
+		19					winChoiceLocoAddSteps	Choice 14/28/128
+		20					winLocoAddFunctions		EditInt	0-28
+						Deregistration
+		21					winChooseLocoRemove
+		22					winRemoveLoco	Confirm
+						Log book
+		23					winLocoLogId			EditInt	1-10126
+		24					winLocoLogName			EditText
+		25					winChoiceLogSteps		Choice 14/28/128
+		26					winLogFunctions			EditInt	0-28
+		27			Workshop		Choice  (only if a prog track is declared)
+						Move to
+		28					winChooseSlotWorkshop
+						Back To Stock
+		29					winRemoveWorkshop	Confirm
+						Repair
+		30					winWSRepairId			EditInt	1-10126
+		31					winWSRepairName			EditText
+		32					winChoiceWSRepairSteps	Choice 14/28/128
+		33					winWSRepairFunctions	EditInt	0-28
+		34					winWSRepairProgramCV	WindowCv
+
+		35	Stop						Interrupt
 		*/
+		this->locoChosen = 255;
+		this->slotChosen = 255;
+		this->locoWorkshop = 255;
 
-		// Master version
-		WindowSplash *pSplash = (WindowSplash *)this->pUi->AddWindow(new WindowSplash(STR_TITLE, STR_COPYRIGHT));	// menu
-		WindowChoice *pChoiceMain = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODEMODECHOICE, 4, false, 0));	// menu
-		pChoiceMain->AddChoice(STR_MODECONFIG);
-		WindowChoice *pChoiceConfig = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODECONFIG, 3, false), pChoiceMain);	// config
-		pChoiceConfig->AddChoice(STR_HANDLECFGDIGITS);
-		this->pUi->AddWindow(new WindowInt(STR_HANDLECFGDIGITS, 4, 2), pChoiceConfig, 0);
-		pChoiceConfig->AddChoice(STR_PWMFREQCFG);
-		this->pUi->AddWindow(new WindowChooseDcFreq(STR_PWMFREQCFG), pChoiceConfig, 1);	// DC Freq
-		pChoiceConfig->AddChoice(STR_RESETCONFIG);
-		this->pUi->AddWindow(new WindowConfirm(STR_RESETCONFIG, STR_CONFIRM), pChoiceConfig, 2);	// reset config
-		pChoiceMain->AddChoice(STR_MODELOCOCTRL);
-		this->pUi->AddWindow(new WindowLocoControl(STR_MODELOCOCTRL, this), pChoiceMain, 1); // run
-		pChoiceMain->AddChoice(STR_MODELOCOCHANGE);
-		this->pUi->AddWindow(new WindowChooseLoco(STR_MODELOCOCHANGE, this), pChoiceMain, 2);
-		pChoiceMain->AddChoice(STR_MODELOCOEDIT);
-		WindowChoice *pChoiceLocoEdit = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_MODELOCOEDIT, 3, true), pChoiceMain, 3);
-		pChoiceLocoEdit->AddChoice(STR_LOCOEDIT, STR_SAVELOCO);
-		Window *pWinChooseLoco = this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOSELECT, this), pChoiceLocoEdit, 0);
-		Window *pWinLocoId = this->pUi->AddWindow(new WindowInt(STR_LOCOID, 10026, 1), pChoiceLocoEdit, 0);
-		Window *pWinLocoAddress = this->pUi->AddWindow(new WindowYesNo(STR_LONGADDRESS), pChoiceLocoEdit, 0);
-		Window *pWinLocoName = this->pUi->AddWindow(new WindowText(STR_LOCONAME), pChoiceLocoEdit, 0);
-		WindowChoice *pChoiceSteps = (WindowChoice *)this->pUi->AddWindow(new WindowChoice(STR_LOCOSTEPS, 3, false), pChoiceLocoEdit, 0);
-		pChoiceSteps->AddChoice(STR_LOCOSTEPS14);
-		pChoiceSteps->AddChoice(STR_LOCOSTEPS28);
-		pChoiceSteps->AddChoice(STR_LOCOSTEPS128);
-		for (int i = 0; i < Locomotive::FunctionNumber; i++)
-			this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 0);
-		pChoiceLocoEdit->AddChoice(STR_LOCONEW);
-		this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
-		this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
-		this->pUi->AddWindow(pWinLocoName, pChoiceLocoEdit, 1);
-		this->pUi->AddWindow(pChoiceSteps, pChoiceLocoEdit, 1);
-		for (int i = 0; i < Locomotive::FunctionNumber; i++)
-			this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 1);
-		pChoiceLocoEdit->AddChoice(STR_LOCOREMOVE);
-		this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOREMOVE, this), pChoiceLocoEdit, 2);
-		this->pUi->AddWindow(new WindowConfirm(STR_LOCOREMOVE, STR_CONFIRM), pChoiceLocoEdit, 2);
+		// BEGINS !
+		winSplash.begin(STR_TITLE, STR_COPYRIGHT);
+		winStart.begin(DcDccControler::dcType == Dc ? STR_DC : STR_DCC, STR_CONFIRM, NULL);
+		winChoiceMain.begin(STR_MODEMODECHOICE, &choiceMain);	// menu
+		winChoiceConfigDDC.begin(STR_MODECONFIG, &choiceConfig);
+		if (DcDccControler::dcType == Dc)
+		{
+			winFreq.begin(STR_PWMFREQCFG, NULL);
+		}
+		else
+		{
+			winLocoInput.begin(1);
+			winLocoInput.AddWindow(&winLocoAddId);
+			winLocoInput.AddWindow(&winLocoAddName);
+			winLocoInput.AddWindow(&winChoiceLocoAddSteps);
+			winLocoInput.AddWindow(&winLocoAddFunctions);
+			winLocoAddId.begin(STR_LOCOID, EngineShed::Current.GetDccIdAddress(), 1, 10026);
+			winLocoAddName.begin(STR_LOCONAME, EngineShed::Current.GetNameAddress(), DCC_LOCONAME_LENGTH);
+			winChoiceLocoAddSteps.begin(STR_LOCOSTEPS, &choiceStepsEngineShedAdd);
+			winLocoAddFunctions.begin(STR_FUNCTIONS);
 
-		this->windowInterruptDcDcc = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_DCDCC, STR_DCDCC2))); // Dc/Dcc mode change
-		this->windowInterruptEmergency = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_STOP, STR_STOP2))); // Emergency stop
-		this->windowInterruptSaveLoco = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterruptConfirm(STR_SAVELOCO, STR_CONFIRM))); // Save the loco after modif
+			winResetConfig.begin(STR_RESETCONFIG, STR_CONFIRM, &this->confirmed);
+			winChoiceEngineShed.begin(STR_ENGINESHED, &this->choiceEngineShed);
+				// Add
+				//winLocoInput.begin(1);
+/*				winLocoAddId.begin(STR_LOCOID, EngineShed::Current.GetDccIdAddress(), 1, 10026);
+				winLocoAddName.begin(STR_LOCONAME, EngineShed::Current.GetNameAddress(), DCC_LOCONAME_LENGTH);
+				winChoiceLocoAddSteps.begin(STR_LOCOSTEPS, &choiceStepsEngineShedAdd);
+				winLocoAddFunctions.begin(STR_FUNCTIONS);*/
+				// Remove
+				winChooseLocoRemove.begin(STR_LOCOREMOVECONFIRM, &this->locoChosen, InRollingStock);
+				winRemoveLoco.begin(STR_LOCOREMOVE, STR_CONFIRM, &this->confirmed);
+				// Edit
+				//winLocoInput.begin(1);
+/*				winLocoLogId.begin(STR_LOCOID, EngineShed::Current.GetDccIdAddress(), 1, 10026);
+				winLocoLogName.begin(STR_LOCONAME, EngineShed::Current.GetNameAddress(), DCC_LOCONAME_LENGTH);
+				winChoiceLogSteps.begin(STR_LOCOSTEPS, &choiceStepsEngineShedAdd);
+				winLogFunctions.begin(STR_FUNCTIONS);*/
+			winChoiceRollingStock.begin(STR_ROLLINGSTOCK, &this->choiceRollingStock);
+				// Add
+				winChooseSlotLoco.begin(STR_SLOTADD, &this->locoChosen, NotInRollingStock);
+				// Remove
+				winChooseSlotRemove.begin(STR_SLOTREMOVECONFIRM, &this->slotChosen, UsedRollingStockSlot);
+				winRemoveSlot.begin(STR_SLOTREMOVE, STR_CONFIRM, &this->confirmed);
+				// Maintain
+				winChooseSlotMaintain.begin(STR_SLOTMAINTAIN, &this->slotChosen, UsedRollingStockSlot);
+				//winLocoInput.begin(1);
+/*				winSlotLocoId.begin(STR_LOCOID, EngineShed::Current.GetDccIdAddress(), 1, 10026);
+				winSlotLocoName.begin(STR_LOCONAME, EngineShed::Current.GetNameAddress(), DCC_LOCONAME_LENGTH);
+				winSlotChoiceSteps.begin(STR_LOCOSTEPS, &choiceStepsEngineShedAdd);
+				winSlotFunctions.begin(STR_FUNCTIONS);*/
+			winChoiceWorkshop.begin(STR_WORKSHOP, &this->choiceWorkshop);
+				// Add
+				winChooseSlotWorkshop.begin(STR_WORKSHOPMOVE, &this->locoWorkshop, UsedRollingStockSlot);
+				// Remove
+				winRemoveWorkshop.begin(STR_WORKSHOPBACK, STR_CONFIRM, &this->confirmed);
+				// Repair
+				//winLocoInput.begin(1);
+/*				winWSRepairId.begin(STR_LOCOID, EngineShed::Current.GetDccIdAddress(), 1, 10026);
+				winWSRepairName.begin(STR_LOCONAME, EngineShed::Current.GetNameAddress(), DCC_LOCONAME_LENGTH);
+				winChoiceWSRepairSteps.begin(STR_LOCOSTEPS, &choiceStepsEngineShedAdd);
+				winWSRepairFunctions.begin(STR_FUNCTIONS);*/
+				winWSRepairProgramCV.begin(STR_MODIFYCV);
+		}
+
+		winSlotCV.begin(STR_MODIFYCV);
+		winLocoControl.begin(254, this);
+		this->windowInterruptEmergency.begin(STR_STOP, STR_STOP2, EVENT_EMERGENCY); // Emergency stop
+
+		// WINDOWS in the list
+		this->pUi->AddWindow(&winSplash);
+		this->pUi->AddWindow(&winStart);
+		this->pUi->AddWindow(&winChoiceMain);
+		this->pUi->AddWindow(&winChoiceConfigDDC);
+		if (DcDccControler::dcType == Dc)
+		{
+			this->pUi->AddWindow(&winFreq);
+		}
+		else
+		{
+			this->pUi->AddWindow(&winResetConfig);
+			this->pUi->AddWindow(&winChoiceEngineShed);
+				// Add
+				this->pUi->AddWindow(&winLocoInput);
+/*				this->pUi->AddWindow(&winLocoAddId);
+				this->pUi->AddWindow(&winLocoAddName);
+				this->pUi->AddWindow(&winChoiceLocoAddSteps);
+				this->pUi->AddWindow(&winLocoAddFunctions);*/
+				// Remove
+				this->pUi->AddWindow(&winChooseLocoRemove);
+				this->pUi->AddWindow(&winRemoveLoco);
+				// Edit
+				this->pUi->AddWindow(&winLocoInput);
+/*				this->pUi->AddWindow(&winLocoLogId);
+				this->pUi->AddWindow(&winLocoLogName);
+				this->pUi->AddWindow(&winChoiceLogSteps);
+				this->pUi->AddWindow(&winLogFunctions);*/
+			this->pUi->AddWindow(&winChoiceRollingStock);
+				// Add
+				this->pUi->AddWindow(&winChooseSlotLoco);
+				// Remove
+				this->pUi->AddWindow(&winChooseSlotRemove);
+				this->pUi->AddWindow(&winRemoveSlot);
+				// Maintain
+				this->pUi->AddWindow(&winChooseSlotMaintain);
+				this->pUi->AddWindow(&winLocoInput);
+/*				this->pUi->AddWindow(&winSlotLocoId);
+				this->pUi->AddWindow(&winSlotLocoName);
+				this->pUi->AddWindow(&winSlotChoiceSteps);
+				this->pUi->AddWindow(&winSlotFunctions);*/
+			this->pUi->AddWindow(&winChoiceWorkshop);
+				// Add
+				this->pUi->AddWindow(&winChooseSlotWorkshop);
+				// Remove
+				this->pUi->AddWindow(&winRemoveWorkshop);
+				// Repair
+				this->pUi->AddWindow(&winLocoInput);
+/*				this->pUi->AddWindow(&winWSRepairId);
+				this->pUi->AddWindow(&winWSRepairName);
+				this->pUi->AddWindow(&winChoiceWSRepairSteps);
+				this->pUi->AddWindow(&winWSRepairFunctions);*/
+				this->pUi->AddWindow(&winWSRepairProgramCV);
+		}
+
+		this->pUi->AddWindow(&winLocoControl);
+		this->pUi->AddWindow(&this->windowInterruptEmergency);
+
+		// CHOICES
+		winChoiceMain.AddChoice(STR_MODELOCOCTRL, &winLocoControl); // run
+		winChoiceMain.AddChoice(STR_MODECONFIG, &winChoiceConfigDDC);
+		if (DcDccControler::dcType == Dc)
+		{
+			winChoiceConfigDDC.AddChoice(STR_PWMFREQCFG, &winFreq);	// DC Freq
+			winFreq.SetValueAddress(&(((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex));
+		}
+		else
+		{
+			winChoiceConfigDDC.AddChoice(STR_RESETCONFIG, &winResetConfig);
+
+			winChoiceMain.AddChoice(STR_ENGINESHED, &winChoiceEngineShed);
+				winChoiceEngineShed.AddChoice(STR_LOCOADD);
+					winLocoInput.AddFather(STR_ENGINESHED, STR_LOCOADD);
+/*					winLocoAddName.SetFather(STR_ENGINESHED, STR_LOCOADD);
+					winChoiceLocoAddSteps.SetFather(STR_ENGINESHED, STR_LOCOADD);
+						winChoiceLocoAddSteps.AddChoice(STR_LOCOSTEPS14);
+						winChoiceLocoAddSteps.AddChoice(STR_LOCOSTEPS28);
+						winChoiceLocoAddSteps.AddChoice(STR_LOCOSTEPS128);
+					winLocoAddFunctions.SetFather(STR_ENGINESHED, STR_LOCOADD);*/
+				winChoiceEngineShed.AddChoice(STR_LOCOREMOVE);
+					winChooseLocoRemove.SetFather(STR_ENGINESHED, STR_LOCOREMOVE);
+					winRemoveLoco.SetFather(STR_ENGINESHED, STR_LOCOREMOVE);
+				winChoiceEngineShed.AddChoice(STR_LOCOEDIT);
+					winLocoInput.AddFather(STR_ENGINESHED, STR_LOCOEDIT);
+					/*winLocoLogId.SetFather(STR_ENGINESHED, STR_LOCOEDIT);
+					winLocoLogName.SetFather(STR_ENGINESHED, STR_LOCOEDIT);
+					winChoiceLogSteps.SetFather(STR_ENGINESHED, STR_LOCOEDIT);
+						winChoiceLogSteps.AddChoice(STR_LOCOSTEPS14);
+						winChoiceLogSteps.AddChoice(STR_LOCOSTEPS28);
+						winChoiceLogSteps.AddChoice(STR_LOCOSTEPS128);
+					winLogFunctions.SetFather(STR_ENGINESHED, STR_LOCOEDIT);*/
+
+			winChoiceMain.AddChoice(STR_ROLLINGSTOCK, &winChoiceRollingStock);
+				winChoiceRollingStock.AddChoice(STR_SLOTADD, &winChooseSlotLoco);
+				winChoiceRollingStock.AddChoice(STR_SLOTREMOVE, &winRemoveSlot);
+					winChooseSlotRemove.SetFather(STR_ROLLINGSTOCK, STR_SLOTREMOVE);
+					winRemoveSlot.SetFather(STR_ROLLINGSTOCK, STR_SLOTREMOVE);
+				winChoiceRollingStock.AddChoice(STR_SLOTMAINTAIN);
+					winChooseSlotMaintain.SetFather(STR_ROLLINGSTOCK, STR_SLOTMAINTAIN);
+					winLocoInput.AddFather(STR_ROLLINGSTOCK, STR_SLOTMAINTAIN);
+/*					winSlotLocoId.SetFather(STR_ROLLINGSTOCK, STR_SLOTMAINTAIN);
+					winSlotLocoName.SetFather(STR_ROLLINGSTOCK, STR_SLOTMAINTAIN);
+					winSlotChoiceSteps.SetFather(STR_ROLLINGSTOCK, STR_SLOTMAINTAIN);
+						winSlotChoiceSteps.AddChoice(STR_LOCOSTEPS14);
+						winSlotChoiceSteps.AddChoice(STR_LOCOSTEPS28);
+						winSlotChoiceSteps.AddChoice(STR_LOCOSTEPS128);
+					winSlotFunctions.SetFather(STR_ROLLINGSTOCK, STR_SLOTMAINTAIN);*/
+
+			winChoiceMain.AddChoice(STR_WORKSHOP, &winChoiceWorkshop);
+				winChoiceWorkshop.AddChoice(STR_WORKSHOPMOVE, &winChooseSlotWorkshop);
+				winChoiceWorkshop.AddChoice(STR_WORKSHOPBACK, &winRemoveWorkshop);
+				winChoiceWorkshop.AddChoice(STR_WORKSHOPREPAIR);
+					winLocoInput.AddFather(STR_WORKSHOP, STR_WORKSHOPREPAIR);
+/*					winWSRepairId.SetFather(STR_WORKSHOP, STR_WORKSHOPREPAIR);
+					winWSRepairName.SetFather(STR_WORKSHOP, STR_WORKSHOPREPAIR);
+					winChoiceWSRepairSteps.SetFather(STR_WORKSHOP, STR_WORKSHOPREPAIR);
+						winChoiceWSRepairSteps.AddChoice(STR_LOCOSTEPS14);
+						winChoiceWSRepairSteps.AddChoice(STR_LOCOSTEPS28);
+						winChoiceWSRepairSteps.AddChoice(STR_LOCOSTEPS128);
+					winWSRepairFunctions.SetFather(STR_WORKSHOP, STR_WORKSHOPREPAIR);*/
+					winWSRepairProgramCV.SetFather(STR_WORKSHOP, STR_WORKSHOPREPAIR);
+		}
 	}
 #else
 	{
@@ -129,7 +312,6 @@ void Handle::StartUI()
 		2		DDC menu				Choice
 		3			Config DDC			Choice
 		4				ID				EditInt	1-127 or 1-10126
-		5				Address long	YesNo
 		6				Steps			Choice 14/28/128
 		7				Modify Cv		WindowCv
 		8				Function n		EditInt	1-127 or 1-10126
@@ -150,10 +332,8 @@ void Handle::StartUI()
 		else
 		{
 			winLocoId.begin(STR_LOCOID, NULL, 1, 10026);
-			winLongAddress.begin(STR_LONGADDRESS, NULL);
 			winChoiceSteps.begin(STR_LOCOSTEPS, &choiceSteps);
-			winFunction1.begin(STR_FUNCTIONID1, &addressFunction0);
-			winFunction2.begin(STR_FUNCTIONID2, &addressFunction1);
+			winFunctions.begin(STR_FUNCTIONS);
 			winProgramCV.begin(STR_MODIFYCV);
 		}
 
@@ -171,11 +351,9 @@ void Handle::StartUI()
 		}
 		else
 		{
-			this->pUi->AddWindow(&winLocoId);
-			this->pUi->AddWindow(&winLongAddress);
+			this->pUi->AddWindow(&winLocoLogId);
 			this->pUi->AddWindow(&winChoiceSteps);
-			this->pUi->AddWindow(&winFunction1);
-			this->pUi->AddWindow(&winFunction2);
+			this->pUi->AddWindow(&winFunctions);
 			this->pUi->AddWindow(&winProgramCV);
 		}
 
@@ -191,23 +369,19 @@ void Handle::StartUI()
 		}
 		else
 		{
-				winChoiceConfigDDC.AddChoice(STR_LOCOID, &winLocoId);
-				winChoiceConfigDDC.AddChoice(STR_LONGADDRESS, &winLongAddress);
+				winChoiceConfigDDC.AddChoice(STR_LOCOID, &winLocoLogId);
 				winChoiceConfigDDC.AddChoice(STR_LOCOSTEPS, &winChoiceSteps);
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS14);
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS28);
 					winChoiceSteps.AddChoice(STR_LOCOSTEPS128);
-				winChoiceConfigDDC.AddChoice(STR_FUNCTIONID);
-					winFunction1.SetFather(winChoiceConfigDDC.GetFirstLine(), STR_FUNCTIONID);
-					winFunction2.SetFather(winChoiceConfigDDC.GetFirstLine(), STR_FUNCTIONID);
+				winChoiceConfigDDC.AddChoice(STR_FUNCTIONS, &winFunctions);
 				winChoiceConfigDDC.AddChoice(STR_MODIFYCV, &winProgramCV);
 		}
 		winChoiceMain.AddChoice(STR_MODELOCOCTRL, &winLocoControl); // run
 	}
 #endif
 
-	winLocoId.SetValueAddress(this->controled.GetDccIdAddress());
-	winLongAddress.SetValueAddress(this->controled.GetDccIdAddressKindAddress());
+	winLocoLogId.SetValueAddress(this->controled.GetDccIdAddress());
 
 //	Serial.print((int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval));
 //	Serial.println(F(" bytes"));
@@ -245,6 +419,15 @@ void Handle::Clear()
 }
 
 //#define DDC_DEBUG_MODE
+
+void Handle::SetControledLocomotive(byte inRollingStockSlot)
+{
+#ifdef DDC_DEBUG_MODE
+	Serial.println(F("SetLocomotive"));
+#endif
+	RollingStock::SetCurrent(inRollingStockSlot);
+	this->controled.Copy(RollingStock::Current);
+}
 
 void Handle::SetControledLocomotive(Locomotive &inLocomotive)
 {
@@ -311,7 +494,7 @@ bool Handle::loop(unsigned long inEvent, int inData)
 	if (pUi->loop(event))
 	{
 		Window *pCurrent = pUi->GetGlobalCurrentWindow();
-		Locomotive &loco = this->edited;
+		Locomotive &loco = this->controled;
 
 #ifdef DDC_DEBUG_MODE
 		//LcdUi::printEvent(event, F("pUi->Loop"));
@@ -344,13 +527,8 @@ bool Handle::loop(unsigned long inEvent, int inData)
 				default: val = STR_LOCOSTEPS128; break;
 				}
 
-				winChoiceSteps.SetCurrentChoiceById(val);
+				winChoiceLogSteps.SetCurrentChoiceById(val);
 				break;
-#ifndef NANOCONTROLER
-			case STR_LOCONAME:
-				strncpy(this->name, loco.GetName(), 20);
-				break;
-#endif
 			}
 			break;
 
@@ -375,7 +553,7 @@ bool Handle::loop(unsigned long inEvent, int inData)
 				break;
 			case STR_LOCOSTEPS:
 				int val;
-				switch (this->choiceSteps.id)
+				switch (this->winChoiceLogSteps.GetFirstLine())
 				{
 				case STR_LOCOSTEPS14: val = 14; this->MoreLessIncrement = 1; break;
 				case STR_LOCOSTEPS28: val = 28; this->MoreLessIncrement = 1; break;
@@ -384,72 +562,30 @@ bool Handle::loop(unsigned long inEvent, int inData)
 				loco.SetSteps(val);
 				saveConfig = true;
 				break;
-			case STR_FUNCTIONID1:
-				loco.Functions[0].SetDccId(addressFunction0);
+			case STR_FUNCTIONS:
 				saveConfig = true;
 				break;
 
-			case STR_FUNCTIONID2:
-				loco.Functions[1].SetDccId(addressFunction1);
-				saveConfig = true;
-				break;
 #ifndef NANOCONTROLER
-			case STR_MODELOCOCHANGE:
-				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->controled);
-				saveConfig = true;
+			case STR_SLOTADD:
+			{
+				byte free = RollingStock::FindFreeSlot();
+				if (free != 255)
+					RollingStock::AddLoco(free, this->locoChosen); 
+				DcDccControler::ConfigSave();
+			}
 				break;
-
-			case STR_LOCOSELECT:
-				DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
-				saveConfig = true;
+			case STR_SLOTREMOVE:
+				if (this->confirmed)
+					RollingStock::Remove(this->slotChosen);
+				DcDccControler::ConfigSave();
 				break;
-
-			case STR_MODELOCOEDIT:
-				switch (pCurrent->GetChoiceValue())
-				{
-				case STR_LOCONEW:
-					this->edited.Clear();
-					break;
-
-				case STR_LOCOREMOVE:
-					if (pCurrent->GetType() == WINDOWTYPE_CONFIRM)
-					{
-						WindowConfirm *pConfirm = (WindowConfirm *)pCurrent;
-
-						if (pConfirm->GetChoiceValue() == STR_YES)
-						{
-							DCCItemList.FreeLoco(&this->edited);
-							this->edited.Clear();
-							WindowChooseLoco::SetSelectedLoco(255);
-							WindowChooseLoco::RebuildChoices();
-						}
-					}
-					else
-						DCCItemList.GetLoco(pCurrent->GetChoiceValue(), &this->edited);
-					break;
-
-				}
-				break;
-			case STR_LOCONAME:
-				loco.SetName(((WindowText*)pCurrent)->GetTextValue());
-				break;
-			case STR_SAVELOCO:
-				if (pCurrent->GetChoiceValue() == STR_YES)
-				{
-					DCCItemList.UpdateLoco(&this->edited);
-					WindowChooseLoco::RebuildChoices();
-				}
-				break;
-
 			case STR_RESETCONFIG:
 				DcDccControler::ConfigReset();
+				DcDccControler::ConfigSave();
 				this->Clear();
 				break;
 #else
-			case STR_LONGADDRESS:
-				saveConfig = true;
-				break;
-
 			case STR_LOCOID:
 				saveConfig = true;
 				break;
@@ -491,13 +627,13 @@ void Handle::ConfigLoad()
 
 	if (DcDccControler::dcType == Dcc)
 	{
-		this->MoreLessIncrement = EEPROMextent.read(pos + 1);
+		this->MoreLessIncrement = EEPROMextent.readByte(pos + 1);
 
 		// Add here a new config
 		byte controledSlot = 0;
 #ifndef NANOCONTROLER
-		controledSlot = EEPROMextent.read(pos + 3);
-		if (controledSlot < DCCItemList.ListSize / DCCItemList.ItemSize)
+		controledSlot = EEPROMextent.readByte(pos + 3);
+		if (controledSlot < DCCItemList.listSize / DCCItemList.itemSize)
 #endif
 		{
 			DCCItemList.GetLoco(controledSlot, &this->controled);
@@ -515,13 +651,13 @@ void Handle::ConfigSave()
 
 	if (DcDccControler::dcType == Dcc)
 	{
-		EEPROMextent.write(pos, 0);		// Data version
-		EEPROMextent.write(pos+1, this->MoreLessIncrement);		// Data version
+		EEPROMextent.writeByte(pos, 0);		// Data version
+		EEPROMextent.writeByte(pos+1, this->MoreLessIncrement);		// Data version
 #ifdef NANOCONTROLER
 		// Save/load only the current loco.
 		DCCItemList.UpdateLoco(&this->controled);
 #else
-		EEPROMextent.write(pos + 3, this->controled.GetSlotNumber());
+		EEPROMextent.writeByte(pos + 3, this->controled.GetSlotNumber());
 #endif
 	}
 }

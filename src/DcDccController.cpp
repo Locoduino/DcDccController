@@ -109,6 +109,10 @@ void DcDccControler::begin(uint8_t inDcDccSelectPin)
 	LcdScreen::YesMsg = STR_YES;
 	LcdScreen::NoMsg = STR_NO;
 
+#ifndef NANOCONTROLER
+	LcdScreen::BackspaceMsg	= STR_BACK;
+#endif
+
 	if (DcDccControler::dcType == Dc)
 	{
 #ifdef DDC_DEBUG_MODE
@@ -148,16 +152,6 @@ void DcDccControler::beforeFirstLoop()
 		return;
 	}
 
-#ifndef NANOCONTROLER
-	WindowChooseLoco::ClearChoices();
-#endif
-
-	DCCItemList.begin(EEPROM_DDC_CONFIG_SIZE + (EEPROM_DDC_HANDLE_CONFIG_SIZE * DcDccControler::handleAddcounter), 30, EEPROM.length());
-
-#ifndef NANOCONTROLER
-	WindowChooseLoco::RebuildChoices();
-#endif
-
 	if (DcDccControler::dcType == Dc)
 	{
 		// Force to use only the first handle...
@@ -165,6 +159,13 @@ void DcDccControler::beforeFirstLoop()
 		// Affect a special loco to this handle.
 		DcDccControler::pHandleList[0]->SetControledLocomotive(Locomotive::AnalogLocomotive);
 		DcDccControler::pHandleList[0]->MoreLessIncrement = 10;
+	}
+	else
+	{
+#ifndef NANOCONTROLER
+		EngineShed::begin();
+		RollingStock::begin();
+#endif
 	}
 
 	ConfigLoad();
@@ -224,7 +225,7 @@ void DcDccControler::ConfigLoad()
 {
 	// The first three bytes must be 'DDC' to assume that there is already a saved configuration
 	// in the EEPROM. If not, reset all the EEPROM to 0, and save the 'DDC' identifier.
-	if (EEPROMextent.read(0) != 'D' || EEPROMextent.read(1) != 'D' || EEPROMextent.read(2) != 'C')
+	if (EEPROMextent.readByte(0) != 'D' || EEPROMextent.readByte(1) != 'D' || EEPROMextent.readByte(2) != 'C')
 	{
 		ConfigReset();
 		ConfigSave();
@@ -233,34 +234,105 @@ void DcDccControler::ConfigLoad()
 	{
 		if (DcDccControler::dcType == Dc)
 		{
-			byte dCFrequencyDivisorIndex = EEPROMextent.read(3);
+			byte dCFrequencyDivisorIndex = EEPROMextent.readByte(3);
 
 			if (dCFrequencyDivisorIndex < NB_PWM_FREQ_11_3)
 				// Set frequency, even if the pin is not correct at this moment !
 				((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex = dCFrequencyDivisorIndex;
 		}
+		else
+		{
+			int pos = 4;
+#ifndef NANOCONTROLER
+			pos = EngineShed::ConfigLoad(pos);
+			pos = RollingStock::ConfigLoad(pos);
+#endif
+		}
 
 		// Must be done only when the good value is in Locomotive::FunctionNumber...
 		for (int i = 0; i < DcDccControler::handleAddcounter; i++)
-		{
 			DcDccControler::pHandleList[i]->ConfigLoad();
-		}
 	}
 }
 
 int DcDccControler::ConfigSave()
 {
-	EEPROMextent.write(0, 'D');
-	EEPROMextent.write(1, 'D');
-	EEPROMextent.write(2, 'C');
+	EEPROMextent.writeByte(0, 'D');
+	EEPROMextent.writeByte(1, 'D');
+	EEPROMextent.writeByte(2, 'C');
 
+	int pos = 4;
 	if (DcDccControler::dcType == Dc)
-		EEPROMextent.write(3, ((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
-	return 0;
+		EEPROMextent.writeByte(3, ((ControlerDc *)DcDccControler::pControler)->DCFrequencyDivisorIndex);
+	else
+	{
+#ifndef NANOCONTROLER
+		pos = EngineShed::ConfigSave(pos);
+		pos = RollingStock::ConfigSave(pos);
+#endif
+	}
+
+	// Must be done only when the good value is in Locomotive::FunctionNumber...
+	for (int i = 0; i < DcDccControler::handleAddcounter; i++)
+		DcDccControler::pHandleList[i]->ConfigSave();
+
+	return pos; // Pos of next writing...
 }
 
 void DcDccControler::ConfigReset()
 {
+#ifndef NANOCONTROLER
+	EngineShed::Clear();
+	RollingStock::Clear();
+#endif
+
 	for (uint16_t i = 0; i < EEPROM.length(); i++)
-		EEPROMextent.update(i, 0);
+		EEPROMextent.updateByte(i, 0);
+
+#ifndef NANOCONTROLER
+	// For test only
+	// For test : populate locos of Engine Shed
+
+	EngineShed::Current.SetDccId(3);
+	EngineShed::Current.SetName("Test Loco3");
+	EngineShed::Current.SetSteps(128);
+	EngineShed::Current.Functions[0].SetDccId(0);
+	EngineShed::Current.Functions[1].SetDccId(10);
+	EngineShed::Current.Functions[2].SetDccId(255);
+	EngineShed::Current.Functions[3].SetDccId(255);
+	EngineShed::Current.Functions[4].SetDccId(255);
+	EngineShed::Current.Functions[5].SetDccId(255);
+	EngineShed::Current.Functions[6].SetDccId(255);
+	EngineShed::Current.Functions[7].SetDccId(255);
+	DCCItemList.AddLoco(&EngineShed::Current);
+
+	EngineShed::Current.SetDccId(47);
+	EngineShed::Current.SetName("X73914");
+	EngineShed::Current.SetSteps(128);
+	EngineShed::Current.Functions[0].SetDccId(0);
+	EngineShed::Current.Functions[1].SetDccId(1);
+	DCCItemList.AddLoco(&EngineShed::Current);
+
+	EngineShed::Current.SetDccId(41);
+	EngineShed::Current.SetName("ABJ-1");
+	EngineShed::Current.SetSteps(128);
+	EngineShed::Current.Functions[0].SetDccId(0);
+	EngineShed::Current.Functions[1].SetDccId(1);
+	DCCItemList.AddLoco(&EngineShed::Current);
+
+	EngineShed::Current.SetDccId(46);
+	EngineShed::Current.SetName("BB66000");
+	EngineShed::Current.SetSteps(128);
+	EngineShed::Current.Functions[0].SetDccId(0);
+	EngineShed::Current.Functions[1].SetDccId(255);
+	DCCItemList.AddLoco(&EngineShed::Current);
+
+	EngineShed::Current.SetDccId(48);
+	EngineShed::Current.SetName("ALCO S4");
+	EngineShed::Current.SetSteps(128);
+	EngineShed::Current.Functions[0].SetDccId(0);
+	EngineShed::Current.Functions[1].SetDccId(1);
+	DCCItemList.AddLoco(&EngineShed::Current);
+#endif
+	EngineShed::RebuildLocos();
 }

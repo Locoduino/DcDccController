@@ -18,7 +18,7 @@ For an accessory, there is a byte for a type, and another one for the delay.
 The loco id is in reality the address of the starting byte of the loco in the EEPROM !
 
 Loco:		L   ID     NAME 	   STEPS
-			 OWNER			LONGADDRESS 
+			 OWNER			 
 			_ _ __ ____________ _ _
 
 Function	F   ID     NAME	  TYPE
@@ -40,13 +40,13 @@ Accessory	A   ID     NAME	   DELAY
 
 DCCItemListClass DCCItemListClass::DCCItemListInstance;
 
-void DCCItemListClass::AddLoco(Locomotive *outpNewLoco)
+byte DCCItemListClass::AddLoco(Locomotive *outpNewLoco)
 {
 	byte slotLoco = GetFirstFreeSlot();
 
 	// no more place !
 	if (slotLoco == 255)
-		return;
+		return 255;
 
 	int pos = SaveItemPrefix(slotLoco, LOCOMOTIVE_TYPE, EEPROMLIST_EMPTY_OWNER);
 	outpNewLoco->Save(pos);
@@ -57,7 +57,7 @@ void DCCItemListClass::AddLoco(Locomotive *outpNewLoco)
 
 		// no more place !
 		if (slotLoco == 255)
-			return;
+			return 255;
 
 		int pos = SaveItemPrefix(slot, FUNCTION_TYPE, slotLoco);
 		outpNewLoco->Functions[i].Save(pos);
@@ -68,21 +68,26 @@ void DCCItemListClass::AddLoco(Locomotive *outpNewLoco)
 #ifdef DDC_DEBUG_MODE
 	Serial.println(F("Loco created !"));
 #endif
+
+	return slotLoco;
 }
 
-void DCCItemListClass::FreeLoco(Locomotive *outpLoco)
+void DCCItemListClass::FreeLoco(byte inSlot)
 {
-	byte slotLoco = outpLoco->GetSlotNumber();
-
 	// not yet saved !
-	if (slotLoco == 255)
+	if (inSlot == 255)
 		return;
 
-	FreeItem(slotLoco);
+	FreeItem(inSlot);
 
 #ifdef DDC_DEBUG_MODE
 	Serial.println(F("Loco Deleted !"));
 #endif
+}
+
+void DCCItemListClass::FreeLoco(Locomotive *outpLoco)
+{
+	FreeLoco(outpLoco->GetSlotNumber());
 }
 
 void DCCItemListClass::UpdateLoco(Locomotive *outpLoco)
@@ -139,16 +144,16 @@ void DCCItemListClass::GetLoco(byte inSlotNumber, Locomotive *outpLoco)
 #ifdef DDC_DEBUG_MODE
 void DCCItemListClass::printList(byte inNumberMax)
 {
-	int pos = StartListPos;
+	int pos = startListPos;
 	byte found = 0;
 
-	for (; pos < EEPROM.length(); pos += ItemSize)
+	for (; pos < EEPROM.length(); pos += itemSize)
 	{
 		if (GetSlotFromPos(pos) > inNumberMax)
 			break;
 
 		Serial.print(GetSlotFromPos(pos));
-		byte type = EEPROMextent.read(pos);
+		byte type = EEPROMextent.readByte(pos);
 		Serial.print(F(" :  type="));
 		Serial.print(type);
 		if (type == 0)
@@ -156,7 +161,7 @@ void DCCItemListClass::printList(byte inNumberMax)
 			Serial.println(F("  free slot"));
 			continue;
 		}
-		byte owner = EEPROMextent.read(pos + 1);
+		byte owner = EEPROMextent.readByte(pos + 1);
 		Serial.print(F(" Owner="));
 		Serial.print(owner);
 		int dccId;

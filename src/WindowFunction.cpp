@@ -17,7 +17,7 @@ void WindowFunction::Event(byte inEventType, LcdUi *inpLcd)
 	if (this->state == STATE_START)
 	{
 		inpLcd->GetScreen()->clear();
-		inpLcd->GetScreen()->GetString(STR_FUNCTION);
+		inpLcd->GetScreen()->DisplayHeader(this->firstLine);
 		inpLcd->GetScreen()->DisplayText(LcdScreen::buffer, 0, 0);
 		int len = strlen(LcdScreen::buffer);
 		inpLcd->GetScreen()->BuildString(this->GetWindowId() - STR_FUNCTIONID1, LcdScreen::buffer);

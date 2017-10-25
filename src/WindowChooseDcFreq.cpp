@@ -12,7 +12,7 @@ byte WindowChooseDcFreq::GetChoiceTextNumber() const
 	return NB_PWM_FREQ_11_3;
 }
 
-char *WindowChooseDcFreq::GetChoiceTextValue(byte indexValue) const
+char *WindowChooseDcFreq::GetChoiceTextValue(byte indexValue, LcdScreen *apScreen) const
 {
 	ControlerDc::BuildFreqIndexString(indexValue);
 

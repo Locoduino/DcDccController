@@ -17,10 +17,11 @@ class Handle;
 
 #include "WindowChooseDcFreq.hpp"
 #include "WindowLocoControl.hpp"
-#include "WindowFunction.hpp"
+#include "WindowFunctions.hpp"
 #include "WindowCv.hpp"
 #ifndef NANOCONTROLER
 #include "WindowChooseLoco.hpp"
+#include "WindowChooseSlot.hpp"
 #endif
 //-------------------------------------------------------------------
 
@@ -34,68 +35,136 @@ class Handle
 
 #ifndef NANOCONTROLER
 		/*
-		Splash
-		Config							Choice
-		Nb digits					EditInt 2-4
-		Back light					YesNo
-		Reset						YesNo
-		LocoControl						WindowLocoControl
-		LocoChange						Choose loco (current is selected)
-		LocoEdit						Choice
-		Edit						Choose loco (current is selected)
-		ID					EditInt	1-127 or 1-10126
-		Address long		YesNo
-		Name				EditText
-		Steps				Choice 14/28/128
-		Function n			Int
-		Function n+1        Int
-		Add
-		ID					EditInt	1-127 or 1-10126
-		Address long		YesNo
-		Name				EditText
-		Steps				Choose 14/28/128
-		Function n			Int
-		Function n+1        Int
-		Remove						Choose loco (current is selected)
-		Confirm				Confirm
+		In Dc :
+		0	Splash
+		1	Start : Confirm dc
+		2		DDC menu				Choice
+		3			Config DDC			Choice
+		4				PWM freq		WindowChooseDcFreq
+		5			LocoControl			WindowLocoControl
+		6	Stop						Interrupt
+
+		In Dcc :
+		0	Splash
+		1	Start : Confirm dcc
+		2		DDC menu				Choice
+		3			Config DDC			Choice
+		4				Reset			Confirm
+		5			LocoControl			WindowLocoControl
+		6			RollingStock		winChoiceRollingStock
+						PowerUp
+		7					winChooseLoco
+						Garage
+		8					winChooseSlotRemove
+		9					winRemoveSlot	Confirm
+						Maintenance	(if only one loco in the stock, and no prog track)
+		10					winChooseSlotMaintain
+		11					winSlotLocoId		EditInt	1-10126
+		12					winSlotLocoName		EditText
+		13					winSlotChoiceSteps	Choice 14/28/128
+		14					winSlotFunctions	EditInt	0-28
+		15					winSlotCV			WindowCv
+		16			EngineShed			winChoiceEngineShed
+						Delivery
+		17					winLocoAddId			EditInt	1-10126
+		18					winLocoAddName			EditText
+		19					winChoiceLocoAddSteps	Choice 14/28/128
+		20					winLocoAddFunctions		EditInt	0-28
+						Deregistration
+		21					winChooseLocoRemove
+		22					winRemoveLoco	Confirm
+						Log book
+		23					winLocoLogId			EditInt	1-10126
+		24					winLocoLogName			EditText
+		25					winChoiceLogSteps		Choice 14/28/128
+		26					winLogFunctions			EditInt	0-28
+		27			Workshop		Choice  (only if a prog track is declared)
+						Send
+		28					winChooseSlotWorkshop
+						Repared
+		29					winRemoveWorkshop	Confirm
+						Repair
+		30					winWSRepairId			EditInt	1-10126
+		31					winWSRepairName			EditText
+		32					winChoiceWSRepairSteps	Choice 14/28/128
+		33					winWSRepairFunctions	EditInt	0-28
+		34					winWSRepairProgramCV	WindowCv
+
+		35	Stop						Interrupt
 		*/
+
+		Choice choiceMain;
+		Choice choiceConfig;
+		Choice choiceRollingStock;
+		Choice choiceEngineShed;
+		Choice choiceWorkshop;
+		Choice choiceStepsRolling;
+		Choice choiceStepsWorkshop;
+		Choice choiceStepsEngineShedAdd;
+		Choice choiceStepsEngineShedLog;
+		bool confirmed;
+		byte locoChosen;
+		byte slotChosen;
+		byte locoWorkshop;
+
+		WindowSequence winLocoInput;
+
+		WindowInt winLocoAddId;
+		WindowText winLocoAddName;
+		WindowChoice winChoiceLocoAddSteps;
+		WindowFunctions winLocoAddFunctions;
 
 		// Master version
 		WindowSplash winSplash;
-		WindowChoice winChoiceMain;	// menu
-		WindowChoice winChoiceConfig;	// config
-		WindowInt winCfgDigit;;
-		WindowChooseDcFreq winDcFreq;
-		WindowConfirm winResetConfig;	// reset config
-		WindowLocoControl winLocoControl; // run
-		WindowChooseLoco winChooseLoco;
-		WindowChoice winChoiceLocoEdit;
-		//Window *pWinChooseLoco = this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOSELECT, this), pChoiceLocoEdit, 0);
-		WindowInt winLocoId;
-		WindowYesNo winLocoEdit;
-		WindowText winLocoName;
-		WindowChoice *winChoiceSteps;
-		WindowFunction winFunction0;
-		WindowFunction winFunction1;
-		WindowFunction winFunction2;
-		WindowFunction winFunction3;
-		WindowFunction winFunction4;
-		WindowFunction winFunction5;
-		WindowFunction winFunction6;
-		WindowFunction winFunction7;
+		WindowConfirm winStart;
+		WindowChoice winChoiceMain;
+			WindowChoice winChoiceConfigDDC;
+				WindowChooseDcFreq winFreq;
+				WindowConfirm winResetConfig;
+			WindowChoice winChoiceEngineShed;
+				// Add
+				//WindowSequence winLocoInput;
+				/*WindowInt winLocoAddId;
+				WindowText winLocoAddName;
+				WindowChoice winChoiceLocoAddSteps;
+				WindowFunctions winLocoAddFunctions;*/
+				// Remove
+				WindowChooseLoco winChooseLocoRemove;
+				WindowConfirm winRemoveLoco;
+				// Edit
+				//WindowSequence winLocoInput;
+				/*WindowInt winLocoLogId;
+				WindowText winLocoLogName;
+				WindowChoice winChoiceLogSteps;
+				WindowFunctions winLogFunctions;*/
+			WindowChoice winChoiceRollingStock;
+				// Add
+				WindowChooseLoco winChooseSlotLoco;
+				// Remove
+				WindowChooseSlot winChooseSlotRemove;
+				WindowConfirm winRemoveSlot;
+				// Maintain
+				WindowChooseSlot winChooseSlotMaintain;
+				//WindowSequence winLocoInput;
+				/*WindowInt winSlotLocoId;
+				WindowText winSlotLocoName;
+				WindowChoice winSlotChoiceSteps;
+				WindowFunctions winSlotFunctions;*/
+			WindowChoice winChoiceWorkshop;
+				// Add
+				WindowChooseSlot winChooseSlotWorkshop;
+				// Remove
+				WindowConfirm winRemoveWorkshop;
+				// Repair
+				//WindowSequence winLocoInput;
+				/*WindowInt winWSRepairId;
+				WindowText winWSRepairName;
+				WindowChoice winChoiceWSRepairSteps;
+				WindowFunctions winWSRepairFunctions;*/
+				WindowCv winWSRepairProgramCV;
 
-		this->pUi->AddWindow(pWinLocoId, pChoiceLocoEdit, 1);
-		this->pUi->AddWindow(pWinLocoAddress, pChoiceLocoEdit, 1);
-		this->pUi->AddWindow(pWinLocoName, pChoiceLocoEdit, 1);
-		this->pUi->AddWindow(pChoiceSteps, pChoiceLocoEdit, 1);
-		for (int i = 0; i < Locomotive::FunctionNumber; i++)
-			this->pUi->AddWindow(new WindowFunction(STR_FUNCTIONID, i), pChoiceLocoEdit, 1);
-		this->pUi->AddWindow(new WindowChooseLoco(STR_LOCOREMOVE, this), pChoiceLocoEdit, 2);
-		this->pUi->AddWindow(new WindowConfirm(STR_LOCOREMOVE, STR_CONFIRM), pChoiceLocoEdit, 2);
-
-		this->windowInterruptDcDcc = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_DCDCC, STR_DCDCC2))); // Dc/Dcc mode change
-		this->windowInterruptEmergency = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterrupt(STR_STOP, STR_STOP2))); // Emergency stop
-		this->windowInterruptSaveLoco = this->pUi->GetWindowIndex(this->pUi->AddWindow(new WindowInterruptConfirm(STR_SAVELOCO, STR_CONFIRM))); // Save the loco after modif
+			WindowCv winSlotCV;
+			WindowLocoControl winLocoControl; // run
 #else
 		/*
 		In Dc :
@@ -110,19 +179,14 @@ class Handle
 		In Dcc :
 		0	Splash
 		1	Start : Confirm dcc
-		2		Mode Choice				Choice
+		2		DDC menu				Choice
 		3			Config DDC			Choice
-		4				Nb digits		EditInt 2-4
-		5				Reset			Confirm
-		6			Loco Edit			Choice
-		7				ID				EditInt	1-127 or 1-10126
-		8				Address long	YesNo
-		9				Steps			Choice 14/28/128
-		10				Function n		EditInt	1-127 or 1-10126
-		11				Function n+1	EditInt	1-127 or 1-10126
-		12				Modify Cv		WindowCv
-		13			LocoControl			WindowLocoControl
-		14	Stop						Interrupt
+		4				ID				EditInt	1-10126
+		5				Steps			Choice 14/28/128
+		6				Modify Cv		WindowCv
+		7				Functions		EditInt	0-28
+		8			LocoControl			WindowLocoControl
+		9	Stop						Interrupt
 		*/
 
 		Choice choiceMain;
@@ -136,32 +200,24 @@ class Handle
 		WindowChoice winChoiceConfigDDC;
 		WindowChooseDcFreq winFreq;
 		WindowInt winLocoId;
-		WindowYesNo winLongAddress;
 		WindowChoice winChoiceSteps;
-		WindowFunction winFunction1;
-		WindowFunction winFunction2;
+		WindowFunctions winFunctions;
 		WindowCv winProgramCV;
 		WindowLocoControl winLocoControl;
+#endif
 
 		WindowInterrupt windowInterruptEmergency;
-#endif
-	
+		int addressFunction[FUNCTION_NUMBER];
+
 		LcdUi *pUi;
 
 		// Handle configuration
 		int MoreLessIncrement;
-		int addressFunction0;
-		int addressFunction1;
 
 	private:
 		// Handle interactive situation
+		// In Mega version, because each handle moves its loco, RollingStock::Current cannot by used...
 		Locomotive controled;
-#ifdef NANOCONTROLER
-#define edited	controled
-#else
-		Locomotive edited;
-#endif
-		//FunctionHandle FunctionHandleList[2];
 
 	public:
 		Handle();
@@ -172,13 +228,10 @@ class Handle
 		void StartContent();
 		void Clear();
 
-		//void AddFunction(FunctionHandle *);
-		//FunctionHandle *GetFunction(byte inFunctionNumber);
-
 		inline LcdUi *GetUI() const { return this->pUi; }
+		void SetControledLocomotive(byte inRollingStockSlot);
 		void SetControledLocomotive(Locomotive &Locomotive);
 		inline const Locomotive &GetControledLocomotive() const { return this->controled; }
-		inline const Locomotive &GetEditedLocomotive() const { return this->edited; }
 
 		inline bool IsLeftDir() const { return this->controled.GetDirectionToLeft(); }
 		inline bool IsRightDir() const { return !IsLeftDir(); }

@@ -133,6 +133,6 @@ void WindowCv::Event(byte inEventType, LcdUi *inpLcd)
 void WindowCv::printWindow()
 {
 	printWindowHeader(F("Window Cv"));
-	Serial.print(F(" / minIntValue: "));
+	Serial.println("");
 }
 #endif

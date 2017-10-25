@@ -19,8 +19,9 @@ public:
 
 	static DCCItemListClass DCCItemListInstance;
 
-	void AddLoco(Locomotive *outpNewLoco);
+	byte AddLoco(Locomotive *outpNewLoco);
 	void FreeLoco(Locomotive *outpNewLoco);
+	void FreeLoco(byte inSlotNumber);
 	void UpdateLoco(Locomotive *outpNewLoco);
 	void GetLoco(byte inSlotNumber, Locomotive *outpLoco);
 

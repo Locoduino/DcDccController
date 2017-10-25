@@ -36,7 +36,6 @@ Locomotive::Locomotive(int inDccId, uint8_t inAdressKind, char *inName, uint8_t 
 {
 	this->SlotNumber = 255;
 	this->DccId = inDccId;
-	this->addressKind = inAdressKind;
 #ifndef NANOCONTROLER
 	STRCPY(this->Name, inName);
 #endif
@@ -67,7 +66,6 @@ void Locomotive::Copy(Locomotive &inLocomotive)
 {
 	this->SlotNumber = inLocomotive.SlotNumber;
 	this->DccId = inLocomotive.DccId;
-	this->addressKind = inLocomotive.addressKind;
 #ifndef NANOCONTROLER
 	STRCPY(this->Name, inLocomotive.Name);
 #endif
@@ -81,11 +79,10 @@ void Locomotive::Load(int inStartPos)
 {
 	inStartPos += EEPROMextent.readAnything(inStartPos, this->DccId);
 #ifndef NANOCONTROLER
-	EEPROMextent.readString(inStartPos, this->Name, 12);
-	inStartPos += 12;
+	EEPROMextent.readString(inStartPos, this->Name, DCC_LOCONAME_LENGTH);
+	inStartPos += DCC_LOCONAME_LENGTH;
 #endif
-	this->addressKind = EEPROMextent.read(inStartPos++);
-	this->steps = EEPROMextent.read(inStartPos++);
+	this->steps = EEPROMextent.readByte(inStartPos++);
 
 	if (this->DccId == 0)
 		this->Clear();
@@ -94,9 +91,9 @@ void Locomotive::Load(int inStartPos)
 #ifndef NANOCONTROLER
 void Locomotive::LoadName(int inStartPos, char *outpName)
 {
-	uint16_t dccId;
+	int dccId;
 	inStartPos += EEPROMextent.readAnything(inStartPos, dccId);
-	EEPROMextent.readString(inStartPos, outpName, 12);
+	EEPROMextent.readString(inStartPos, outpName, DCC_LOCONAME_LENGTH);
 }
 #endif
 
@@ -105,10 +102,9 @@ void Locomotive::Save(int inStartPos)
 	inStartPos += EEPROMextent.updateAnything(inStartPos, this->DccId);
 #ifndef NANOCONTROLER
 	EEPROMextent.updateString(inStartPos, this->Name);
-	inStartPos += 12;
+	inStartPos += DCC_LOCONAME_LENGTH;
 #endif
-	EEPROMextent.write(inStartPos++, this->addressKind);
-	EEPROMextent.write(inStartPos, this->steps);
+	EEPROMextent.writeByte(inStartPos, this->steps);
 }
 
 void Locomotive::Clear()
@@ -117,10 +113,29 @@ void Locomotive::Clear()
 
 	this->DccId = 3;
 	this->steps = 128;
-	this->addressKind = 0;
 #ifndef NANOCONTROLER
 	this->Name[0] = 0;
 #endif
 	this->directionToLeft = true;
 	this->ClearFunctions();
 }
+
+#ifdef DDC_DEBUG_MODE
+void Locomotive::print()
+{
+	Serial.print("Loco Id ");
+	Serial.print(this->DccId);
+	Serial.print(" / Steps ");
+	Serial.print(this->steps);
+
+	for (int f = 0; f < FUNCTION_NUMBER; f++)
+	{
+		Serial.print(" / F");
+		Serial.print(f);
+		Serial.print(" = ");
+		Serial.print(this->Functions[f].DccIdFunction);
+	}
+
+	Serial.println("");
+}
+#endif

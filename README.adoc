@@ -1,3 +1,5 @@
+= WARNING: This library is still in development. Do not use it until the first official release !
+
 = Dc Dcc controller Library for Arduino =
 
 This library is made to build a Dc / Dcc controller on Arduino.
